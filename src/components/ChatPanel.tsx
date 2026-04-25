@@ -46,21 +46,10 @@ function parseQuery(raw: string, knownStates: string[]): ParsedQuery {
   return parsed;
 }
 
-interface RecLine {
-  index: number;
-  name: string;
-  city: string;
-  state: string;
-  trust_score: number;
-  capabilityLabel: string;
-  capability: string;
-  warning: string;
-  reason: string;
-}
-
 interface BotMessage {
   text: string;
-  recommendations?: RecLine[];
+  facilities?: Facility[];
+  selectedNeed?: MedicalNeed;
 }
 
 type ChatMessage =
