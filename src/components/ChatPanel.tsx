@@ -161,7 +161,10 @@ function answer(query: string): BotMessage {
     const need = parsed.need ?? "Emergency Surgery";
     let list = FACILITIES;
     if (parsed.state) list = list.filter((f) => f.state === parsed.state);
-    if (parsed.need) list = list.filter((f) => facilityMatchesNeed(f, parsed.need));
+    if (parsed.need) {
+      const n = parsed.need;
+      list = list.filter((f) => facilityMatchesNeed(f, n));
+    }
     list = [...list].sort((a, b) => b.trustScore - a.trustScore);
 
     const trusted = list.filter((f) => f.trustScore >= 70).slice(0, 3);
