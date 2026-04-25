@@ -61,7 +61,7 @@ export const Route = createFileRoute("/api/medical-deserts")({
             SUM(CASE WHEN icu_capability = 'High' THEN 1 ELSE 0 END) AS high_icu_facilities,
             SUM(CASE WHEN dialysis_capability IN ('High','Medium') THEN 1 ELSE 0 END) AS dialysis_facilities,
             AVG(trust_score) AS avg_trust_score,
-            SUM(CASE WHEN risk_warning IS NOT NULL AND TRIM(risk_warning) <> '' THEN 1 ELSE 0 END) AS warning_facilities
+            SUM(CASE WHEN trust_score < 60 THEN 1 ELSE 0 END) AS warning_facilities
           FROM ${TABLE}
           WHERE address_stateOrRegion IS NOT NULL
             AND address_city IS NOT NULL
