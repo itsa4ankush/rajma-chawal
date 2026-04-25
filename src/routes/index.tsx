@@ -16,6 +16,7 @@ import {
   FACILITIES,
   INDIAN_STATES,
   MEDICAL_NEEDS,
+  facilityMatchesNeed,
   type MedicalNeed,
 } from "@/lib/facilities";
 
@@ -46,11 +47,11 @@ function Index() {
 
   const results = useMemo(() => {
     let list = FACILITIES;
-    if (state) list = list.filter((f) => f.state.toLowerCase() === state.toLowerCase());
+    if (state) list = list.filter((f) => f.state === state);
     if (city.trim())
       list = list.filter((f) => f.city.toLowerCase().includes(city.trim().toLowerCase()));
-    if (need) list = list.filter((f) => f.needs.includes(need));
-    return list.sort((a, b) => b.trustScore - a.trustScore);
+    if (need) list = list.filter((f) => facilityMatchesNeed(f, need));
+    return [...list].sort((a, b) => b.trustScore - a.trustScore);
   }, [state, city, need]);
 
   return (
@@ -157,7 +158,7 @@ function Index() {
           ) : (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {results.map((f) => (
-                <FacilityCard key={f.id} facility={f} />
+                <FacilityCard key={f.id} facility={f} selectedNeed={need} />
               ))}
             </div>
           )}
