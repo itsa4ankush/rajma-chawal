@@ -80,9 +80,10 @@ export const Route = createFileRoute("/api/location-options")({
           const rows = data.result?.data_array ?? [];
           const citiesByState: Record<string, string[]> = {};
           for (const row of rows) {
-            const stateName = (row[0] ?? "").toString().trim();
+            const rawState = (row[0] ?? "").toString().trim();
             const cityName = (row[1] ?? "").toString().trim();
-            if (!stateName || !cityName) continue;
+            const stateName = getCanonicalState(rawState);
+            if (!stateName || !isValidLocationCity(cityName)) continue;
             if (!citiesByState[stateName]) citiesByState[stateName] = [];
             if (!citiesByState[stateName].includes(cityName)) {
               citiesByState[stateName].push(cityName);
