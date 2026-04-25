@@ -10,11 +10,11 @@ const isHighOrMedium = (c: Facility[keyof Facility]) => c === "High" || c === "M
 
 function computeStats() {
   const total = FACILITIES.length;
-  const highSurgery = FACILITIES.filter((f) => isHigh(f.emergencySurgeryCapability)).length;
-  const highICU = FACILITIES.filter((f) => isHigh(f.icuCapability)).length;
-  const dialysis = FACILITIES.filter((f) => isHighOrMedium(f.dialysisCapability)).length;
+  const highSurgery = FACILITIES.filter((f) => isHigh(f.emergency_surgery_capability)).length;
+  const highICU = FACILITIES.filter((f) => isHigh(f.icu_capability)).length;
+  const dialysis = FACILITIES.filter((f) => isHighOrMedium(f.dialysis_capability)).length;
   const withWarnings = FACILITIES.filter(
-    (f) => f.riskWarning && !/no active warning/i.test(f.riskWarning),
+    (f) => f.risk_warning && !/no active warning/i.test(f.risk_warning),
   ).length;
   return { total, highSurgery, highICU, dialysis, withWarnings };
 }
@@ -34,12 +34,12 @@ interface CityRow {
 function computeCityRows(): CityRow[] {
   const map = new Map<string, CityRow>();
   for (const f of FACILITIES) {
-    const key = `${f.city}|${f.state}`;
+    const key = `${f.address_city}|${f.address_stateOrRegion}`;
     const row =
       map.get(key) ??
       ({
-        city: f.city,
-        state: f.state,
+        city: f.address_city,
+        state: f.address_stateOrRegion,
         totalFacilities: 0,
         highSurgeryFacilities: 0,
         highICUFacilities: 0,
@@ -49,10 +49,10 @@ function computeCityRows(): CityRow[] {
         _trustSum: 0,
       } satisfies CityRow);
     row.totalFacilities += 1;
-    row._trustSum += f.trustScore;
-    if (isHigh(f.emergencySurgeryCapability)) row.highSurgeryFacilities += 1;
-    if (isHigh(f.icuCapability)) row.highICUFacilities += 1;
-    if (isHighOrMedium(f.dialysisCapability)) row.dialysisFacilities += 1;
+    row._trustSum += f.trust_score;
+    if (isHigh(f.emergency_surgery_capability)) row.highSurgeryFacilities += 1;
+    if (isHigh(f.icu_capability)) row.highICUFacilities += 1;
+    if (isHighOrMedium(f.dialysis_capability)) row.dialysisFacilities += 1;
     map.set(key, row);
   }
   for (const row of map.values()) {
