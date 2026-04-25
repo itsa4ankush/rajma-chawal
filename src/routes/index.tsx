@@ -18,7 +18,10 @@ import { PlannerDashboard } from "@/components/PlannerDashboard";
 import { ChatPanel } from "@/components/ChatPanel";
 import { DatabricksStatusCard } from "@/components/DatabricksStatusCard";
 import {
+  FACILITIES,
+  INDIAN_STATES,
   MEDICAL_NEEDS,
+  facilityMatchesNeed,
   type Facility,
   type MedicalNeed,
 } from "@/lib/facilities";
