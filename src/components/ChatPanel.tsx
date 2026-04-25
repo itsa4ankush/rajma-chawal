@@ -290,26 +290,34 @@ export function ChatPanel() {
                   <div className="rounded-2xl rounded-tl-sm bg-muted px-3 py-2 space-y-2">
                     <MarkdownLite text={m.content.text} />
 
-                    {m.content.facilities && (
-                      <ul className="space-y-1.5 pt-1">
-                        {m.content.facilities.map((f) => (
+                    {m.content.recommendations && (
+                      <ol className="space-y-2 pt-1">
+                        {m.content.recommendations.map((r) => (
                           <li
-                            key={f.id}
-                            className="flex items-center justify-between gap-2 rounded-md border border-border bg-card px-2.5 py-1.5 text-xs"
+                            key={`${r.index}-${r.name}`}
+                            className="rounded-md border border-border bg-card px-3 py-2 text-xs leading-relaxed text-foreground/90"
                           >
-                            <div className="min-w-0">
-                              <div className="font-medium text-foreground truncate">{f.name}</div>
-                              <div className="text-muted-foreground truncate">
-                                {f.city}, {f.state}
-                              </div>
-                            </div>
-                            <span className="shrink-0 font-semibold tabular-nums text-foreground">
-                              {f.trustScore}
-                              <span className="text-muted-foreground font-normal">/100</span>
+                            <span className="font-semibold text-foreground">
+                              {r.index}. {r.name}, {r.city}
                             </span>
+                            {" — "}
+                            Trust score{" "}
+                            <span className="font-semibold tabular-nums">
+                              {r.trustScore}/100
+                            </span>
+                            . {r.capabilityLabel} capability:{" "}
+                            <span className="font-medium">{r.capability}</span>.
+                            <div className="mt-1 text-muted-foreground">
+                              <span className="text-warning-foreground">⚠ Warning:</span>{" "}
+                              {r.warning}
+                            </div>
+                            <div className="mt-0.5 text-muted-foreground">
+                              <span className="font-medium text-foreground/80">Evidence:</span>{" "}
+                              {r.evidence}
+                            </div>
                           </li>
                         ))}
-                      </ul>
+                      </ol>
                     )}
 
                     {m.content.cities && (
