@@ -280,7 +280,16 @@ function Index() {
             </section>
 
             <section aria-label="Results" className="mt-6 sm:mt-8">
-              <div className="mb-3 flex items-baseline justify-between">
+              {locationsSource === "demo" && (
+                <Alert className="mb-3 border-warning/40 bg-warning/10">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Live Databricks connection is unavailable.</AlertTitle>
+                  <AlertDescription>
+                    Showing demo state and city options so you can keep exploring.
+                  </AlertDescription>
+                </Alert>
+              )}
+              <div className="mb-3 flex items-baseline justify-between gap-3">
                 <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                   {loading
                     ? "Searching facilities..."
@@ -288,8 +297,39 @@ function Index() {
                       ? `${results.length} facility${results.length === 1 ? "" : "s"} found`
                       : "Search to see facilities"}
                 </h2>
-                <span className="text-xs text-muted-foreground">Sorted by trust score</span>
+                <div className="flex items-center gap-2">
+                  {dataSource && !loading && (
+                    <span
+                      className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium ${
+                        dataSource === "live"
+                          ? "border-success/30 bg-success/10 text-success"
+                          : "border-warning/40 bg-warning/15 text-warning-foreground"
+                      }`}
+                    >
+                      {dataSource === "live" ? (
+                        <>
+                          <Database className="h-3 w-3" /> Live Databricks data
+                        </>
+                      ) : (
+                        <>
+                          <TestTube2 className="h-3 w-3" /> Demo data
+                        </>
+                      )}
+                    </span>
+                  )}
+                  <span className="text-xs text-muted-foreground">Sorted by trust score</span>
+                </div>
               </div>
+
+              {dataSource === "demo" && !loading && results && results.length > 0 && (
+                <Alert className="mb-3 border-warning/40 bg-warning/10">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Live Databricks connection is unavailable.</AlertTitle>
+                  <AlertDescription>
+                    Showing demo facility data so the app keeps working. Reconnect Databricks for live results.
+                  </AlertDescription>
+                </Alert>
+              )}
 
               {error ? (
                 <Alert variant="destructive">
