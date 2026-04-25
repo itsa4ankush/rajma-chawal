@@ -1,12 +1,20 @@
-import { AlertTriangle, MapPin, ShieldCheck, Sparkles } from "lucide-react";
+import { Ambulance, AlertTriangle, Droplet, MapPin, ShieldCheck, Sparkles, Wind } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import type { Capability, Facility } from "@/lib/facilities";
+import type { Capability, Facility, MedicalNeed } from "@/lib/facilities";
 
 const capabilityStyles: Record<Capability, string> = {
   High: "bg-success/10 text-success border-success/20",
   Medium: "bg-warning/15 text-warning-foreground border-warning/30",
   Low: "bg-destructive/10 text-destructive border-destructive/20",
+};
+
+const NEED_TO_FIELD: Record<MedicalNeed, keyof Facility> = {
+  "Emergency Surgery": "emergencySurgeryCapability",
+  "ICU + Oxygen": "icuCapability",
+  Dialysis: "dialysisCapability",
+  "Neonatal Care": "neonatalCapability",
+  "Trauma Care": "traumaCapability",
 };
 
 function trustColor(score: number) {
@@ -15,8 +23,17 @@ function trustColor(score: number) {
   return "text-destructive";
 }
 
-export function FacilityCard({ facility }: { facility: Facility }) {
-  const noWarning = /no active warning/i.test(facility.warning);
+export function FacilityCard({
+  facility,
+  selectedNeed,
+}: {
+  facility: Facility;
+  selectedNeed?: MedicalNeed | "";
+}) {
+  const capability = (selectedNeed
+    ? (facility[NEED_TO_FIELD[selectedNeed]] as Capability)
+    : facility.emergencySurgeryCapability) as Capability;
+  const capabilityLabel = selectedNeed ?? "Emergency Surgery";
 
   return (
     <Card className="overflow-hidden border-border/70 transition-shadow hover:shadow-md">
@@ -29,7 +46,7 @@ export function FacilityCard({ facility }: { facility: Facility }) {
             <div className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
               <MapPin className="h-3.5 w-3.5 shrink-0" />
               <span className="truncate">
-                {facility.city}, {facility.state} · PIN {facility.pin}
+                {facility.city}, {facility.state} · PIN {facility.pinCode}
               </span>
             </div>
           </div>
@@ -47,42 +64,41 @@ export function FacilityCard({ facility }: { facility: Facility }) {
 
         <div className="mt-4 flex flex-wrap items-center gap-2">
           <span
-            className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${capabilityStyles[facility.capability]}`}
+            className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${capabilityStyles[capability]}`}
           >
-            {facility.capability} capability
+            {capability} · {capabilityLabel}
           </span>
-          {facility.needs.slice(0, 2).map((n) => (
-            <span
-              key={n}
-              className="inline-flex items-center rounded-full bg-secondary px-2.5 py-0.5 text-xs text-secondary-foreground"
-            >
-              {n}
+          {facility.hasOxygen && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-xs text-secondary-foreground">
+              <Wind className="h-3 w-3" /> Oxygen
             </span>
-          ))}
+          )}
+          {facility.hasDialysis && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-xs text-secondary-foreground">
+              <Droplet className="h-3 w-3" /> Dialysis
+            </span>
+          )}
+          {facility.hasAmbulance && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-xs text-secondary-foreground">
+              <Ambulance className="h-3 w-3" /> Ambulance
+            </span>
+          )}
         </div>
 
-        <div
-          className={`mt-4 flex items-start gap-2 rounded-lg border p-3 text-xs leading-relaxed ${
-            noWarning
-              ? "border-success/20 bg-success/5 text-success"
-              : "border-warning/30 bg-warning/10 text-foreground"
-          }`}
-        >
+        <div className="mt-4 flex items-start gap-2 rounded-lg border border-warning/30 bg-warning/10 p-3 text-xs leading-relaxed text-foreground">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-          <p>{facility.warning}</p>
+          <p>{facility.riskWarning}</p>
         </div>
 
         <div className="mt-3 flex items-start gap-2 text-sm text-foreground/80">
           <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
           <p>
             <span className="font-medium text-foreground">Why recommended: </span>
-            {facility.whyRecommended}
+            {facility.recommendationReason}
           </p>
         </div>
 
-        <Button className="mt-5 w-full sm:w-auto" variant="default">
-          View Details
-        </Button>
+        <Button className="mt-5 w-full sm:w-auto">View Details</Button>
       </CardContent>
     </Card>
   );
