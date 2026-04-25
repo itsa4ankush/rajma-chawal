@@ -35,11 +35,11 @@ const capabilityStyles: Record<Capability, { badge: string; label: string }> = {
 };
 
 const NEED_TO_FIELD: Record<MedicalNeed, keyof Facility> = {
-  "Emergency Surgery": "emergencySurgeryCapability",
-  "ICU + Oxygen": "icuCapability",
-  Dialysis: "dialysisCapability",
-  "Neonatal Care": "neonatalCapability",
-  "Trauma Care": "traumaCapability",
+  "Emergency Surgery": "emergency_surgery_capability",
+  "ICU + Oxygen": "icu_capability",
+  Dialysis: "dialysis_capability",
+  "Neonatal Care": "neonatal_capability",
+  "Trauma Care": "trauma_capability",
 };
 
 function trustTone(score: number) {
@@ -51,12 +51,12 @@ function trustTone(score: number) {
 type ChecklistItem = { key: keyof Facility; label: string; icon: LucideIcon };
 
 const CHECKLIST: ChecklistItem[] = [
-  { key: "hasOxygen", label: "Oxygen", icon: Wind },
-  { key: "hasICU", label: "ICU", icon: HeartPulse },
-  { key: "hasSurgeon", label: "Surgeon", icon: Stethoscope },
-  { key: "hasAnesthesiologist", label: "Anesthesiologist", icon: Syringe },
-  { key: "hasDialysis", label: "Dialysis", icon: Droplet },
-  { key: "hasAmbulance", label: "Ambulance", icon: Ambulance },
+  { key: "has_oxygen", label: "Oxygen", icon: Wind },
+  { key: "has_icu", label: "ICU", icon: HeartPulse },
+  { key: "has_surgeon", label: "Surgeon", icon: Stethoscope },
+  { key: "has_anesthesiologist", label: "Anesthesiologist", icon: Syringe },
+  { key: "has_dialysis", label: "Dialysis", icon: Droplet },
+  { key: "has_ambulance", label: "Ambulance", icon: Ambulance },
 ];
 
 type EvidenceLine = { text: string; tone: "positive" | "neutral" | "negative" };
@@ -64,12 +64,12 @@ type EvidenceLine = { text: string; tone: "positive" | "neutral" | "negative" };
 function buildEvidence(f: Facility): EvidenceLine[] {
   const lines: EvidenceLine[] = [];
 
-  if (f.hasOxygen && f.hasSurgeon) {
+  if (f.has_oxygen && f.has_surgeon) {
     lines.push({
       text: "Facility report mentions oxygen support and surgical services.",
       tone: "positive",
     });
-  } else if (f.hasOxygen) {
+  } else if (f.has_oxygen) {
     lines.push({
       text: "Facility report mentions oxygen support; surgical services not clearly listed.",
       tone: "neutral",
@@ -81,12 +81,12 @@ function buildEvidence(f: Facility): EvidenceLine[] {
     });
   }
 
-  if (f.hasSurgeon && !f.hasAnesthesiologist) {
+  if (f.has_surgeon && !f.has_anesthesiologist) {
     lines.push({
       text: "Staffing information includes general surgeon but no anesthesiologist.",
       tone: "negative",
     });
-  } else if (f.hasSurgeon && f.hasAnesthesiologist) {
+  } else if (f.has_surgeon && f.has_anesthesiologist) {
     lines.push({
       text: "Staffing roster lists both surgeon and anesthesiologist on call.",
       tone: "positive",
@@ -98,9 +98,9 @@ function buildEvidence(f: Facility): EvidenceLine[] {
     });
   }
 
-  if (f.hasICU && f.icuCapability !== "Low") {
+  if (f.has_icu && f.icu_capability !== "Low") {
     lines.push({
-      text: `ICU bed availability cross-verified — capability rated ${f.icuCapability}.`,
+      text: `ICU bed availability cross-verified — capability rated ${f.icu_capability}.`,
       tone: "positive",
     });
   } else {
@@ -110,7 +110,7 @@ function buildEvidence(f: Facility): EvidenceLine[] {
     });
   }
 
-  if (f.hasAmbulance) {
+  if (f.has_ambulance) {
     lines.push({
       text: "Ambulance service listed in district health directory.",
       tone: "positive",
@@ -124,14 +124,14 @@ function buildEvidence(f: Facility): EvidenceLine[] {
 
   lines.push({
     text:
-      f.trustScore >= 80
+      f.trust_score >= 80
         ? "24/7 emergency availability confirmed across multiple data sources."
         : "24/7 emergency availability is not confirmed.",
-    tone: f.trustScore >= 80 ? "positive" : "negative",
+    tone: f.trust_score >= 80 ? "positive" : "negative",
   });
 
   lines.push({
-    text: `Trust score derived from ${f.trustScore < 70 ? "incomplete" : "cross-checked"} public health records, capability claims, and staffing rosters.`,
+    text: `Trust score derived from ${f.trust_score < 70 ? "incomplete" : "cross-checked"} public health records, capability claims, and staffing rosters.`,
     tone: "neutral",
   });
 
@@ -177,12 +177,12 @@ function FacilityDetailsDialog({
 }) {
   const capability = (selectedNeed
     ? (facility[NEED_TO_FIELD[selectedNeed]] as Capability)
-    : facility.emergencySurgeryCapability) as Capability;
+    : facility.emergency_surgery_capability) as Capability;
   const capabilityLabel = selectedNeed ?? "Emergency Surgery";
   const capStyle = capabilityStyles[capability];
-  const tone = trustTone(facility.trustScore);
+  const tone = trustTone(facility.trust_score);
   const evidence = buildEvidence(facility);
-  const reportId = `CMI-${facility.id.toUpperCase()}-${facility.pinCode}`;
+  const reportId = `CMI-${facility.id.toUpperCase()}-${facility.address_zipOrPostcode}`;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -206,7 +206,7 @@ function FacilityDetailsDialog({
           </DialogTitle>
           <div className="flex items-center gap-1 text-sm text-muted-foreground">
             <MapPin className="h-3.5 w-3.5" />
-            {facility.city}, {facility.state} · PIN {facility.pinCode}
+            {facility.address_city}, {facility.address_stateOrRegion} · PIN {facility.address_zipOrPostcode}
           </div>
         </DialogHeader>
 
@@ -219,14 +219,14 @@ function FacilityDetailsDialog({
                   <ShieldCheck className="h-3.5 w-3.5" /> Trust score
                 </span>
                 <span className={`font-semibold tabular-nums ${tone.text}`}>
-                  {facility.trustScore}
+                  {facility.trust_score}
                   <span className="text-muted-foreground font-normal">/100</span>
                 </span>
               </div>
               <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
                 <div
                   className={`h-full rounded-full ${tone.bar}`}
-                  style={{ width: `${facility.trustScore}%` }}
+                  style={{ width: `${facility.trust_score}%` }}
                 />
               </div>
             </section>
@@ -250,7 +250,7 @@ function FacilityDetailsDialog({
               <AlertTriangle className="h-3.5 w-3.5" />
               Risk warning
             </div>
-            <p className="text-sm leading-relaxed text-foreground/90">{facility.riskWarning}</p>
+            <p className="text-sm leading-relaxed text-foreground/90">{facility.risk_warning}</p>
           </section>
 
           {/* Recommendation */}
@@ -260,7 +260,7 @@ function FacilityDetailsDialog({
               Why recommended
             </div>
             <p className="text-sm leading-relaxed text-foreground/90">
-              {facility.recommendationReason}
+              {facility.recommendation_reason}
             </p>
           </section>
 
@@ -325,10 +325,10 @@ export function FacilityCard({
   const [open, setOpen] = useState(false);
   const capability = (selectedNeed
     ? (facility[NEED_TO_FIELD[selectedNeed]] as Capability)
-    : facility.emergencySurgeryCapability) as Capability;
+    : facility.emergency_surgery_capability) as Capability;
   const capabilityLabel = selectedNeed ?? "Emergency Surgery";
   const capStyle = capabilityStyles[capability];
-  const tone = trustTone(facility.trustScore);
+  const tone = trustTone(facility.trust_score);
 
   return (
     <>
@@ -342,7 +342,7 @@ export function FacilityCard({
               <div className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
                 <MapPin className="h-3.5 w-3.5 shrink-0" />
                 <span className="truncate">
-                  {facility.city}, {facility.state} · PIN {facility.pinCode}
+                  {facility.address_city}, {facility.address_stateOrRegion} · PIN {facility.address_zipOrPostcode}
                 </span>
               </div>
             </div>
@@ -362,15 +362,15 @@ export function FacilityCard({
                 Trust score
               </span>
               <span className={`font-semibold tabular-nums ${tone.text}`}>
-                {facility.trustScore}
+                {facility.trust_score}
                 <span className="text-muted-foreground font-normal">/100</span>
               </span>
             </div>
             <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
               <div
                 className={`h-full rounded-full ${tone.bar} transition-all`}
-                style={{ width: `${facility.trustScore}%` }}
-                aria-label={`Trust score ${facility.trustScore} out of 100`}
+                style={{ width: `${facility.trust_score}%` }}
+                aria-label={`Trust score ${facility.trust_score} out of 100`}
               />
             </div>
           </div>
@@ -380,7 +380,7 @@ export function FacilityCard({
               <AlertTriangle className="h-3.5 w-3.5" />
               Risk warning
             </div>
-            <p className="text-sm leading-relaxed text-foreground/90">{facility.riskWarning}</p>
+            <p className="text-sm leading-relaxed text-foreground/90">{facility.risk_warning}</p>
           </div>
 
           <div className="mt-3 rounded-lg border border-accent/20 bg-accent/5 p-3">
@@ -389,7 +389,7 @@ export function FacilityCard({
               Why recommended
             </div>
             <p className="text-sm leading-relaxed text-foreground/90">
-              {facility.recommendationReason}
+              {facility.recommendation_reason}
             </p>
           </div>
 
