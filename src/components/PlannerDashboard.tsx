@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { AlertCircle, AlertTriangle, Building2, Droplet, HeartPulse, Loader2, Scissors } from "lucide-react";
+import { AlertCircle, AlertTriangle, Building2, Database, Droplet, HeartPulse, Loader2, Scissors, TestTube2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { FACILITIES, type Facility } from "@/lib/facilities";
 
 type RiskLevel = "High" | "Medium" | "Low";
 
@@ -59,10 +60,54 @@ function StatCard({
   );
 }
 
+function buildDemoCities(facilities: Facility[]): DesertCity[] {
+  const map = new Map<string, DesertCity & { _trustSum: number }>();
+  for (const f of facilities) {
+    const key = `${f.address_city}|${f.address_stateOrRegion}`;
+    const r =
+      map.get(key) ??
+      {
+        state: f.address_stateOrRegion,
+        city: f.address_city,
+        total_facilities: 0,
+        high_surgery_facilities: 0,
+        high_icu_facilities: 0,
+        dialysis_facilities: 0,
+        avg_trust_score: 0,
+        warning_facilities: 0,
+        risk_level: "Low" as RiskLevel,
+        _trustSum: 0,
+      };
+    r.total_facilities += 1;
+    r._trustSum += f.trust_score;
+    if (f.emergency_surgery_capability === "High") r.high_surgery_facilities += 1;
+    if (f.icu_capability === "High") r.high_icu_facilities += 1;
+    if (f.dialysis_capability === "High" || f.dialysis_capability === "Medium")
+      r.dialysis_facilities += 1;
+    if (f.trust_score < 60) r.warning_facilities += 1;
+    map.set(key, r);
+  }
+  const out: DesertCity[] = [];
+  for (const r of map.values()) {
+    r.avg_trust_score = Math.round((r._trustSum / r.total_facilities) * 10) / 10;
+    if (r.high_surgery_facilities === 0 && r.high_icu_facilities === 0) r.risk_level = "High";
+    else if (r.avg_trust_score < 60) r.risk_level = "Medium";
+    else r.risk_level = "Low";
+    const { _trustSum: _, ...rest } = r;
+    out.push(rest);
+  }
+  const rank = { High: 0, Medium: 1, Low: 2 } as const;
+  out.sort(
+    (a, b) =>
+      rank[a.risk_level] - rank[b.risk_level] || a.avg_trust_score - b.avg_trust_score,
+  );
+  return out;
+}
+
 export function PlannerDashboard() {
   const [cities, setCities] = useState<DesertCity[] | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [dataSource, setDataSource] = useState<"live" | "demo">("live");
 
   useEffect(() => {
     let cancelled = false;
@@ -76,12 +121,12 @@ export function PlannerDashboard() {
       .then((data) => {
         if (cancelled) return;
         setCities(data.cities ?? []);
-        setError(null);
+        setDataSource("live");
       })
-      .catch((err) => {
+      .catch(() => {
         if (cancelled) return;
-        setError(err instanceof Error ? err.message : "Failed to load data");
-        setCities(null);
+        setCities(buildDemoCities(FACILITIES));
+        setDataSource("demo");
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -111,16 +156,6 @@ export function PlannerDashboard() {
     );
   }
 
-  if (error) {
-    return (
-      <Alert variant="destructive">
-        <AlertCircle className="h-4 w-4" />
-        <AlertTitle>Could not load planner data</AlertTitle>
-        <AlertDescription>{error}</AlertDescription>
-      </Alert>
-    );
-  }
-
   if (!cities || cities.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center text-sm text-muted-foreground">
@@ -131,6 +166,36 @@ export function PlannerDashboard() {
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center justify-between gap-3">
+        <span
+          className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium ${
+            dataSource === "live"
+              ? "border-success/30 bg-success/10 text-success"
+              : "border-warning/40 bg-warning/15 text-warning-foreground"
+          }`}
+        >
+          {dataSource === "live" ? (
+            <>
+              <Database className="h-3 w-3" /> Live Databricks data
+            </>
+          ) : (
+            <>
+              <TestTube2 className="h-3 w-3" /> Demo data
+            </>
+          )}
+        </span>
+      </div>
+
+      {dataSource === "demo" && (
+        <Alert className="border-warning/40 bg-warning/10">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Live Databricks connection is unavailable.</AlertTitle>
+          <AlertDescription>
+            Showing demo planner data so the dashboard keeps working.
+          </AlertDescription>
+        </Alert>
+      )}
+
       <section
         aria-label="Summary"
         className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5"

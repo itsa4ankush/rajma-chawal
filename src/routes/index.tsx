@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { AlertCircle, Loader2, Search, ShieldCheck, Stethoscope } from "lucide-react";
+import { AlertCircle, Database, Loader2, Search, ShieldCheck, Stethoscope, TestTube2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,7 +18,10 @@ import { PlannerDashboard } from "@/components/PlannerDashboard";
 import { ChatPanel } from "@/components/ChatPanel";
 import { DatabricksStatusCard } from "@/components/DatabricksStatusCard";
 import {
+  FACILITIES,
+  INDIAN_STATES,
   MEDICAL_NEEDS,
+  facilityMatchesNeed,
   type Facility,
   type MedicalNeed,
 } from "@/lib/facilities";
@@ -53,20 +56,47 @@ function Index() {
   const [states, setStates] = useState<string[]>([]);
   const [citiesByState, setCitiesByState] = useState<Record<string, string[]>>({});
   const [locationsLoading, setLocationsLoading] = useState(true);
+  const [dataSource, setDataSource] = useState<"live" | "demo" | null>(null);
+  const [locationsSource, setLocationsSource] = useState<"live" | "demo">("live");
+
+  function buildDemoLocations() {
+    const map: Record<string, string[]> = {};
+    for (const f of FACILITIES) {
+      if (!map[f.address_stateOrRegion]) map[f.address_stateOrRegion] = [];
+      if (!map[f.address_stateOrRegion].includes(f.address_city)) {
+        map[f.address_stateOrRegion].push(f.address_city);
+      }
+    }
+    return {
+      states: Object.keys(map).sort(),
+      citiesByState: map,
+    };
+  }
 
   useEffect(() => {
     let cancelled = false;
     fetch("/api/location-options")
-      .then((r) => r.json())
+      .then(async (r) => {
+        const data = await r.json();
+        if (!r.ok) throw new Error(data?.error || "Request failed");
+        return data;
+      })
       .then((data) => {
         if (cancelled) return;
-        if (Array.isArray(data?.states)) {
+        if (Array.isArray(data?.states) && data.states.length > 0) {
           setStates(data.states);
           setCitiesByState(data.citiesByState ?? {});
+          setLocationsSource("live");
+        } else {
+          throw new Error("Empty location options");
         }
       })
       .catch(() => {
-        /* keep empty; UI will show no options */
+        if (cancelled) return;
+        const demo = buildDemoLocations();
+        setStates(demo.states.length ? demo.states : INDIAN_STATES);
+        setCitiesByState(demo.citiesByState);
+        setLocationsSource("demo");
       })
       .finally(() => {
         if (!cancelled) setLocationsLoading(false);
@@ -77,6 +107,20 @@ function Index() {
   }, []);
 
   const cityOptions = state ? (citiesByState[state] ?? []) : [];
+
+  function runDemoSearch(): Facility[] {
+    let list = FACILITIES;
+    if (state) list = list.filter((f) => f.address_stateOrRegion === state);
+    if (city.trim()) {
+      const q = city.trim().toLowerCase();
+      list = list.filter((f) => f.address_city.toLowerCase().includes(q));
+    }
+    if (need) {
+      const n = need;
+      list = list.filter((f) => facilityMatchesNeed(f, n));
+    }
+    return [...list].sort((a, b) => b.trust_score - a.trust_score);
+  }
 
   async function runSearch() {
     setLoading(true);
@@ -97,9 +141,11 @@ function Index() {
         throw new Error(payload.error || `Request failed (${res.status})`);
       }
       setResults(payload.facilities ?? []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch facilities");
-      setResults(null);
+      setDataSource("live");
+    } catch {
+      // Fallback: live Databricks unavailable → use demo dataset
+      setResults(runDemoSearch());
+      setDataSource("demo");
     } finally {
       setLoading(false);
     }
@@ -234,7 +280,16 @@ function Index() {
             </section>
 
             <section aria-label="Results" className="mt-6 sm:mt-8">
-              <div className="mb-3 flex items-baseline justify-between">
+              {locationsSource === "demo" && (
+                <Alert className="mb-3 border-warning/40 bg-warning/10">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Live Databricks connection is unavailable.</AlertTitle>
+                  <AlertDescription>
+                    Showing demo state and city options so you can keep exploring.
+                  </AlertDescription>
+                </Alert>
+              )}
+              <div className="mb-3 flex items-baseline justify-between gap-3">
                 <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                   {loading
                     ? "Searching facilities..."
@@ -242,8 +297,39 @@ function Index() {
                       ? `${results.length} facility${results.length === 1 ? "" : "s"} found`
                       : "Search to see facilities"}
                 </h2>
-                <span className="text-xs text-muted-foreground">Sorted by trust score</span>
+                <div className="flex items-center gap-2">
+                  {dataSource && !loading && (
+                    <span
+                      className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium ${
+                        dataSource === "live"
+                          ? "border-success/30 bg-success/10 text-success"
+                          : "border-warning/40 bg-warning/15 text-warning-foreground"
+                      }`}
+                    >
+                      {dataSource === "live" ? (
+                        <>
+                          <Database className="h-3 w-3" /> Live Databricks data
+                        </>
+                      ) : (
+                        <>
+                          <TestTube2 className="h-3 w-3" /> Demo data
+                        </>
+                      )}
+                    </span>
+                  )}
+                  <span className="text-xs text-muted-foreground">Sorted by trust score</span>
+                </div>
               </div>
+
+              {dataSource === "demo" && !loading && results && results.length > 0 && (
+                <Alert className="mb-3 border-warning/40 bg-warning/10">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Live Databricks connection is unavailable.</AlertTitle>
+                  <AlertDescription>
+                    Showing demo facility data so the app keeps working. Reconnect Databricks for live results.
+                  </AlertDescription>
+                </Alert>
+              )}
 
               {error ? (
                 <Alert variant="destructive">
