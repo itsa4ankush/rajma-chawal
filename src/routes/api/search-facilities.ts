@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type { Facility, MedicalNeed } from "@/lib/facilities";
+import { getStateVariants } from "@/lib/location-normalization";
 
 const GATEWAY_URL = "https://connector-gateway.lovable.dev/databricks";
 const TABLE = "workspace.default.healthcare_facility_intelligence";
@@ -144,7 +145,8 @@ export const Route = createFileRoute("/api/search-facilities")({
 
         const where: string[] = [];
         if (state?.trim()) {
-          where.push(`address_stateOrRegion = '${escapeSqlString(state.trim())}'`);
+          const variants = getStateVariants(state.trim()).map(escapeSqlString);
+          where.push(`address_stateOrRegion IN ('${variants.join("', '")}')`);
         }
         if (city?.trim()) {
           where.push(
