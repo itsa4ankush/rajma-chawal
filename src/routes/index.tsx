@@ -50,11 +50,11 @@ function Index() {
 
   const results = useMemo(() => {
     let list = FACILITIES;
-    if (state) list = list.filter((f) => f.state === state);
+    if (state) list = list.filter((f) => f.address_stateOrRegion === state);
     if (city.trim())
-      list = list.filter((f) => f.city.toLowerCase().includes(city.trim().toLowerCase()));
+      list = list.filter((f) => f.address_city.toLowerCase().includes(city.trim().toLowerCase()));
     if (need) list = list.filter((f) => facilityMatchesNeed(f, need));
-    return [...list].sort((a, b) => b.trustScore - a.trustScore);
+    return [...list].sort((a, b) => b.trust_score - a.trust_score);
   }, [state, city, need]);
 
   return (
