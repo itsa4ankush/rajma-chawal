@@ -79,92 +79,105 @@ function Index() {
       </header>
 
       <main className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-8">
-        <section
-          aria-label="Search facilities"
-          className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm sm:p-6"
-        >
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              setSubmitted(true);
-            }}
-            className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
-          >
-            <div className="space-y-1.5">
-              <Label htmlFor="state">State</Label>
-              <Select value={state} onValueChange={setState}>
-                <SelectTrigger id="state" className="w-full">
-                  <SelectValue placeholder="Select state" />
-                </SelectTrigger>
-                <SelectContent>
-                  {INDIAN_STATES.map((s) => (
-                    <SelectItem key={s} value={s}>
-                      {s}
-                    </SelectItem>
+        <Tabs defaultValue="search" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 max-w-xl mx-auto mb-6">
+            <TabsTrigger value="search">Patient / Health Worker</TabsTrigger>
+            <TabsTrigger value="dashboard">NGO / Planner Dashboard</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="search" className="mt-0">
+            <section
+              aria-label="Search facilities"
+              className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm sm:p-6"
+            >
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  setSubmitted(true);
+                }}
+                className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+              >
+                <div className="space-y-1.5">
+                  <Label htmlFor="state">State</Label>
+                  <Select value={state} onValueChange={setState}>
+                    <SelectTrigger id="state" className="w-full">
+                      <SelectValue placeholder="Select state" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {INDIAN_STATES.map((s) => (
+                        <SelectItem key={s} value={s}>
+                          {s}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="city">City</Label>
+                  <Input
+                    id="city"
+                    placeholder="e.g. Mumbai"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="need">Medical need</Label>
+                  <Select value={need} onValueChange={(v) => setNeed(v as MedicalNeed)}>
+                    <SelectTrigger id="need" className="w-full">
+                      <SelectValue placeholder="Select need" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {MEDICAL_NEEDS.map((n) => (
+                        <SelectItem key={n} value={n}>
+                          {n}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex items-end">
+                  <Button type="submit" className="w-full gap-2">
+                    <Search className="h-4 w-4" />
+                    Search
+                  </Button>
+                </div>
+              </form>
+            </section>
+
+            <section aria-label="Results" className="mt-6 sm:mt-8">
+              <div className="mb-3 flex items-baseline justify-between">
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                  {submitted || state || city || need
+                    ? `${results.length} facility${results.length === 1 ? "" : "s"} found`
+                    : "Recommended facilities"}
+                </h2>
+                <span className="text-xs text-muted-foreground">Sorted by trust score</span>
+              </div>
+
+              {results.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-border bg-card p-10 text-center">
+                  <p className="text-sm text-muted-foreground">
+                    No matching facilities. Try broadening your filters.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  {results.map((f) => (
+                    <FacilityCard key={f.id} facility={f} selectedNeed={need} />
                   ))}
-                </SelectContent>
-              </Select>
-            </div>
+                </div>
+              )}
+            </section>
+          </TabsContent>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="city">City</Label>
-              <Input
-                id="city"
-                placeholder="e.g. Mumbai"
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="need">Medical need</Label>
-              <Select value={need} onValueChange={(v) => setNeed(v as MedicalNeed)}>
-                <SelectTrigger id="need" className="w-full">
-                  <SelectValue placeholder="Select need" />
-                </SelectTrigger>
-                <SelectContent>
-                  {MEDICAL_NEEDS.map((n) => (
-                    <SelectItem key={n} value={n}>
-                      {n}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex items-end">
-              <Button type="submit" className="w-full gap-2">
-                <Search className="h-4 w-4" />
-                Search
-              </Button>
-            </div>
-          </form>
-        </section>
-
-        <section aria-label="Results" className="mt-6 sm:mt-8">
-          <div className="mb-3 flex items-baseline justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-              {submitted || state || city || need
-                ? `${results.length} facility${results.length === 1 ? "" : "s"} found`
-                : "Recommended facilities"}
-            </h2>
-            <span className="text-xs text-muted-foreground">Sorted by trust score</span>
-          </div>
-
-          {results.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-border bg-card p-10 text-center">
-              <p className="text-sm text-muted-foreground">
-                No matching facilities. Try broadening your filters.
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              {results.map((f) => (
-                <FacilityCard key={f.id} facility={f} selectedNeed={need} />
-              ))}
-            </div>
-          )}
-        </section>
+          <TabsContent value="dashboard" className="mt-0">
+            <PlannerDashboard />
+          </TabsContent>
+        </Tabs>
 
         <footer className="mt-10 border-t border-border/60 pt-6 text-center text-xs text-muted-foreground">
           Sample data shown for demonstration. Always verify with the facility before travel.
