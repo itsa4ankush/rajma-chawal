@@ -116,7 +116,7 @@ function Index() {
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
-                  setSubmitted(true);
+                  void runSearch();
                 }}
                 className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
               >
@@ -163,9 +163,13 @@ function Index() {
                 </div>
 
                 <div className="flex items-end">
-                  <Button type="submit" className="w-full gap-2">
-                    <Search className="h-4 w-4" />
-                    Search
+                  <Button type="submit" className="w-full gap-2" disabled={loading}>
+                    {loading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Search className="h-4 w-4" />
+                    )}
+                    {loading ? "Searching..." : "Search"}
                   </Button>
                 </div>
               </form>
@@ -174,14 +178,37 @@ function Index() {
             <section aria-label="Results" className="mt-6 sm:mt-8">
               <div className="mb-3 flex items-baseline justify-between">
                 <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                  {submitted || state || city || need
-                    ? `${results.length} facility${results.length === 1 ? "" : "s"} found`
-                    : "Recommended facilities"}
+                  {loading
+                    ? "Searching facilities..."
+                    : results
+                      ? `${results.length} facility${results.length === 1 ? "" : "s"} found`
+                      : "Search to see facilities"}
                 </h2>
                 <span className="text-xs text-muted-foreground">Sorted by trust score</span>
               </div>
 
-              {results.length === 0 ? (
+              {error ? (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Could not load facilities</AlertTitle>
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              ) : loading ? (
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  {[0, 1, 2, 3].map((i) => (
+                    <div
+                      key={i}
+                      className="h-48 animate-pulse rounded-xl border border-border/60 bg-card"
+                    />
+                  ))}
+                </div>
+              ) : !hasSearched ? (
+                <div className="rounded-xl border border-dashed border-border bg-card p-10 text-center">
+                  <p className="text-sm text-muted-foreground">
+                    Choose a state, city, or medical need and click Search.
+                  </p>
+                </div>
+              ) : results && results.length === 0 ? (
                 <div className="rounded-xl border border-dashed border-border bg-card p-10 text-center">
                   <p className="text-sm text-muted-foreground">
                     No matching facilities. Try broadening your filters.
@@ -189,7 +216,7 @@ function Index() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  {results.map((f) => (
+                  {results?.map((f) => (
                     <FacilityCard key={f.id} facility={f} selectedNeed={need} />
                   ))}
                 </div>
