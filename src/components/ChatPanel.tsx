@@ -55,11 +55,65 @@ function parseQuery(raw: string): ParsedQuery {
   return parsed;
 }
 
+type RecLine = {
+  index: number;
+  name: string;
+  city: string;
+  state: string;
+  trustScore: number;
+  capabilityLabel: string;
+  capability: string;
+  warning: string;
+  evidence: string;
+};
+
 type BotMessage = {
   text: string;
-  facilities?: Facility[];
+  recommendations?: RecLine[];
   cities?: { city: string; state: string; gap: string }[];
 };
+
+const NEED_FIELD: Record<MedicalNeed, keyof Facility> = {
+  "Emergency Surgery": "emergencySurgeryCapability",
+  "ICU + Oxygen": "icuCapability",
+  Dialysis: "dialysisCapability",
+  "Neonatal Care": "neonatalCapability",
+  "Trauma Care": "traumaCapability",
+};
+
+function buildEvidence(f: Facility, need: MedicalNeed): string {
+  const parts: string[] = [];
+  if (need === "Emergency Surgery" || need === "Trauma Care") {
+    if (f.hasSurgeon) parts.push("surgeon");
+    if (f.hasAnesthesiologist) parts.push("anesthesiologist");
+    if (f.hasOxygen) parts.push("oxygen support");
+  }
+  if (need === "ICU + Oxygen") {
+    if (f.hasICU) parts.push("ICU beds");
+    if (f.hasOxygen) parts.push("oxygen support");
+    if (f.hasAnesthesiologist) parts.push("anesthesiologist");
+  }
+  if (need === "Dialysis") {
+    if (f.hasDialysis) parts.push("dialysis unit");
+    if (f.hasOxygen) parts.push("oxygen support");
+  }
+  if (need === "Neonatal Care") {
+    if (f.hasICU) parts.push("neonatal ICU");
+    if (f.hasOxygen) parts.push("oxygen support");
+    if (f.hasAnesthesiologist) parts.push("anesthesiologist");
+  }
+  if (f.hasAmbulance) parts.push("ambulance service");
+
+  if (parts.length === 0) {
+    return "Facility report has limited capability details on record.";
+  }
+  // Oxford-style join
+  const joined =
+    parts.length === 1
+      ? parts[0]
+      : `${parts.slice(0, -1).join(", ")}, and ${parts[parts.length - 1]}`;
+  return `Facility report mentions ${joined}.`;
+}
 
 function answer(query: string): BotMessage {
   const parsed = parseQuery(query);
@@ -69,45 +123,48 @@ function answer(query: string): BotMessage {
   if (parsed.intent === "explain-low-trust") {
     return {
       text:
-        "A facility gets a **low trust score** when its self-reported capabilities can't be cross-verified — for example, missing anesthesiologist on the staff roster, no confirmed oxygen supply, or no record of 24/7 emergency availability in public health directories. The audit report on each facility lists the specific findings that pushed the score down.\n\n" +
+        "A facility gets a **low trust score** when its self-reported capabilities can't be cross-verified — for example, missing anesthesiologist on the staff roster, no confirmed oxygen supply, or no record of 24/7 emergency availability. Open the facility's audit report to see the exact findings.\n\n" +
         disclaimer,
     };
   }
 
   if (parsed.intent === "desert") {
-    const map = new Map<string, { total: number; highSurg: number; highICU: number; dialysis: number; state: string }>();
+    const map = new Map<string, { dialysis: number; state: string }>();
     for (const f of FACILITIES) {
       const k = `${f.city}|${f.state}`;
-      const r = map.get(k) ?? { total: 0, highSurg: 0, highICU: 0, dialysis: 0, state: f.state };
-      r.total += 1;
-      if (f.emergencySurgeryCapability === "High") r.highSurg += 1;
-      if (f.icuCapability === "High") r.highICU += 1;
+      const r = map.get(k) ?? { dialysis: 0, state: f.state };
       if (f.dialysisCapability === "High" || f.dialysisCapability === "Medium") r.dialysis += 1;
       map.set(k, r);
     }
     const deserts = Array.from(map.entries())
       .filter(([, r]) => r.dialysis === 0)
-      .map(([k, r]) => ({ city: k.split("|")[0], state: r.state, gap: "No verified dialysis capacity" }));
+      .map(([k, r]) => ({
+        city: k.split("|")[0],
+        state: r.state,
+        gap: "No verified dialysis capacity",
+      }));
 
     if (deserts.length === 0) {
       return {
         text:
-          "Good news — every city in the current dataset has at least one facility with verified dialysis capacity.\n\n" +
+          "Every city in the dataset has at least one facility with verified dialysis capacity.\n\n" +
           disclaimer,
       };
     }
     return {
-      text: `Found **${deserts.length} dialysis desert${deserts.length === 1 ? "" : "s"}** in the dataset:\n\n${disclaimer}`,
+      text: `Found **${deserts.length} dialysis desert${deserts.length === 1 ? "" : "s"}**:\n\n${disclaimer}`,
       cities: deserts,
     };
   }
 
   if (parsed.intent === "search") {
+    const need = parsed.need ?? "Emergency Surgery";
     let list = FACILITIES;
     if (parsed.state) list = list.filter((f) => f.state === parsed.state);
-    if (parsed.need) list = list.filter((f) => facilityMatchesNeed(f, parsed.need!));
-    list = [...list].sort((a, b) => b.trustScore - a.trustScore).slice(0, 5);
+    if (parsed.need) list = list.filter((f) => facilityMatchesNeed(f, parsed.need));
+    list = [...list].sort((a, b) => b.trustScore - a.trustScore);
 
+    const trusted = list.filter((f) => f.trustScore >= 70).slice(0, 3);
     const filterDesc = [
       parsed.need ? `**${parsed.need}**` : null,
       parsed.state ? `in **${parsed.state}**` : null,
@@ -115,15 +172,27 @@ function answer(query: string): BotMessage {
       .filter(Boolean)
       .join(" ");
 
-    if (list.length === 0) {
+    if (trusted.length === 0) {
       return {
-        text: `I couldn't find facilities matching ${filterDesc || "your query"}. Try a different state or capability.\n\n${disclaimer}`,
+        text: `I found limited trusted options${filterDesc ? ` for ${filterDesc}` : ""}. This may indicate a healthcare access gap in this area.\n\n${disclaimer}`,
       };
     }
 
+    const recs: RecLine[] = trusted.map((f, i) => ({
+      index: i + 1,
+      name: f.name,
+      city: f.city,
+      state: f.state,
+      trustScore: f.trustScore,
+      capabilityLabel: need,
+      capability: f[NEED_FIELD[need]] as string,
+      warning: f.riskWarning,
+      evidence: buildEvidence(f, need),
+    }));
+
     return {
-      text: `Top ${list.length} facilities for ${filterDesc}, ranked by trust score:\n\n${disclaimer}`,
-      facilities: list,
+      text: `Top ${recs.length} ${recs.length === 1 ? "facility" : "facilities"} for ${filterDesc}:\n\n${disclaimer}`,
+      recommendations: recs,
     };
   }
 
