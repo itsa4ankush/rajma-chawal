@@ -1,40 +1,66 @@
-## Plan
+## Goal
+Restructure the **Patient / Health Worker** tab into a two-pane chat-driven search experience, and remove the now-redundant **Ask CareMap** tab.
 
-Fix the Patient / Health Worker tab so filtered searches return facilities consistently and clearly show whether the data is live or demo.
+## Final tab structure
+1. **Patient / Health Worker** — chat (left) + facility results (right)
+2. **NGO / Planner** — unchanged
 
-### What I will change
+## Layout (Patient / Health Worker tab)
 
-1. Repair the live search API
-- Update `/api/search-facilities` to stop selecting Databricks columns that do not exist in the table.
-- The current failure is caused by `recommendation_reason`, which Databricks returns as an unresolved column error.
-- Keep the response shape the frontend already expects by deriving a safe fallback recommendation reason in the route when the source column is missing.
+Two-column responsive grid:
+- **Left pane (≈40% width on `lg`, full width stacked on mobile)**: `ChatPanel` — same parsing + `/api/search-facilities` logic it has today, including the demo-data fallback and disclaimer messaging.
+- **Right pane (≈60% width on `lg`)**: facility result cards (`FacilityCard` grid) + the existing "Live Databricks data / Demo data" badge and any fallback alerts.
 
-2. Make the Patient search fallback behave clearly
-- Keep the app from crashing when live search fails.
-- Ensure the search UI shows a visible message that live Databricks is unavailable when it falls back.
-- Preserve the existing “Demo data” label so users can tell the result source immediately.
+On screens narrower than `lg`, the chat stacks above the results pane.
 
-3. Verify result rendering stays compatible with the existing cards
-- Keep the same `FacilityCard` UI.
-- Confirm each card still receives the fields it needs: facility name, city/state, PIN, selected-need capability, trust score, warning, recommendation reason, and View Details.
+## Behavioral changes
 
-4. Tighten the no-results experience
-- Make sure the empty state only appears for true zero-result searches, not for backend query failures that should be handled as demo fallback or surfaced as an error.
+**Removed from this tab**
+- State / City / Medical Need `Select` dropdowns
+- Search button + `runSearch` form
+- `state`, `city`, `need`, `locationsLoading`, `citiesByState`, `cityOptions`, `runSearch`, `runDemoSearch`, location-fetch `useEffect` — all unused once filters are gone
+- Imports for `Label`, `Select*`, `Search` icon, `INDIAN_STATES`, `MEDICAL_NEEDS`, `facilityMatchesNeed`, `Input`
 
-### Why this is happening
+**Removed entirely**
+- The `chat` tab (`<TabsTrigger value="chat">` and its `<TabsContent>`)
+- `TabsList` becomes `grid-cols-2`
 
-The Patient / Health Worker tab posts to `/api/search-facilities`, and the current network snapshot shows repeated `502` responses from Databricks. The query is still requesting `recommendation_reason`, which does not exist in the Databricks table. Because the live call fails, the tab falls back to local demo data. That demo dataset only covers a small subset of states/cities, so many dropdown selections still show zero results. The chatbot seems better only because it is already relying on that fallback path and the user likely asked about locations that happen to exist in demo data.
+**Chat ↔ results wiring**
+- `ChatPanel` is refactored to **lift its result state up** via two new optional props:
+  - `onResults?: (facilities: Facility[], selectedNeed: MedicalNeed | "", source: "live" | "demo") => void`
+  - `onSearchStart?: () => void`
+- Inside `ChatPanel`, after each successful (or fallback) query, call `onResults(...)` with the **full** facility list (not just top 3) so the right pane can show all matches.
+- The chat bubbles **no longer render `FacilityCard`s inline**. They keep the conversational text + disclaimer only ("Top N facilities for X — see results on the right →" type wording). The `BotMessage.facilities` field and the inline grid in `ChatPanel` are removed.
+- Existing example chips, parsing, "Searching Databricks…" loader, and demo fallback messaging remain.
 
-### Technical details
+**Right pane states**
+- **Initial** (no query yet): friendly empty-state card — "Ask a question on the left to see matching facilities here." (per your answer).
+- **Loading**: same skeleton grid currently used during search.
+- **Results**: `FacilityCard` grid (2 cols on `md+`, 1 on mobile within the right pane). `selectedNeed` comes from the chat's parsed need.
+- **Empty** (query returned 0): "No matching facilities for that question."
+- **Source badge**: keep the existing "Live Databricks data" / "Demo data" pill above the grid; drive it from the `source` value the chat passes up.
+- **Multi-query**: each new question **replaces** the right pane (no accumulation).
 
-- File to update: `src/routes/api/search-facilities.ts`
-- Remove or replace invalid selected columns from the SQL statement.
-- In `rowsToFacilities`, populate `recommendation_reason` from available fields when present, otherwise use a deterministic fallback message based on trust score/capability.
-- Keep frontend logic in `src/routes/index.tsx` largely intact, with only small messaging adjustments if needed.
-- Do not edit `src/routeTree.gen.ts` manually.
+## Files to change
 
-### Expected outcome
+1. **`src/routes/index.tsx`**
+   - Remove dropdown form, related state/handlers/imports.
+   - Change `TabsList` to `grid-cols-2`; remove the `chat` `TabsTrigger` + `TabsContent`.
+   - Replace the `search` `TabsContent` body with a `grid lg:grid-cols-5` layout: `ChatPanel` (`lg:col-span-2`) on the left, results section (`lg:col-span-3`) on the right.
+   - Hold `chatResults`, `chatNeed`, `chatSource`, `chatLoading` state at this level; pass `onSearchStart` / `onResults` into `ChatPanel`; render the right pane from this state.
 
-- Searches from the Patient / Health Worker tab return live Databricks results again.
-- If Databricks is down, the UI still works and clearly says live data is unavailable.
-- Users can distinguish live results from demo results at all times.
+2. **`src/components/ChatPanel.tsx`**
+   - Add optional `onResults` and `onSearchStart` props.
+   - Drop the inline `FacilityCard` rendering and the `facilities` field on `BotMessage` (chat bubbles become text-only).
+   - On every send: call `onSearchStart()` before the fetch; call `onResults(facilities, need, "live" | "demo")` after.
+   - Update the bot reply text to point users to the right pane (e.g. "Found N facilities for **ICU + Oxygen** in **Bihar** — showing them on the right.").
+   - Remove the now-unused `FacilityCard` import.
+
+3. *(No changes)* `src/components/FacilityCard.tsx`, API routes, `PlannerDashboard`, `DatabricksStatusCard`.
+
+## Acceptance check
+- Patient / Health Worker tab shows chat on the left, empty-state card on the right initially.
+- Asking "ICU in Maharashtra" populates the right pane with `FacilityCard`s and a Live/Demo badge; chat shows a short text confirmation only.
+- Asking a second question fully replaces the right-pane results.
+- Only two tabs are visible; `Ask CareMap` is gone.
+- On mobile, chat stacks above results; nothing overflows.

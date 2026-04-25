@@ -3,7 +3,6 @@ import { Bot, Loader2, Send, Sparkles, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { FacilityCard } from "@/components/FacilityCard";
 import { FACILITIES, facilityMatchesNeed, type Facility, type MedicalNeed } from "@/lib/facilities";
 
 const DISCLAIMER =
@@ -15,14 +14,6 @@ const EXAMPLES = [
   "Dialysis options in Tamil Nadu",
   "Neonatal care in Kerala",
 ];
-
-const NEED_FIELD: Record<MedicalNeed, keyof Facility> = {
-  "Emergency Surgery": "emergency_surgery_capability",
-  "ICU + Oxygen": "icu_capability",
-  Dialysis: "dialysis_capability",
-  "Neonatal Care": "neonatal_capability",
-  "Trauma Care": "trauma_capability",
-};
 
 interface ParsedQuery {
   state?: string;
@@ -48,8 +39,6 @@ function parseQuery(raw: string, knownStates: string[]): ParsedQuery {
 
 interface BotMessage {
   text: string;
-  facilities?: Facility[];
-  selectedNeed?: MedicalNeed;
 }
 
 type ChatMessage =
@@ -76,7 +65,16 @@ function MarkdownLite({ text }: { text: string }) {
   );
 }
 
-export function ChatPanel() {
+export interface ChatPanelProps {
+  onSearchStart?: () => void;
+  onResults?: (
+    facilities: Facility[],
+    selectedNeed: MedicalNeed | "",
+    source: "live" | "demo",
+  ) => void;
+}
+
+export function ChatPanel({ onSearchStart, onResults }: ChatPanelProps = {}) {
   const [knownStates, setKnownStates] = useState<string[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -111,9 +109,21 @@ export function ChatPanel() {
     setInput("");
     setBusy(true);
     setMessages((m) => [...m, { role: "user", text: trimmed }, { role: "loading" }]);
+    onSearchStart?.();
 
     const parsed = parseQuery(trimmed, knownStates);
+    const need: MedicalNeed | "" = parsed.need ?? "";
     let reply: BotMessage;
+    let resultFacilities: Facility[] = [];
+    let resultSource: "live" | "demo" = "live";
+
+    const filterDesc = [
+      parsed.need ? `**${parsed.need}**` : null,
+      parsed.state ? `in **${parsed.state}**` : null,
+    ]
+      .filter(Boolean)
+      .join(" ");
+
     try {
       const res = await fetch("/api/search-facilities", {
         method: "POST",
@@ -127,18 +137,10 @@ export function ChatPanel() {
       const data = (await res.json()) as { facilities?: Facility[]; error?: string };
       if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
 
-      const facilities = data.facilities ?? [];
-      const need = parsed.need ?? "Emergency Surgery";
-      const top = facilities.slice(0, 3);
+      resultFacilities = data.facilities ?? [];
+      resultSource = "live";
 
-      const filterDesc = [
-        parsed.need ? `**${parsed.need}**` : null,
-        parsed.state ? `in **${parsed.state}**` : null,
-      ]
-        .filter(Boolean)
-        .join(" ");
-
-      if (top.length === 0) {
+      if (resultFacilities.length === 0) {
         reply = {
           text:
             `I couldn't find matching facilities${filterDesc ? ` for ${filterDesc}` : ""}. This may indicate a healthcare access gap.\n\n` +
@@ -146,9 +148,9 @@ export function ChatPanel() {
         };
       } else {
         reply = {
-          text: `Top ${top.length} ${top.length === 1 ? "facility" : "facilities"}${filterDesc ? ` for ${filterDesc}` : ""}:\n\n${DISCLAIMER}`,
-          facilities: top,
-          selectedNeed: need,
+          text:
+            `Found **${resultFacilities.length}** ${resultFacilities.length === 1 ? "facility" : "facilities"}${filterDesc ? ` for ${filterDesc}` : ""} — showing them on the right →\n\n` +
+            DISCLAIMER,
         };
       }
     } catch {
@@ -159,28 +161,23 @@ export function ChatPanel() {
         const n = parsed.need;
         list = list.filter((f) => facilityMatchesNeed(f, n));
       }
-      const need = parsed.need ?? "Emergency Surgery";
-      const top = [...list].sort((a, b) => b.trust_score - a.trust_score).slice(0, 3);
-      const filterDesc = [
-        parsed.need ? `**${parsed.need}**` : null,
-        parsed.state ? `in **${parsed.state}**` : null,
-      ]
-        .filter(Boolean)
-        .join(" ");
+      resultFacilities = [...list].sort((a, b) => b.trust_score - a.trust_score);
+      resultSource = "demo";
+
       const demoNote =
         "**Live Databricks connection is unavailable.** Showing **demo data** so you can keep exploring.";
-      if (top.length === 0) {
+      if (resultFacilities.length === 0) {
         reply = {
           text: `${demoNote}\n\nNo demo matches${filterDesc ? ` for ${filterDesc}` : ""}.\n\n${DISCLAIMER}`,
         };
       } else {
         reply = {
-          text: `${demoNote}\n\nTop ${top.length} demo ${top.length === 1 ? "facility" : "facilities"}${filterDesc ? ` for ${filterDesc}` : ""}:\n\n_Demo dataset — not live Databricks data._`,
-          facilities: top,
-          selectedNeed: need,
+          text: `${demoNote}\n\nFound **${resultFacilities.length}** demo ${resultFacilities.length === 1 ? "facility" : "facilities"}${filterDesc ? ` for ${filterDesc}` : ""} — showing them on the right →`,
         };
       }
     }
+
+    onResults?.(resultFacilities, need, resultSource);
 
     setMessages((m) => {
       const without = m.filter((x) => x.role !== "loading");
@@ -191,7 +188,7 @@ export function ChatPanel() {
 
   return (
     <Card className="border-border/70">
-      <CardContent className="p-0 flex flex-col h-[520px]">
+      <CardContent className="p-0 flex flex-col h-[640px]">
         <div className="border-b border-border/60 p-4 flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <Sparkles className="h-4 w-4" />
@@ -230,25 +227,12 @@ export function ChatPanel() {
               </div>
             ) : (
               <div key={i} className="flex justify-start">
-                <div className="flex items-start gap-2 w-full">
+                <div className="flex items-start gap-2 max-w-[90%]">
                   <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent">
                     <Bot className="h-3.5 w-3.5" />
                   </div>
-                  <div className="flex-1 min-w-0 space-y-3">
-                    <div className="rounded-2xl rounded-tl-sm bg-muted px-3 py-2 inline-block max-w-[90%]">
-                      <MarkdownLite text={m.content.text} />
-                    </div>
-                    {m.content.facilities && m.content.facilities.length > 0 && (
-                      <div className="grid grid-cols-1 gap-3">
-                        {m.content.facilities.map((f) => (
-                          <FacilityCard
-                            key={f.id}
-                            facility={f}
-                            selectedNeed={m.content.selectedNeed ?? ""}
-                          />
-                        ))}
-                      </div>
-                    )}
+                  <div className="rounded-2xl rounded-tl-sm bg-muted px-3 py-2">
+                    <MarkdownLite text={m.content.text} />
                   </div>
                 </div>
               </div>
