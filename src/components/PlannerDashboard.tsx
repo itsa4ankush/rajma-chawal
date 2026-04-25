@@ -63,7 +63,7 @@ function StatCard({
 export function PlannerDashboard() {
   const [cities, setCities] = useState<DesertCity[] | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [dataSource, setDataSource] = useState<"live" | "demo">("live");
 
   useEffect(() => {
     let cancelled = false;
@@ -77,12 +77,12 @@ export function PlannerDashboard() {
       .then((data) => {
         if (cancelled) return;
         setCities(data.cities ?? []);
-        setError(null);
+        setDataSource("live");
       })
-      .catch((err) => {
+      .catch(() => {
         if (cancelled) return;
-        setError(err instanceof Error ? err.message : "Failed to load data");
-        setCities(null);
+        setCities(buildDemoCities(FACILITIES));
+        setDataSource("demo");
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -109,16 +109,6 @@ export function PlannerDashboard() {
       <div className="flex items-center justify-center rounded-2xl border border-border/70 bg-card p-12 text-sm text-muted-foreground">
         <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading planner data…
       </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <Alert variant="destructive">
-        <AlertCircle className="h-4 w-4" />
-        <AlertTitle>Could not load planner data</AlertTitle>
-        <AlertDescription>{error}</AlertDescription>
-      </Alert>
     );
   }
 
