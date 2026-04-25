@@ -158,7 +158,7 @@ function Index() {
           ) : (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {results.map((f) => (
-                <FacilityCard key={f.id} facility={f} />
+                <FacilityCard key={f.id} facility={f} selectedNeed={need} />
               ))}
             </div>
           )}
