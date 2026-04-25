@@ -22,11 +22,13 @@ function computeStats() {
 interface CityRow {
   city: string;
   state: string;
-  total: number;
-  highSurgery: number;
-  highICU: number;
-  dialysis: number;
+  totalFacilities: number;
+  highSurgeryFacilities: number;
+  highICUFacilities: number;
+  dialysisFacilities: number;
+  averageTrustScore: number;
   risk: RiskLevel;
+  _trustSum: number;
 }
 
 function computeCityRows(): CityRow[] {
@@ -38,28 +40,39 @@ function computeCityRows(): CityRow[] {
       ({
         city: f.city,
         state: f.state,
-        total: 0,
-        highSurgery: 0,
-        highICU: 0,
-        dialysis: 0,
+        totalFacilities: 0,
+        highSurgeryFacilities: 0,
+        highICUFacilities: 0,
+        dialysisFacilities: 0,
+        averageTrustScore: 0,
         risk: "Low" as RiskLevel,
+        _trustSum: 0,
       } satisfies CityRow);
-    row.total += 1;
-    if (isHigh(f.emergencySurgeryCapability)) row.highSurgery += 1;
-    if (isHigh(f.icuCapability)) row.highICU += 1;
-    if (isHighOrMedium(f.dialysisCapability)) row.dialysis += 1;
+    row.totalFacilities += 1;
+    row._trustSum += f.trustScore;
+    if (isHigh(f.emergencySurgeryCapability)) row.highSurgeryFacilities += 1;
+    if (isHigh(f.icuCapability)) row.highICUFacilities += 1;
+    if (isHighOrMedium(f.dialysisCapability)) row.dialysisFacilities += 1;
     map.set(key, row);
   }
-  // Risk: High if no high-surgery AND no high-ICU; Medium if missing one; Low otherwise
   for (const row of map.values()) {
-    if (row.highSurgery === 0 && row.highICU === 0) row.risk = "High";
-    else if (row.highSurgery === 0 || row.highICU === 0 || row.dialysis === 0) row.risk = "Medium";
-    else row.risk = "Low";
+    row.averageTrustScore = Math.round(row._trustSum / row.totalFacilities);
+    if (
+      row.totalFacilities > 0 &&
+      row.highSurgeryFacilities === 0 &&
+      row.highICUFacilities === 0
+    ) {
+      row.risk = "High";
+    } else if (row.averageTrustScore < 60) {
+      row.risk = "Medium";
+    } else {
+      row.risk = "Low";
+    }
   }
-  return Array.from(map.values()).sort((a, b) => {
-    const order: Record<RiskLevel, number> = { High: 0, Medium: 1, Low: 2 };
-    return order[a.risk] - order[b.risk] || a.state.localeCompare(b.state);
-  });
+  const order: Record<RiskLevel, number> = { High: 0, Medium: 1, Low: 2 };
+  return Array.from(map.values()).sort(
+    (a, b) => order[a.risk] - order[b.risk] || a.averageTrustScore - b.averageTrustScore,
+  );
 }
 
 const riskStyles: Record<RiskLevel, string> = {
@@ -148,6 +161,7 @@ export function PlannerDashboard() {
                 <TableHead className="text-right">High surgery</TableHead>
                 <TableHead className="text-right">High ICU</TableHead>
                 <TableHead className="text-right">Dialysis</TableHead>
+                <TableHead className="text-right">Avg trust</TableHead>
                 <TableHead>Risk</TableHead>
               </TableRow>
             </TableHeader>
@@ -156,10 +170,11 @@ export function PlannerDashboard() {
                 <TableRow key={`${r.city}-${r.state}`}>
                   <TableCell className="font-medium">{r.city}</TableCell>
                   <TableCell className="text-muted-foreground">{r.state}</TableCell>
-                  <TableCell className="text-right tabular-nums">{r.total}</TableCell>
-                  <TableCell className="text-right tabular-nums">{r.highSurgery}</TableCell>
-                  <TableCell className="text-right tabular-nums">{r.highICU}</TableCell>
-                  <TableCell className="text-right tabular-nums">{r.dialysis}</TableCell>
+                  <TableCell className="text-right tabular-nums">{r.totalFacilities}</TableCell>
+                  <TableCell className="text-right tabular-nums">{r.highSurgeryFacilities}</TableCell>
+                  <TableCell className="text-right tabular-nums">{r.highICUFacilities}</TableCell>
+                  <TableCell className="text-right tabular-nums">{r.dialysisFacilities}</TableCell>
+                  <TableCell className="text-right tabular-nums">{r.averageTrustScore}</TableCell>
                   <TableCell>
                     <span
                       className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${riskStyles[r.risk]}`}
