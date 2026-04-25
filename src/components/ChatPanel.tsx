@@ -171,12 +171,45 @@ export function ChatPanel() {
           recommendations: recs,
         };
       }
-    } catch (err) {
-      reply = {
-        text:
-          `Sorry, I couldn't fetch facilities right now: ${err instanceof Error ? err.message : "Unknown error"}.\n\n` +
-          DISCLAIMER,
-      };
+    } catch {
+      // Fallback to demo data so the chat keeps working
+      let list = FACILITIES;
+      if (parsed.state) list = list.filter((f) => f.address_stateOrRegion === parsed.state);
+      if (parsed.need) {
+        const n = parsed.need;
+        list = list.filter((f) => facilityMatchesNeed(f, n));
+      }
+      const need = parsed.need ?? "Emergency Surgery";
+      const top = [...list].sort((a, b) => b.trust_score - a.trust_score).slice(0, 3);
+      const filterDesc = [
+        parsed.need ? `**${parsed.need}**` : null,
+        parsed.state ? `in **${parsed.state}**` : null,
+      ]
+        .filter(Boolean)
+        .join(" ");
+      const demoNote =
+        "**Live Databricks connection is unavailable.** Showing **demo data** so you can keep exploring.";
+      if (top.length === 0) {
+        reply = {
+          text: `${demoNote}\n\nNo demo matches${filterDesc ? ` for ${filterDesc}` : ""}.\n\n${DISCLAIMER}`,
+        };
+      } else {
+        const recs: RecLine[] = top.map((f, i) => ({
+          index: i + 1,
+          name: f.name,
+          city: f.address_city,
+          state: f.address_stateOrRegion,
+          trust_score: f.trust_score,
+          capabilityLabel: need,
+          capability: String(f[NEED_FIELD[need]] ?? "—"),
+          warning: f.risk_warning || "No active warning on record.",
+          reason: f.recommendation_reason || "Selected based on trust score and capability.",
+        }));
+        reply = {
+          text: `${demoNote}\n\nTop ${recs.length} demo ${recs.length === 1 ? "facility" : "facilities"}${filterDesc ? ` for ${filterDesc}` : ""}:\n\n_Demo dataset — not live Databricks data._`,
+          recommendations: recs,
+        };
+      }
     }
 
     setMessages((m) => {
