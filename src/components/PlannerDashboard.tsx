@@ -166,6 +166,36 @@ export function PlannerDashboard() {
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center justify-between gap-3">
+        <span
+          className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium ${
+            dataSource === "live"
+              ? "border-success/30 bg-success/10 text-success"
+              : "border-warning/40 bg-warning/15 text-warning-foreground"
+          }`}
+        >
+          {dataSource === "live" ? (
+            <>
+              <Database className="h-3 w-3" /> Live Databricks data
+            </>
+          ) : (
+            <>
+              <TestTube2 className="h-3 w-3" /> Demo data
+            </>
+          )}
+        </span>
+      </div>
+
+      {dataSource === "demo" && (
+        <Alert className="border-warning/40 bg-warning/10">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Live Databricks connection is unavailable.</AlertTitle>
+          <AlertDescription>
+            Showing demo planner data so the dashboard keeps working.
+          </AlertDescription>
+        </Alert>
+      )}
+
       <section
         aria-label="Summary"
         className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5"
