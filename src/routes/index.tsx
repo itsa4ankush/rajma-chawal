@@ -237,7 +237,8 @@ function Index() {
         </Tabs>
 
         <footer className="mt-10 border-t border-border/60 pt-6 text-center text-xs text-muted-foreground">
-          Sample data shown for demonstration. Always verify with the facility before travel.
+          <div>Sample data shown for demonstration. Always verify with the facility before travel.</div>
+          <DatabricksStatusCard />
         </footer>
       </main>
     </div>
