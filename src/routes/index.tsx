@@ -149,12 +149,23 @@ function Index() {
               >
                 <div className="space-y-1.5">
                   <Label htmlFor="state">State</Label>
-                  <Select value={state} onValueChange={setState}>
+                  <Select
+                    value={state}
+                    onValueChange={(v) => {
+                      setState(v);
+                      setCity("");
+                    }}
+                    disabled={locationsLoading || states.length === 0}
+                  >
                     <SelectTrigger id="state" className="w-full">
-                      <SelectValue placeholder="Select state" />
+                      <SelectValue
+                        placeholder={
+                          locationsLoading ? "Loading states…" : "Select state"
+                        }
+                      />
                     </SelectTrigger>
                     <SelectContent>
-                      {INDIAN_STATES.map((s) => (
+                      {states.map((s) => (
                         <SelectItem key={s} value={s}>
                           {s}
                         </SelectItem>
@@ -164,13 +175,33 @@ function Index() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="city">City</Label>
-                  <Input
-                    id="city"
-                    placeholder="e.g. Mumbai"
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                  />
+                  <Label htmlFor="city">City (optional)</Label>
+                  {state && cityOptions.length > 0 ? (
+                    <Select
+                      value={city || "__any__"}
+                      onValueChange={(v) => setCity(v === "__any__" ? "" : v)}
+                    >
+                      <SelectTrigger id="city" className="w-full">
+                        <SelectValue placeholder="Any city" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__any__">Any city</SelectItem>
+                        {cityOptions.map((c) => (
+                          <SelectItem key={c} value={c}>
+                            {c}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input
+                      id="city"
+                      placeholder={state ? "Any city" : "Select a state first"}
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      disabled={!state}
+                    />
+                  )}
                 </div>
 
                 <div className="space-y-1.5">
