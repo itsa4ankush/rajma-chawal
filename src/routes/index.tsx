@@ -16,6 +16,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { FacilityCard } from "@/components/FacilityCard";
 import { PlannerDashboard } from "@/components/PlannerDashboard";
 import { ChatPanel } from "@/components/ChatPanel";
+import { DatabricksStatusCard } from "@/components/DatabricksStatusCard";
 import {
   INDIAN_STATES,
   MEDICAL_NEEDS,
