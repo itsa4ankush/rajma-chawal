@@ -87,7 +87,10 @@ function rowsToFacilities(resp: DatabricksStatementResponse): Facility[] {
         "Low") as Facility["neonatal_capability"],
       trauma_capability: (str(obj.trauma_capability) || "Low") as Facility["trauma_capability"],
       trust_score: num(obj.trust_score),
-      risk_warning: str(obj.risk_warning),
+      risk_warning:
+        num(obj.trust_score) < 60
+          ? "Low trust score — verify capabilities before referral"
+          : "",
       recommendation_reason: str(obj.recommendation_reason),
       has_icu: bool(obj.has_icu),
       has_oxygen: bool(obj.has_oxygen),
