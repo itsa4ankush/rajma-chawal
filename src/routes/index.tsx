@@ -46,16 +46,37 @@ function Index() {
   const [state, setState] = useState<string>("");
   const [city, setCity] = useState<string>("");
   const [need, setNeed] = useState<MedicalNeed | "">("");
-  const [submitted, setSubmitted] = useState(false);
+  const [results, setResults] = useState<Facility[] | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [hasSearched, setHasSearched] = useState(false);
 
-  const results = useMemo(() => {
-    let list = FACILITIES;
-    if (state) list = list.filter((f) => f.address_stateOrRegion === state);
-    if (city.trim())
-      list = list.filter((f) => f.address_city.toLowerCase().includes(city.trim().toLowerCase()));
-    if (need) list = list.filter((f) => facilityMatchesNeed(f, need));
-    return [...list].sort((a, b) => b.trust_score - a.trust_score);
-  }, [state, city, need]);
+  async function runSearch() {
+    setLoading(true);
+    setError(null);
+    setHasSearched(true);
+    try {
+      const res = await fetch("/api/search-facilities", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          state: state || undefined,
+          city: city.trim() || undefined,
+          medicalNeed: need || undefined,
+        }),
+      });
+      const payload = (await res.json()) as { facilities?: Facility[]; error?: string };
+      if (!res.ok) {
+        throw new Error(payload.error || `Request failed (${res.status})`);
+      }
+      setResults(payload.facilities ?? []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to fetch facilities");
+      setResults(null);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <div className="min-h-dvh bg-background">
