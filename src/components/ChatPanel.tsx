@@ -3,7 +3,7 @@ import { Bot, Loader2, Send, Sparkles, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import type { Facility, MedicalNeed } from "@/lib/facilities";
+import { FACILITIES, facilityMatchesNeed, type Facility, type MedicalNeed } from "@/lib/facilities";
 
 const DISCLAIMER =
   "_Results are based on structured Databricks facility intelligence and trust scoring._";
