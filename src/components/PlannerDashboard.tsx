@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { AlertCircle, AlertTriangle, Building2, Droplet, HeartPulse, Loader2, Scissors } from "lucide-react";
+import { AlertCircle, AlertTriangle, Building2, Database, Droplet, HeartPulse, Loader2, Scissors, TestTube2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { FACILITIES, type Facility } from "@/lib/facilities";
 
 type RiskLevel = "High" | "Medium" | "Low";
 
