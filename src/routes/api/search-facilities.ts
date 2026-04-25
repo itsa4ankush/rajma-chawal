@@ -204,11 +204,11 @@ export const Route = createFileRoute("/api/search-facilities")({
               502,
             );
           }
-          const state = data.status?.state;
-          if (state && state !== "SUCCEEDED") {
+          const stmtState = data.status?.state;
+          if (stmtState && stmtState !== "SUCCEEDED") {
             return jsonResponse(
               {
-                error: `Databricks statement state: ${state}`,
+                error: `Databricks statement state: ${stmtState}`,
                 details: data.status?.error?.message,
               },
               502,
