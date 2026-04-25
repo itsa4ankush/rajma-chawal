@@ -145,20 +145,10 @@ export function ChatPanel() {
             DISCLAIMER,
         };
       } else {
-        const recs: RecLine[] = top.map((f, i) => ({
-          index: i + 1,
-          name: f.name,
-          city: f.address_city,
-          state: f.address_stateOrRegion,
-          trust_score: f.trust_score,
-          capabilityLabel: need,
-          capability: String(f[NEED_FIELD[need]] ?? "—"),
-          warning: f.risk_warning || "No active warning on record.",
-          reason: f.recommendation_reason || "Selected based on trust score and capability.",
-        }));
         reply = {
-          text: `Top ${recs.length} ${recs.length === 1 ? "facility" : "facilities"}${filterDesc ? ` for ${filterDesc}` : ""}:\n\n${DISCLAIMER}`,
-          recommendations: recs,
+          text: `Top ${top.length} ${top.length === 1 ? "facility" : "facilities"}${filterDesc ? ` for ${filterDesc}` : ""}:\n\n${DISCLAIMER}`,
+          facilities: top,
+          selectedNeed: need,
         };
       }
     } catch {
