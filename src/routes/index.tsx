@@ -56,20 +56,47 @@ function Index() {
   const [states, setStates] = useState<string[]>([]);
   const [citiesByState, setCitiesByState] = useState<Record<string, string[]>>({});
   const [locationsLoading, setLocationsLoading] = useState(true);
+  const [dataSource, setDataSource] = useState<"live" | "demo" | null>(null);
+  const [locationsSource, setLocationsSource] = useState<"live" | "demo">("live");
+
+  function buildDemoLocations() {
+    const map: Record<string, string[]> = {};
+    for (const f of FACILITIES) {
+      if (!map[f.address_stateOrRegion]) map[f.address_stateOrRegion] = [];
+      if (!map[f.address_stateOrRegion].includes(f.address_city)) {
+        map[f.address_stateOrRegion].push(f.address_city);
+      }
+    }
+    return {
+      states: Object.keys(map).sort(),
+      citiesByState: map,
+    };
+  }
 
   useEffect(() => {
     let cancelled = false;
     fetch("/api/location-options")
-      .then((r) => r.json())
+      .then(async (r) => {
+        const data = await r.json();
+        if (!r.ok) throw new Error(data?.error || "Request failed");
+        return data;
+      })
       .then((data) => {
         if (cancelled) return;
-        if (Array.isArray(data?.states)) {
+        if (Array.isArray(data?.states) && data.states.length > 0) {
           setStates(data.states);
           setCitiesByState(data.citiesByState ?? {});
+          setLocationsSource("live");
+        } else {
+          throw new Error("Empty location options");
         }
       })
       .catch(() => {
-        /* keep empty; UI will show no options */
+        if (cancelled) return;
+        const demo = buildDemoLocations();
+        setStates(demo.states.length ? demo.states : INDIAN_STATES);
+        setCitiesByState(demo.citiesByState);
+        setLocationsSource("demo");
       })
       .finally(() => {
         if (!cancelled) setLocationsLoading(false);
@@ -80,6 +107,20 @@ function Index() {
   }, []);
 
   const cityOptions = state ? (citiesByState[state] ?? []) : [];
+
+  function runDemoSearch(): Facility[] {
+    let list = FACILITIES;
+    if (state) list = list.filter((f) => f.address_stateOrRegion === state);
+    if (city.trim()) {
+      const q = city.trim().toLowerCase();
+      list = list.filter((f) => f.address_city.toLowerCase().includes(q));
+    }
+    if (need) {
+      const n = need;
+      list = list.filter((f) => facilityMatchesNeed(f, n));
+    }
+    return [...list].sort((a, b) => b.trust_score - a.trust_score);
+  }
 
   async function runSearch() {
     setLoading(true);
@@ -100,9 +141,11 @@ function Index() {
         throw new Error(payload.error || `Request failed (${res.status})`);
       }
       setResults(payload.facilities ?? []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch facilities");
-      setResults(null);
+      setDataSource("live");
+    } catch {
+      // Fallback: live Databricks unavailable → use demo dataset
+      setResults(runDemoSearch());
+      setDataSource("demo");
     } finally {
       setLoading(false);
     }
