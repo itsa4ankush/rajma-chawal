@@ -1,30 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { AlertCircle, Database, Loader2, Search, ShieldCheck, Stethoscope, TestTube2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { useState } from "react";
+import { AlertCircle, Database, MessageSquare, ShieldCheck, Stethoscope, TestTube2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { FacilityCard } from "@/components/FacilityCard";
 import { PlannerDashboard } from "@/components/PlannerDashboard";
 import { ChatPanel } from "@/components/ChatPanel";
 import { DatabricksStatusCard } from "@/components/DatabricksStatusCard";
-import {
-  FACILITIES,
-  INDIAN_STATES,
-  MEDICAL_NEEDS,
-  facilityMatchesNeed,
-  type Facility,
-  type MedicalNeed,
-} from "@/lib/facilities";
+import { type Facility, type MedicalNeed } from "@/lib/facilities";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -46,115 +29,15 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  const [state, setState] = useState<string>("");
-  const [city, setCity] = useState<string>("");
-  const [need, setNeed] = useState<MedicalNeed | "">("");
   const [results, setResults] = useState<Facility[] | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [hasSearched, setHasSearched] = useState(false);
-  const [states, setStates] = useState<string[]>([]);
-  const [citiesByState, setCitiesByState] = useState<Record<string, string[]>>({});
-  const [locationsLoading, setLocationsLoading] = useState(true);
+  const [selectedNeed, setSelectedNeed] = useState<MedicalNeed | "">("");
   const [dataSource, setDataSource] = useState<"live" | "demo" | null>(null);
-  const [locationsSource, setLocationsSource] = useState<"live" | "demo">("live");
-
-  function buildDemoLocations() {
-    const map: Record<string, string[]> = {};
-    for (const f of FACILITIES) {
-      if (!map[f.address_stateOrRegion]) map[f.address_stateOrRegion] = [];
-      if (!map[f.address_stateOrRegion].includes(f.address_city)) {
-        map[f.address_stateOrRegion].push(f.address_city);
-      }
-    }
-    return {
-      states: Object.keys(map).sort(),
-      citiesByState: map,
-    };
-  }
-
-  useEffect(() => {
-    let cancelled = false;
-    fetch("/api/location-options")
-      .then(async (r) => {
-        const data = await r.json();
-        if (!r.ok) throw new Error(data?.error || "Request failed");
-        return data;
-      })
-      .then((data) => {
-        if (cancelled) return;
-        if (Array.isArray(data?.states) && data.states.length > 0) {
-          setStates(data.states);
-          setCitiesByState(data.citiesByState ?? {});
-          setLocationsSource("live");
-        } else {
-          throw new Error("Empty location options");
-        }
-      })
-      .catch(() => {
-        if (cancelled) return;
-        const demo = buildDemoLocations();
-        setStates(demo.states.length ? demo.states : INDIAN_STATES);
-        setCitiesByState(demo.citiesByState);
-        setLocationsSource("demo");
-      })
-      .finally(() => {
-        if (!cancelled) setLocationsLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const cityOptions = state ? (citiesByState[state] ?? []) : [];
-
-  function runDemoSearch(): Facility[] {
-    let list = FACILITIES;
-    if (state) list = list.filter((f) => f.address_stateOrRegion === state);
-    if (city.trim()) {
-      const q = city.trim().toLowerCase();
-      list = list.filter((f) => f.address_city.toLowerCase().includes(q));
-    }
-    if (need) {
-      const n = need;
-      list = list.filter((f) => facilityMatchesNeed(f, n));
-    }
-    return [...list].sort((a, b) => b.trust_score - a.trust_score);
-  }
-
-  async function runSearch() {
-    setLoading(true);
-    setError(null);
-    setHasSearched(true);
-    try {
-      const res = await fetch("/api/search-facilities", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          state: state || undefined,
-          city: city.trim() || undefined,
-          medicalNeed: need || undefined,
-        }),
-      });
-      const payload = (await res.json()) as { facilities?: Facility[]; error?: string };
-      if (!res.ok) {
-        throw new Error(payload.error || `Request failed (${res.status})`);
-      }
-      setResults(payload.facilities ?? []);
-      setDataSource("live");
-    } catch {
-      // Fallback: live Databricks unavailable → use demo dataset
-      setResults(runDemoSearch());
-      setDataSource("demo");
-    } finally {
-      setLoading(false);
-    }
-  }
 
   return (
     <div className="min-h-dvh bg-background">
       <header className="border-b border-border/60 bg-card">
-        <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-5 sm:px-6">
+        <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-5 sm:px-6">
           <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
             <Stethoscope className="h-5 w-5" />
           </div>
@@ -173,209 +56,106 @@ function Index() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-8">
+      <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
         <Tabs defaultValue="search" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 max-w-2xl mx-auto mb-6">
+          <TabsList className="grid w-full grid-cols-2 max-w-xl mx-auto mb-6">
             <TabsTrigger value="search">Patient / Health Worker</TabsTrigger>
             <TabsTrigger value="dashboard">NGO / Planner</TabsTrigger>
-            <TabsTrigger value="chat">Ask CareMap</TabsTrigger>
           </TabsList>
 
           <TabsContent value="search" className="mt-0">
-            <section
-              aria-label="Search facilities"
-              className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm sm:p-6"
-            >
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  void runSearch();
-                }}
-                className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
-              >
-                <div className="space-y-1.5">
-                  <Label htmlFor="state">State</Label>
-                  <Select
-                    value={state}
-                    onValueChange={(v) => {
-                      setState(v);
-                      setCity("");
-                    }}
-                    disabled={locationsLoading || states.length === 0}
-                  >
-                    <SelectTrigger id="state" className="w-full">
-                      <SelectValue
-                        placeholder={
-                          locationsLoading ? "Loading states…" : "Select state"
-                        }
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {states.map((s) => (
-                        <SelectItem key={s} value={s}>
-                          {s}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label htmlFor="city">City (optional)</Label>
-                  {state && cityOptions.length > 0 ? (
-                    <Select
-                      value={city || "__any__"}
-                      onValueChange={(v) => setCity(v === "__any__" ? "" : v)}
-                    >
-                      <SelectTrigger id="city" className="w-full">
-                        <SelectValue placeholder="Any city" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="__any__">Any city</SelectItem>
-                        {cityOptions.map((c) => (
-                          <SelectItem key={c} value={c}>
-                            {c}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <Input
-                      id="city"
-                      placeholder={state ? "Any city" : "Select a state first"}
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                      disabled={!state}
-                    />
-                  )}
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label htmlFor="need">Medical need</Label>
-                  <Select value={need} onValueChange={(v) => setNeed(v as MedicalNeed)}>
-                    <SelectTrigger id="need" className="w-full">
-                      <SelectValue placeholder="Select need" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {MEDICAL_NEEDS.map((n) => (
-                        <SelectItem key={n} value={n}>
-                          {n}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="flex items-end">
-                  <Button type="submit" className="w-full gap-2" disabled={loading}>
-                    {loading ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Search className="h-4 w-4" />
-                    )}
-                    {loading ? "Searching..." : "Search"}
-                  </Button>
-                </div>
-              </form>
-            </section>
-
-            <section aria-label="Results" className="mt-6 sm:mt-8">
-              {locationsSource === "demo" && (
-                <Alert className="mb-3 border-warning/40 bg-warning/10">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>Live Databricks connection is unavailable.</AlertTitle>
-                  <AlertDescription>
-                    Showing demo state and city options so you can keep exploring.
-                  </AlertDescription>
-                </Alert>
-              )}
-              <div className="mb-3 flex items-baseline justify-between gap-3">
-                <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                  {loading
-                    ? "Searching facilities..."
-                    : results
-                      ? `${results.length} facility${results.length === 1 ? "" : "s"} found`
-                      : "Search to see facilities"}
-                </h2>
-                <div className="flex items-center gap-2">
-                  {dataSource && !loading && (
-                    <span
-                      className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium ${
-                        dataSource === "live"
-                          ? "border-success/30 bg-success/10 text-success"
-                          : "border-warning/40 bg-warning/15 text-warning-foreground"
-                      }`}
-                    >
-                      {dataSource === "live" ? (
-                        <>
-                          <Database className="h-3 w-3" /> Live Databricks data
-                        </>
-                      ) : (
-                        <>
-                          <TestTube2 className="h-3 w-3" /> Demo data
-                        </>
-                      )}
-                    </span>
-                  )}
-                  <span className="text-xs text-muted-foreground">Sorted by trust score</span>
-                </div>
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+              <div className="lg:col-span-2">
+                <ChatPanel
+                  onSearchStart={() => {
+                    setLoading(true);
+                  }}
+                  onResults={(facilities, need, source) => {
+                    setResults(facilities);
+                    setSelectedNeed(need);
+                    setDataSource(source);
+                    setLoading(false);
+                  }}
+                />
               </div>
 
-              {dataSource === "demo" && !loading && results && results.length > 0 && (
-                <Alert className="mb-3 border-warning/40 bg-warning/10">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>Live Databricks connection is unavailable.</AlertTitle>
-                  <AlertDescription>
-                    Showing demo facility data so the app keeps working. Reconnect Databricks for live results.
-                  </AlertDescription>
-                </Alert>
-              )}
+              <section aria-label="Results" className="lg:col-span-3">
+                <div className="mb-3 flex items-baseline justify-between gap-3">
+                  <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                    {loading
+                      ? "Searching facilities..."
+                      : results
+                        ? `${results.length} facility${results.length === 1 ? "" : "s"} found`
+                        : "Ask CareMap to see facilities"}
+                  </h2>
+                  <div className="flex items-center gap-2">
+                    {dataSource && !loading && (
+                      <span
+                        className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium ${
+                          dataSource === "live"
+                            ? "border-success/30 bg-success/10 text-success"
+                            : "border-warning/40 bg-warning/15 text-warning-foreground"
+                        }`}
+                      >
+                        {dataSource === "live" ? (
+                          <>
+                            <Database className="h-3 w-3" /> Live Databricks data
+                          </>
+                        ) : (
+                          <>
+                            <TestTube2 className="h-3 w-3" /> Demo data
+                          </>
+                        )}
+                      </span>
+                    )}
+                  </div>
+                </div>
 
-              {error ? (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>Could not load facilities</AlertTitle>
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              ) : loading ? (
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  {[0, 1, 2, 3].map((i) => (
-                    <div
-                      key={i}
-                      className="h-48 animate-pulse rounded-xl border border-border/60 bg-card"
-                    />
-                  ))}
-                </div>
-              ) : !hasSearched ? (
-                <div className="rounded-xl border border-dashed border-border bg-card p-10 text-center">
-                  <p className="text-sm text-muted-foreground">
-                    Choose a state, city, or medical need and click Search.
-                  </p>
-                </div>
-              ) : results && results.length === 0 ? (
-                <div className="rounded-xl border border-dashed border-border bg-card p-10 text-center">
-                  <p className="text-sm text-muted-foreground">
-                    No matching facilities. Try broadening your filters.
-                  </p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  {results?.map((f) => (
-                    <FacilityCard key={f.id} facility={f} selectedNeed={need} />
-                  ))}
-                </div>
-              )}
-            </section>
+                {dataSource === "demo" && !loading && results && results.length > 0 && (
+                  <Alert className="mb-3 border-warning/40 bg-warning/10">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Live Databricks connection is unavailable.</AlertTitle>
+                    <AlertDescription>
+                      Showing demo facility data so the app keeps working. Reconnect Databricks for live results.
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {loading ? (
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    {[0, 1, 2, 3].map((i) => (
+                      <div
+                        key={i}
+                        className="h-48 animate-pulse rounded-xl border border-border/60 bg-card"
+                      />
+                    ))}
+                  </div>
+                ) : results === null ? (
+                  <div className="rounded-xl border border-dashed border-border bg-card p-10 text-center">
+                    <MessageSquare className="mx-auto mb-3 h-6 w-6 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">
+                      Ask a question on the left to see matching facilities here.
+                    </p>
+                  </div>
+                ) : results.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-border bg-card p-10 text-center">
+                    <p className="text-sm text-muted-foreground">
+                      No matching facilities for that question. Try rephrasing or broadening it.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    {results.map((f) => (
+                      <FacilityCard key={f.id} facility={f} selectedNeed={selectedNeed} />
+                    ))}
+                  </div>
+                )}
+              </section>
+            </div>
           </TabsContent>
 
           <TabsContent value="dashboard" className="mt-0">
             <PlannerDashboard />
-          </TabsContent>
-
-          <TabsContent value="chat" className="mt-0">
-            <div className="max-w-2xl mx-auto">
-              <ChatPanel />
-            </div>
           </TabsContent>
         </Tabs>
 
