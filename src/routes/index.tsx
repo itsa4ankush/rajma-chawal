@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { Search, ShieldCheck, Stethoscope } from "lucide-react";
+import { useState } from "react";
+import { AlertCircle, Loader2, Search, ShieldCheck, Stethoscope } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,14 +12,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { FacilityCard } from "@/components/FacilityCard";
 import { PlannerDashboard } from "@/components/PlannerDashboard";
 import { ChatPanel } from "@/components/ChatPanel";
 import {
-  FACILITIES,
   INDIAN_STATES,
   MEDICAL_NEEDS,
-  facilityMatchesNeed,
+  type Facility,
   type MedicalNeed,
 } from "@/lib/facilities";
 
