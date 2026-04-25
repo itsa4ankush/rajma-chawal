@@ -50,6 +50,33 @@ function Index() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
+  const [states, setStates] = useState<string[]>([]);
+  const [citiesByState, setCitiesByState] = useState<Record<string, string[]>>({});
+  const [locationsLoading, setLocationsLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/location-options")
+      .then((r) => r.json())
+      .then((data) => {
+        if (cancelled) return;
+        if (Array.isArray(data?.states)) {
+          setStates(data.states);
+          setCitiesByState(data.citiesByState ?? {});
+        }
+      })
+      .catch(() => {
+        /* keep empty; UI will show no options */
+      })
+      .finally(() => {
+        if (!cancelled) setLocationsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const cityOptions = state ? (citiesByState[state] ?? []) : [];
 
   async function runSearch() {
     setLoading(true);
