@@ -1,26 +1,172 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
+import { Search, ShieldCheck, Stethoscope } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { FacilityCard } from "@/components/FacilityCard";
+import {
+  FACILITIES,
+  INDIAN_STATES,
+  MEDICAL_NEEDS,
+  type MedicalNeed,
+} from "@/lib/facilities";
 
 export const Route = createFileRoute("/")({
   component: Index,
+  head: () => ({
+    meta: [
+      { title: "CareMap India — Find trusted healthcare facilities" },
+      {
+        name: "description",
+        content:
+          "Find trusted hospitals across India by state, city, and medical need. Capability levels, trust scores, and clear warnings.",
+      },
+      { property: "og:title", content: "CareMap India" },
+      {
+        property: "og:description",
+        content: "Find trusted care from messy healthcare data.",
+      },
+    ],
+  }),
 });
 
-// IMPORTANT: Replace this placeholder. For sites with multiple pages (About, Services, Contact, etc.),
-// create separate route files (about.tsx, services.tsx, contact.tsx) — don't put all pages in this file.
-function PlaceholderIndex() {
+function Index() {
+  const [state, setState] = useState<string>("");
+  const [city, setCity] = useState<string>("");
+  const [need, setNeed] = useState<MedicalNeed | "">("");
+  const [submitted, setSubmitted] = useState(false);
+
+  const results = useMemo(() => {
+    let list = FACILITIES;
+    if (state) list = list.filter((f) => f.state.toLowerCase() === state.toLowerCase());
+    if (city.trim())
+      list = list.filter((f) => f.city.toLowerCase().includes(city.trim().toLowerCase()));
+    if (need) list = list.filter((f) => f.needs.includes(need));
+    return list.sort((a, b) => b.trustScore - a.trustScore);
+  }, [state, city, need]);
+
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+    <div className="min-h-dvh bg-background">
+      <header className="border-b border-border/60 bg-card">
+        <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-5 sm:px-6">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
+            <Stethoscope className="h-5 w-5" />
+          </div>
+          <div className="min-w-0">
+            <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-foreground">
+              CareMap India
+            </h1>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Find trusted care from messy healthcare data
+            </p>
+          </div>
+          <div className="ml-auto hidden sm:flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1 text-xs text-secondary-foreground">
+            <ShieldCheck className="h-3.5 w-3.5 text-accent" />
+            Verified sources
+          </div>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-8">
+        <section
+          aria-label="Search facilities"
+          className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm sm:p-6"
+        >
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              setSubmitted(true);
+            }}
+            className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+          >
+            <div className="space-y-1.5">
+              <Label htmlFor="state">State</Label>
+              <Select value={state} onValueChange={setState}>
+                <SelectTrigger id="state" className="w-full">
+                  <SelectValue placeholder="Select state" />
+                </SelectTrigger>
+                <SelectContent>
+                  {INDIAN_STATES.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="city">City</Label>
+              <Input
+                id="city"
+                placeholder="e.g. Mumbai"
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="need">Medical need</Label>
+              <Select value={need} onValueChange={(v) => setNeed(v as MedicalNeed)}>
+                <SelectTrigger id="need" className="w-full">
+                  <SelectValue placeholder="Select need" />
+                </SelectTrigger>
+                <SelectContent>
+                  {MEDICAL_NEEDS.map((n) => (
+                    <SelectItem key={n} value={n}>
+                      {n}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-end">
+              <Button type="submit" className="w-full gap-2">
+                <Search className="h-4 w-4" />
+                Search
+              </Button>
+            </div>
+          </form>
+        </section>
+
+        <section aria-label="Results" className="mt-6 sm:mt-8">
+          <div className="mb-3 flex items-baseline justify-between">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+              {submitted || state || city || need
+                ? `${results.length} facility${results.length === 1 ? "" : "s"} found`
+                : "Recommended facilities"}
+            </h2>
+            <span className="text-xs text-muted-foreground">Sorted by trust score</span>
+          </div>
+
+          {results.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-border bg-card p-10 text-center">
+              <p className="text-sm text-muted-foreground">
+                No matching facilities. Try broadening your filters.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {results.map((f) => (
+                <FacilityCard key={f.id} facility={f} />
+              ))}
+            </div>
+          )}
+        </section>
+
+        <footer className="mt-10 border-t border-border/60 pt-6 text-center text-xs text-muted-foreground">
+          Sample data shown for demonstration. Always verify with the facility before travel.
+        </footer>
+      </main>
     </div>
   );
-}
-
-function Index() {
-  return <PlaceholderIndex />;
 }
