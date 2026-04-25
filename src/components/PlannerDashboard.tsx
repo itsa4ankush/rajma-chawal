@@ -1,78 +1,21 @@
-import { AlertTriangle, Building2, Droplet, HeartPulse, Scissors } from "lucide-react";
+import { useEffect, useState } from "react";
+import { AlertCircle, AlertTriangle, Building2, Droplet, HeartPulse, Loader2, Scissors } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { FACILITIES, type Facility } from "@/lib/facilities";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 type RiskLevel = "High" | "Medium" | "Low";
 
-const isHigh = (c: Facility[keyof Facility]) => c === "High";
-const isHighOrMedium = (c: Facility[keyof Facility]) => c === "High" || c === "Medium";
-
-function computeStats() {
-  const total = FACILITIES.length;
-  const highSurgery = FACILITIES.filter((f) => isHigh(f.emergency_surgery_capability)).length;
-  const highICU = FACILITIES.filter((f) => isHigh(f.icu_capability)).length;
-  const dialysis = FACILITIES.filter((f) => isHighOrMedium(f.dialysis_capability)).length;
-  const withWarnings = FACILITIES.filter(
-    (f) => f.risk_warning && !/no active warning/i.test(f.risk_warning),
-  ).length;
-  return { total, highSurgery, highICU, dialysis, withWarnings };
-}
-
-interface CityRow {
-  city: string;
+interface DesertCity {
   state: string;
-  totalFacilities: number;
-  highSurgeryFacilities: number;
-  highICUFacilities: number;
-  dialysisFacilities: number;
-  averageTrustScore: number;
-  risk: RiskLevel;
-  _trustSum: number;
-}
-
-function computeCityRows(): CityRow[] {
-  const map = new Map<string, CityRow>();
-  for (const f of FACILITIES) {
-    const key = `${f.address_city}|${f.address_stateOrRegion}`;
-    const row =
-      map.get(key) ??
-      ({
-        city: f.address_city,
-        state: f.address_stateOrRegion,
-        totalFacilities: 0,
-        highSurgeryFacilities: 0,
-        highICUFacilities: 0,
-        dialysisFacilities: 0,
-        averageTrustScore: 0,
-        risk: "Low" as RiskLevel,
-        _trustSum: 0,
-      } satisfies CityRow);
-    row.totalFacilities += 1;
-    row._trustSum += f.trust_score;
-    if (isHigh(f.emergency_surgery_capability)) row.highSurgeryFacilities += 1;
-    if (isHigh(f.icu_capability)) row.highICUFacilities += 1;
-    if (isHighOrMedium(f.dialysis_capability)) row.dialysisFacilities += 1;
-    map.set(key, row);
-  }
-  for (const row of map.values()) {
-    row.averageTrustScore = Math.round(row._trustSum / row.totalFacilities);
-    if (
-      row.totalFacilities > 0 &&
-      row.highSurgeryFacilities === 0 &&
-      row.highICUFacilities === 0
-    ) {
-      row.risk = "High";
-    } else if (row.averageTrustScore < 60) {
-      row.risk = "Medium";
-    } else {
-      row.risk = "Low";
-    }
-  }
-  const order: Record<RiskLevel, number> = { High: 0, Medium: 1, Low: 2 };
-  return Array.from(map.values()).sort(
-    (a, b) => order[a.risk] - order[b.risk] || a.averageTrustScore - b.averageTrustScore,
-  );
+  city: string;
+  total_facilities: number;
+  high_surgery_facilities: number;
+  high_icu_facilities: number;
+  dialysis_facilities: number;
+  avg_trust_score: number;
+  warning_facilities: number;
+  risk_level: RiskLevel;
 }
 
 const riskStyles: Record<RiskLevel, string> = {
@@ -106,7 +49,9 @@ function StatCard({
           <Icon className="h-5 w-5" />
         </div>
         <div className="min-w-0">
-          <div className="text-2xl font-bold text-foreground tabular-nums">{value}</div>
+          <div className="text-2xl font-bold text-foreground tabular-nums">
+            {value.toLocaleString()}
+          </div>
           <div className="text-xs text-muted-foreground">{label}</div>
         </div>
       </CardContent>
@@ -115,8 +60,74 @@ function StatCard({
 }
 
 export function PlannerDashboard() {
-  const stats = computeStats();
-  const rows = computeCityRows();
+  const [cities, setCities] = useState<DesertCity[] | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    fetch("/api/medical-deserts")
+      .then(async (r) => {
+        const data = await r.json();
+        if (!r.ok) throw new Error(data?.error || `Request failed (${r.status})`);
+        return data as { cities: DesertCity[] };
+      })
+      .then((data) => {
+        if (cancelled) return;
+        setCities(data.cities ?? []);
+        setError(null);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setError(err instanceof Error ? err.message : "Failed to load data");
+        setCities(null);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const totals = (cities ?? []).reduce(
+    (acc, c) => {
+      acc.total += c.total_facilities;
+      acc.highSurgery += c.high_surgery_facilities;
+      acc.highICU += c.high_icu_facilities;
+      acc.dialysis += c.dialysis_facilities;
+      acc.warnings += c.warning_facilities;
+      return acc;
+    },
+    { total: 0, highSurgery: 0, highICU: 0, dialysis: 0, warnings: 0 },
+  );
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center rounded-2xl border border-border/70 bg-card p-12 text-sm text-muted-foreground">
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading planner data…
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Could not load planner data</AlertTitle>
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
+    );
+  }
+
+  if (!cities || cities.length === 0) {
+    return (
+      <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center text-sm text-muted-foreground">
+        No facility data available.
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -124,18 +135,18 @@ export function PlannerDashboard() {
         aria-label="Summary"
         className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5"
       >
-        <StatCard label="Total facilities analyzed" value={stats.total} icon={Building2} tone="primary" />
+        <StatCard label="Total facilities analyzed" value={totals.total} icon={Building2} tone="primary" />
         <StatCard
           label="High-trust emergency surgery"
-          value={stats.highSurgery}
+          value={totals.highSurgery}
           icon={Scissors}
           tone="success"
         />
-        <StatCard label="High-trust ICU" value={stats.highICU} icon={HeartPulse} tone="accent" />
-        <StatCard label="Dialysis facilities" value={stats.dialysis} icon={Droplet} tone="primary" />
+        <StatCard label="High-trust ICU" value={totals.highICU} icon={HeartPulse} tone="accent" />
+        <StatCard label="Dialysis facilities" value={totals.dialysis} icon={Droplet} tone="primary" />
         <StatCard
           label="Facilities with warnings"
-          value={stats.withWarnings}
+          value={totals.warnings}
           icon={AlertTriangle}
           tone="warning"
         />
@@ -162,24 +173,26 @@ export function PlannerDashboard() {
                 <TableHead className="text-right">High ICU</TableHead>
                 <TableHead className="text-right">Dialysis</TableHead>
                 <TableHead className="text-right">Avg trust</TableHead>
+                <TableHead className="text-right">Warnings</TableHead>
                 <TableHead>Risk</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {rows.map((r) => (
+              {cities.slice(0, 100).map((r) => (
                 <TableRow key={`${r.city}-${r.state}`}>
                   <TableCell className="font-medium">{r.city}</TableCell>
                   <TableCell className="text-muted-foreground">{r.state}</TableCell>
-                  <TableCell className="text-right tabular-nums">{r.totalFacilities}</TableCell>
-                  <TableCell className="text-right tabular-nums">{r.highSurgeryFacilities}</TableCell>
-                  <TableCell className="text-right tabular-nums">{r.highICUFacilities}</TableCell>
-                  <TableCell className="text-right tabular-nums">{r.dialysisFacilities}</TableCell>
-                  <TableCell className="text-right tabular-nums">{r.averageTrustScore}</TableCell>
+                  <TableCell className="text-right tabular-nums">{r.total_facilities}</TableCell>
+                  <TableCell className="text-right tabular-nums">{r.high_surgery_facilities}</TableCell>
+                  <TableCell className="text-right tabular-nums">{r.high_icu_facilities}</TableCell>
+                  <TableCell className="text-right tabular-nums">{r.dialysis_facilities}</TableCell>
+                  <TableCell className="text-right tabular-nums">{r.avg_trust_score}</TableCell>
+                  <TableCell className="text-right tabular-nums">{r.warning_facilities}</TableCell>
                   <TableCell>
                     <span
-                      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${riskStyles[r.risk]}`}
+                      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${riskStyles[r.risk_level]}`}
                     >
-                      {r.risk}
+                      {r.risk_level}
                     </span>
                   </TableCell>
                 </TableRow>
