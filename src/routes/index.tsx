@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AlertCircle, Loader2, Search, ShieldCheck, Stethoscope } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +18,6 @@ import { PlannerDashboard } from "@/components/PlannerDashboard";
 import { ChatPanel } from "@/components/ChatPanel";
 import { DatabricksStatusCard } from "@/components/DatabricksStatusCard";
 import {
-  INDIAN_STATES,
   MEDICAL_NEEDS,
   type Facility,
   type MedicalNeed,
@@ -51,6 +50,33 @@ function Index() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
+  const [states, setStates] = useState<string[]>([]);
+  const [citiesByState, setCitiesByState] = useState<Record<string, string[]>>({});
+  const [locationsLoading, setLocationsLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/location-options")
+      .then((r) => r.json())
+      .then((data) => {
+        if (cancelled) return;
+        if (Array.isArray(data?.states)) {
+          setStates(data.states);
+          setCitiesByState(data.citiesByState ?? {});
+        }
+      })
+      .catch(() => {
+        /* keep empty; UI will show no options */
+      })
+      .finally(() => {
+        if (!cancelled) setLocationsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const cityOptions = state ? (citiesByState[state] ?? []) : [];
 
   async function runSearch() {
     setLoading(true);
@@ -123,12 +149,23 @@ function Index() {
               >
                 <div className="space-y-1.5">
                   <Label htmlFor="state">State</Label>
-                  <Select value={state} onValueChange={setState}>
+                  <Select
+                    value={state}
+                    onValueChange={(v) => {
+                      setState(v);
+                      setCity("");
+                    }}
+                    disabled={locationsLoading || states.length === 0}
+                  >
                     <SelectTrigger id="state" className="w-full">
-                      <SelectValue placeholder="Select state" />
+                      <SelectValue
+                        placeholder={
+                          locationsLoading ? "Loading states…" : "Select state"
+                        }
+                      />
                     </SelectTrigger>
                     <SelectContent>
-                      {INDIAN_STATES.map((s) => (
+                      {states.map((s) => (
                         <SelectItem key={s} value={s}>
                           {s}
                         </SelectItem>
@@ -138,13 +175,33 @@ function Index() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="city">City</Label>
-                  <Input
-                    id="city"
-                    placeholder="e.g. Mumbai"
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                  />
+                  <Label htmlFor="city">City (optional)</Label>
+                  {state && cityOptions.length > 0 ? (
+                    <Select
+                      value={city || "__any__"}
+                      onValueChange={(v) => setCity(v === "__any__" ? "" : v)}
+                    >
+                      <SelectTrigger id="city" className="w-full">
+                        <SelectValue placeholder="Any city" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__any__">Any city</SelectItem>
+                        {cityOptions.map((c) => (
+                          <SelectItem key={c} value={c}>
+                            {c}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input
+                      id="city"
+                      placeholder={state ? "Any city" : "Select a state first"}
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      disabled={!state}
+                    />
+                  )}
                 </div>
 
                 <div className="space-y-1.5">
