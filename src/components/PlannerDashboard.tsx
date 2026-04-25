@@ -161,6 +161,7 @@ export function PlannerDashboard() {
                 <TableHead className="text-right">High surgery</TableHead>
                 <TableHead className="text-right">High ICU</TableHead>
                 <TableHead className="text-right">Dialysis</TableHead>
+                <TableHead className="text-right">Avg trust</TableHead>
                 <TableHead>Risk</TableHead>
               </TableRow>
             </TableHeader>
@@ -169,10 +170,11 @@ export function PlannerDashboard() {
                 <TableRow key={`${r.city}-${r.state}`}>
                   <TableCell className="font-medium">{r.city}</TableCell>
                   <TableCell className="text-muted-foreground">{r.state}</TableCell>
-                  <TableCell className="text-right tabular-nums">{r.total}</TableCell>
-                  <TableCell className="text-right tabular-nums">{r.highSurgery}</TableCell>
-                  <TableCell className="text-right tabular-nums">{r.highICU}</TableCell>
-                  <TableCell className="text-right tabular-nums">{r.dialysis}</TableCell>
+                  <TableCell className="text-right tabular-nums">{r.totalFacilities}</TableCell>
+                  <TableCell className="text-right tabular-nums">{r.highSurgeryFacilities}</TableCell>
+                  <TableCell className="text-right tabular-nums">{r.highICUFacilities}</TableCell>
+                  <TableCell className="text-right tabular-nums">{r.dialysisFacilities}</TableCell>
+                  <TableCell className="text-right tabular-nums">{r.averageTrustScore}</TableCell>
                   <TableCell>
                     <span
                       className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${riskStyles[r.risk]}`}
