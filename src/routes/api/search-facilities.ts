@@ -92,7 +92,12 @@ function rowsToFacilities(resp: DatabricksStatementResponse): Facility[] {
         num(obj.trust_score) < 60
           ? "Low trust score — verify capabilities before referral"
           : "",
-      recommendation_reason: str(obj.recommendation_reason),
+      recommendation_reason:
+        num(obj.trust_score) >= 80
+          ? "High trust score with verified capability signals."
+          : num(obj.trust_score) >= 60
+            ? "Reasonable capability match — verify before referral."
+            : "Limited verified capability — use only if no stronger option is available.",
       has_icu: bool(obj.has_icu),
       has_oxygen: bool(obj.has_oxygen),
       has_operation_theatre: bool(obj.has_operation_theatre),
@@ -167,8 +172,7 @@ export const Route = createFileRoute("/api/search-facilities")({
           "emergency_surgery_capability",
           "icu_capability",
           "dialysis_capability",
-      "trust_score",
-      "recommendation_reason",
+          "trust_score",
           "has_icu",
           "has_oxygen",
           "has_operation_theatre",
