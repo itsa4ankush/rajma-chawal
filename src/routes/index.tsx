@@ -14,6 +14,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FacilityCard } from "@/components/FacilityCard";
 import { PlannerDashboard } from "@/components/PlannerDashboard";
+import { ChatPanel } from "@/components/ChatPanel";
 import {
   FACILITIES,
   INDIAN_STATES,
@@ -80,9 +81,10 @@ function Index() {
 
       <main className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-8">
         <Tabs defaultValue="search" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 max-w-xl mx-auto mb-6">
+          <TabsList className="grid w-full grid-cols-3 max-w-2xl mx-auto mb-6">
             <TabsTrigger value="search">Patient / Health Worker</TabsTrigger>
-            <TabsTrigger value="dashboard">NGO / Planner Dashboard</TabsTrigger>
+            <TabsTrigger value="dashboard">NGO / Planner</TabsTrigger>
+            <TabsTrigger value="chat">Ask CareMap</TabsTrigger>
           </TabsList>
 
           <TabsContent value="search" className="mt-0">
@@ -176,6 +178,12 @@ function Index() {
 
           <TabsContent value="dashboard" className="mt-0">
             <PlannerDashboard />
+          </TabsContent>
+
+          <TabsContent value="chat" className="mt-0">
+            <div className="max-w-2xl mx-auto">
+              <ChatPanel />
+            </div>
           </TabsContent>
         </Tabs>
 
