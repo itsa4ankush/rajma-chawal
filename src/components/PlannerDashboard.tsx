@@ -105,6 +105,7 @@ function buildDemoCities(facilities: Facility[]): DesertCity[] {
 }
 
 export function PlannerDashboard() {
+  const [cities, setCities] = useState<DesertCity[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [dataSource, setDataSource] = useState<"live" | "demo">("live");
 
