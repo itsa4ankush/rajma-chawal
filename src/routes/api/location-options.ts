@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-
+import { getCanonicalState, isValidLocationCity } from "@/lib/location-normalization";
 const GATEWAY_URL = "https://connector-gateway.lovable.dev/databricks";
 const TABLE = "workspace.default.healthcare_facility_intelligence";
 
