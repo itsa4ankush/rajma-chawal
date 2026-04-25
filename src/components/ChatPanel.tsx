@@ -174,20 +174,10 @@ export function ChatPanel() {
           text: `${demoNote}\n\nNo demo matches${filterDesc ? ` for ${filterDesc}` : ""}.\n\n${DISCLAIMER}`,
         };
       } else {
-        const recs: RecLine[] = top.map((f, i) => ({
-          index: i + 1,
-          name: f.name,
-          city: f.address_city,
-          state: f.address_stateOrRegion,
-          trust_score: f.trust_score,
-          capabilityLabel: need,
-          capability: String(f[NEED_FIELD[need]] ?? "—"),
-          warning: f.risk_warning || "No active warning on record.",
-          reason: f.recommendation_reason || "Selected based on trust score and capability.",
-        }));
         reply = {
-          text: `${demoNote}\n\nTop ${recs.length} demo ${recs.length === 1 ? "facility" : "facilities"}${filterDesc ? ` for ${filterDesc}` : ""}:\n\n_Demo dataset — not live Databricks data._`,
-          recommendations: recs,
+          text: `${demoNote}\n\nTop ${top.length} demo ${top.length === 1 ? "facility" : "facilities"}${filterDesc ? ` for ${filterDesc}` : ""}:\n\n_Demo dataset — not live Databricks data._`,
+          facilities: top,
+          selectedNeed: need,
         };
       }
     }
