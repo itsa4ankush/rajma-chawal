@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiSearchFacilitiesRouteImport } from './routes/api/search-facilities'
+import { Route as ApiDatabricksHealthRouteImport } from './routes/api/databricks-health'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,30 +23,39 @@ const ApiSearchFacilitiesRoute = ApiSearchFacilitiesRouteImport.update({
   path: '/api/search-facilities',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDatabricksHealthRoute = ApiDatabricksHealthRouteImport.update({
+  id: '/api/databricks-health',
+  path: '/api/databricks-health',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/api/databricks-health': typeof ApiDatabricksHealthRoute
   '/api/search-facilities': typeof ApiSearchFacilitiesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/api/databricks-health': typeof ApiDatabricksHealthRoute
   '/api/search-facilities': typeof ApiSearchFacilitiesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/api/databricks-health': typeof ApiDatabricksHealthRoute
   '/api/search-facilities': typeof ApiSearchFacilitiesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/search-facilities'
+  fullPaths: '/' | '/api/databricks-health' | '/api/search-facilities'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/search-facilities'
-  id: '__root__' | '/' | '/api/search-facilities'
+  to: '/' | '/api/databricks-health' | '/api/search-facilities'
+  id: '__root__' | '/' | '/api/databricks-health' | '/api/search-facilities'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApiDatabricksHealthRoute: typeof ApiDatabricksHealthRoute
   ApiSearchFacilitiesRoute: typeof ApiSearchFacilitiesRoute
 }
 
@@ -65,11 +75,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiSearchFacilitiesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/databricks-health': {
+      id: '/api/databricks-health'
+      path: '/api/databricks-health'
+      fullPath: '/api/databricks-health'
+      preLoaderRoute: typeof ApiDatabricksHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApiDatabricksHealthRoute: ApiDatabricksHealthRoute,
   ApiSearchFacilitiesRoute: ApiSearchFacilitiesRoute,
 }
 export const routeTree = rootRouteImport

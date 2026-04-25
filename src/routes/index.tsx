@@ -16,6 +16,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { FacilityCard } from "@/components/FacilityCard";
 import { PlannerDashboard } from "@/components/PlannerDashboard";
 import { ChatPanel } from "@/components/ChatPanel";
+import { DatabricksStatusCard } from "@/components/DatabricksStatusCard";
 import {
   INDIAN_STATES,
   MEDICAL_NEEDS,
@@ -236,7 +237,8 @@ function Index() {
         </Tabs>
 
         <footer className="mt-10 border-t border-border/60 pt-6 text-center text-xs text-muted-foreground">
-          Sample data shown for demonstration. Always verify with the facility before travel.
+          <div>Sample data shown for demonstration. Always verify with the facility before travel.</div>
+          <DatabricksStatusCard />
         </footer>
       </main>
     </div>
