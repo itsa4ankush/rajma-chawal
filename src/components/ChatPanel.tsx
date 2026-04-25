@@ -3,6 +3,7 @@ import { Bot, Loader2, Send, Sparkles, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { FacilityCard } from "@/components/FacilityCard";
 import { FACILITIES, facilityMatchesNeed, type Facility, type MedicalNeed } from "@/lib/facilities";
 
 const DISCLAIMER =
@@ -45,21 +46,10 @@ function parseQuery(raw: string, knownStates: string[]): ParsedQuery {
   return parsed;
 }
 
-interface RecLine {
-  index: number;
-  name: string;
-  city: string;
-  state: string;
-  trust_score: number;
-  capabilityLabel: string;
-  capability: string;
-  warning: string;
-  reason: string;
-}
-
 interface BotMessage {
   text: string;
-  recommendations?: RecLine[];
+  facilities?: Facility[];
+  selectedNeed?: MedicalNeed;
 }
 
 type ChatMessage =
@@ -155,20 +145,10 @@ export function ChatPanel() {
             DISCLAIMER,
         };
       } else {
-        const recs: RecLine[] = top.map((f, i) => ({
-          index: i + 1,
-          name: f.name,
-          city: f.address_city,
-          state: f.address_stateOrRegion,
-          trust_score: f.trust_score,
-          capabilityLabel: need,
-          capability: String(f[NEED_FIELD[need]] ?? "—"),
-          warning: f.risk_warning || "No active warning on record.",
-          reason: f.recommendation_reason || "Selected based on trust score and capability.",
-        }));
         reply = {
-          text: `Top ${recs.length} ${recs.length === 1 ? "facility" : "facilities"}${filterDesc ? ` for ${filterDesc}` : ""}:\n\n${DISCLAIMER}`,
-          recommendations: recs,
+          text: `Top ${top.length} ${top.length === 1 ? "facility" : "facilities"}${filterDesc ? ` for ${filterDesc}` : ""}:\n\n${DISCLAIMER}`,
+          facilities: top,
+          selectedNeed: need,
         };
       }
     } catch {
@@ -194,20 +174,10 @@ export function ChatPanel() {
           text: `${demoNote}\n\nNo demo matches${filterDesc ? ` for ${filterDesc}` : ""}.\n\n${DISCLAIMER}`,
         };
       } else {
-        const recs: RecLine[] = top.map((f, i) => ({
-          index: i + 1,
-          name: f.name,
-          city: f.address_city,
-          state: f.address_stateOrRegion,
-          trust_score: f.trust_score,
-          capabilityLabel: need,
-          capability: String(f[NEED_FIELD[need]] ?? "—"),
-          warning: f.risk_warning || "No active warning on record.",
-          reason: f.recommendation_reason || "Selected based on trust score and capability.",
-        }));
         reply = {
-          text: `${demoNote}\n\nTop ${recs.length} demo ${recs.length === 1 ? "facility" : "facilities"}${filterDesc ? ` for ${filterDesc}` : ""}:\n\n_Demo dataset — not live Databricks data._`,
-          recommendations: recs,
+          text: `${demoNote}\n\nTop ${top.length} demo ${top.length === 1 ? "facility" : "facilities"}${filterDesc ? ` for ${filterDesc}` : ""}:\n\n_Demo dataset — not live Databricks data._`,
+          facilities: top,
+          selectedNeed: need,
         };
       }
     }
@@ -260,40 +230,24 @@ export function ChatPanel() {
               </div>
             ) : (
               <div key={i} className="flex justify-start">
-                <div className="flex items-start gap-2 max-w-[90%]">
+                <div className="flex items-start gap-2 w-full">
                   <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent">
                     <Bot className="h-3.5 w-3.5" />
                   </div>
-                  <div className="rounded-2xl rounded-tl-sm bg-muted px-3 py-2 space-y-2">
-                    <MarkdownLite text={m.content.text} />
-                    {m.content.recommendations && (
-                      <ol className="space-y-2 pt-1">
-                        {m.content.recommendations.map((r) => (
-                          <li
-                            key={`${r.index}-${r.name}`}
-                            className="rounded-md border border-border bg-card px-3 py-2 text-xs leading-relaxed text-foreground/90"
-                          >
-                            <span className="font-semibold text-foreground">
-                              {r.index}. {r.name}, {r.city}, {r.state}
-                            </span>
-                            {" — "}
-                            Trust score{" "}
-                            <span className="font-semibold tabular-nums">
-                              {r.trust_score}/100
-                            </span>
-                            . {r.capabilityLabel} capability:{" "}
-                            <span className="font-medium">{r.capability}</span>.
-                            <div className="mt-1 text-muted-foreground">
-                              <span className="text-warning-foreground">⚠ Warning:</span>{" "}
-                              {r.warning}
-                            </div>
-                            <div className="mt-0.5 text-muted-foreground">
-                              <span className="font-medium text-foreground/80">Why recommended:</span>{" "}
-                              {r.reason}
-                            </div>
-                          </li>
+                  <div className="flex-1 min-w-0 space-y-3">
+                    <div className="rounded-2xl rounded-tl-sm bg-muted px-3 py-2 inline-block max-w-[90%]">
+                      <MarkdownLite text={m.content.text} />
+                    </div>
+                    {m.content.facilities && m.content.facilities.length > 0 && (
+                      <div className="grid grid-cols-1 gap-3">
+                        {m.content.facilities.map((f) => (
+                          <FacilityCard
+                            key={f.id}
+                            facility={f}
+                            selectedNeed={m.content.selectedNeed ?? ""}
+                          />
                         ))}
-                      </ol>
+                      </div>
                     )}
                   </div>
                 </div>
