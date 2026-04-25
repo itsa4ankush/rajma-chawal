@@ -152,7 +152,30 @@ export const Route = createFileRoute("/api/search-facilities")({
         if (needFilter) where.push(needFilter);
 
         const whereClause = where.length ? `WHERE ${where.join(" AND ")}` : "";
-        const statement = `SELECT * FROM ${TABLE} ${whereClause} ORDER BY trust_score DESC LIMIT 200`;
+        const SELECT_FIELDS = [
+          "name",
+          "address_stateOrRegion",
+          "address_city",
+          "address_zipOrPostcode",
+          "latitude",
+          "longitude",
+          "emergency_surgery_capability",
+          "icu_capability",
+          "dialysis_capability",
+          "trust_score",
+          "risk_warning",
+          "recommendation_reason",
+          "has_icu",
+          "has_oxygen",
+          "has_operation_theatre",
+          "has_surgeon",
+          "has_anesthesiologist",
+          "has_dialysis",
+          "has_neonatal_care",
+          "has_ambulance",
+          "is_24_7",
+        ].join(", ");
+        const statement = `SELECT ${SELECT_FIELDS} FROM ${TABLE} ${whereClause} ORDER BY trust_score DESC LIMIT 20`;
 
         try {
           const dbxRes = await fetch(`${GATEWAY_URL}/2.0/sql/statements`, {
