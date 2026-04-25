@@ -60,7 +60,51 @@ function StatCard({
   );
 }
 
-export function PlannerDashboard() {
+function buildDemoCities(facilities: Facility[]): DesertCity[] {
+  const map = new Map<string, DesertCity & { _trustSum: number }>();
+  for (const f of facilities) {
+    const key = `${f.address_city}|${f.address_stateOrRegion}`;
+    const r =
+      map.get(key) ??
+      {
+        state: f.address_stateOrRegion,
+        city: f.address_city,
+        total_facilities: 0,
+        high_surgery_facilities: 0,
+        high_icu_facilities: 0,
+        dialysis_facilities: 0,
+        avg_trust_score: 0,
+        warning_facilities: 0,
+        risk_level: "Low" as RiskLevel,
+        _trustSum: 0,
+      };
+    r.total_facilities += 1;
+    r._trustSum += f.trust_score;
+    if (f.emergency_surgery_capability === "High") r.high_surgery_facilities += 1;
+    if (f.icu_capability === "High") r.high_icu_facilities += 1;
+    if (f.dialysis_capability === "High" || f.dialysis_capability === "Medium")
+      r.dialysis_facilities += 1;
+    if (f.trust_score < 60) r.warning_facilities += 1;
+    map.set(key, r);
+  }
+  const out: DesertCity[] = [];
+  for (const r of map.values()) {
+    r.avg_trust_score = Math.round((r._trustSum / r.total_facilities) * 10) / 10;
+    if (r.high_surgery_facilities === 0 && r.high_icu_facilities === 0) r.risk_level = "High";
+    else if (r.avg_trust_score < 60) r.risk_level = "Medium";
+    else r.risk_level = "Low";
+    const { _trustSum: _, ...rest } = r;
+    out.push(rest);
+  }
+  const rank = { High: 0, Medium: 1, Low: 2 } as const;
+  out.sort(
+    (a, b) =>
+      rank[a.risk_level] - rank[b.risk_level] || a.avg_trust_score - b.avg_trust_score,
+  );
+  return out;
+}
+
+
   const [cities, setCities] = useState<DesertCity[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [dataSource, setDataSource] = useState<"live" | "demo">("live");
