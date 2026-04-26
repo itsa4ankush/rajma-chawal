@@ -202,7 +202,7 @@ function FacilityDetailsDialog({
 
             <section className="pt-5 sm:pt-0 sm:pl-6">
               <span className="font-mono uppercase tracking-[0.1em] text-[10px] font-bold text-caption">
-                Capability · {capabilityName}
+                Capability
               </span>
               <div className="mt-2 font-display text-4xl font-black leading-none text-ink">
                 {capability}
