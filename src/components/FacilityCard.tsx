@@ -16,7 +16,7 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -288,10 +288,17 @@ export function FacilityCard({
   facility,
   selectedNeed,
   index,
+  isActive,
+  onHover,
+  openSignal,
 }: {
   facility: Facility;
   selectedNeed?: MedicalNeed | "";
   index?: number;
+  isActive?: boolean;
+  onHover?: (id: string | null) => void;
+  /** When this number changes, open the audit dialog (used by map → card). */
+  openSignal?: number;
 }) {
   const [open, setOpen] = useState(false);
   const capability = (selectedNeed
@@ -299,9 +306,24 @@ export function FacilityCard({
     : facility.emergency_surgery_capability) as Capability;
   const capabilityName = selectedNeed ?? "Emergency Surgery";
 
+  // Open dialog when parent signals (e.g. map marker "View Full Audit" clicked).
+  // Using a numeric signal avoids re-opening on unrelated re-renders.
+  const lastOpenSignal = useRef<number | undefined>(undefined);
+  if (openSignal !== undefined && openSignal !== lastOpenSignal.current) {
+    lastOpenSignal.current = openSignal;
+    if (!open) setTimeout(() => setOpen(true), 0);
+  }
+
   return (
     <>
-      <article className="group border-b border-ink bg-paper py-6 sm:py-8 first:pt-6">
+      <article
+        id={`facility-${facility.id}`}
+        onMouseEnter={() => onHover?.(facility.id)}
+        onMouseLeave={() => onHover?.(null)}
+        className={`group border-b border-ink bg-paper py-6 sm:py-8 first:pt-6 transition-[border-color,background-color] ${
+          isActive ? "bg-muted border-l-[3px] border-l-link pl-3 sm:pl-4 -ml-3 sm:-ml-4" : ""
+        }`}
+      >
         <div className="flex items-start gap-4 sm:gap-6">
           {/* Display-serif numeral, "Most Popular" treatment */}
           {typeof index === "number" && (
