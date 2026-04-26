@@ -330,7 +330,7 @@ export function ChatPanel({ onSearchStart, onResults }: ChatPanelProps = {}) {
                       >
                         {m.content.intent.urgency}
                       </span>
-                      <span className="font-mono uppercase tracking-[0.08em] text-[10px] font-bold px-2 py-1 border border-ink text-ink">
+                      <span className="font-mono uppercase tracking-[0.08em] text-[10px] font-bold px-2 py-1 rounded-md border border-hairline bg-white text-ink">
                         {m.content.intent.understoodNeed}
                       </span>
                       {m.content.awaitingLocation && (
