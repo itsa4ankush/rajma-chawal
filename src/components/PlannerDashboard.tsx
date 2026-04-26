@@ -177,8 +177,8 @@ export function PlannerDashboard() {
           District-level capability survey
         </span>
         <span
-          className={`inline-flex items-center gap-1 px-2 py-1 font-mono uppercase tracking-[0.08em] text-[10px] font-bold ${
-            dataSource === "live" ? "bg-ink text-paper" : "bg-warning text-paper"
+          className={`inline-flex items-center gap-1 px-2 py-1 rounded-md font-mono uppercase tracking-[0.08em] text-[10px] font-bold ${
+            dataSource === "live" ? "bg-ink text-white" : "bg-warning text-ink"
           }`}
         >
           {dataSource === "live" ? (
