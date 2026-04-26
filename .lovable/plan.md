@@ -1,66 +1,62 @@
-## Goal
-Restructure the **Patient / Health Worker** tab into a two-pane chat-driven search experience, and remove the now-redundant **Ask CareMap** tab.
+# Wire Ask CareMap UI to the LLM intent route
 
-## Final tab structure
-1. **Patient / Health Worker** — chat (left) + facility results (right)
-2. **NGO / Planner** — unchanged
+## Current state
 
-## Layout (Patient / Health Worker tab)
+The previous turn was interrupted, but most of the work is already in place:
 
-Two-column responsive grid:
-- **Left pane (≈40% width on `lg`, full width stacked on mobile)**: `ChatPanel` — same parsing + `/api/search-facilities` logic it has today, including the demo-data fallback and disclaimer messaging.
-- **Right pane (≈60% width on `lg`)**: facility result cards (`FacilityCard` grid) + the existing "Live Databricks data / Demo data" badge and any fallback alerts.
+- ✅ `src/routes/api/ask-caremap.ts` — fully implemented: LLM intent parser (Lovable AI Gateway, `google/gemini-3-flash-preview`, structured tool-calling), 9-need capability mapping, Databricks query, top-5 by trust score, returns `{ understoodNeed, urgency, userExplanation, safetyMessage, dataLimitation, dataSourceError, facilities }`.
+- ✅ `src/lib/facilities.ts` — `MedicalNeed` already extended to all 9 values, `facilityMatchesNeed` updated.
+- ✅ `src/components/FacilityCard.tsx` — `NEED_TO_FIELD` already covers all 9 needs.
+- ✅ Secrets `LOVABLE_API_KEY`, `DATABRICKS_API_KEY`, `DATABRICKS_WAREHOUSE_ID` are configured.
 
-On screens narrower than `lg`, the chat stacks above the results pane.
+What's NOT done: the frontend (`ChatPanel.tsx`, `index.tsx`) still calls the old regex-parser path `/api/search-facilities` and never displays the LLM's safety message, urgency, or data limitation. That's the gap this plan closes.
 
-## Behavioral changes
+## Changes
 
-**Removed from this tab**
-- State / City / Medical Need `Select` dropdowns
-- Search button + `runSearch` form
-- `state`, `city`, `need`, `locationsLoading`, `citiesByState`, `cityOptions`, `runSearch`, `runDemoSearch`, location-fetch `useEffect` — all unused once filters are gone
-- Imports for `Label`, `Select*`, `Search` icon, `INDIAN_STATES`, `MEDICAL_NEEDS`, `facilityMatchesNeed`, `Input`
+### 1. `src/components/ChatPanel.tsx` — call the LLM endpoint
 
-**Removed entirely**
-- The `chat` tab (`<TabsTrigger value="chat">` and its `<TabsContent>`)
-- `TabsList` becomes `grid-cols-2`
+- Remove the regex `parseQuery` helper and the `knownStates` fetch — no longer needed.
+- Replace the `/api/search-facilities` call with `POST /api/ask-caremap` sending `{ message }` (state/city/pinCode left optional for now since the UI doesn't expose them in this tab).
+- Update `EXAMPLES` to natural-language prompts that match the new parser:
+  - "I was bitten by a dog, what hospitals are nearby?"
+  - "My father has chest pain"
+  - "Newborn baby is not breathing properly"
+  - "Need dialysis near Patna"
+- Extend `ChatPanelProps.onResults` callback signature to also pass the parsed intent fields:
+  ```ts
+  onResults?(facilities, selectedNeed, source, intent?: {
+    understoodNeed: string;
+    urgency: "emergency" | "urgent" | "routine";
+    userExplanation: string;
+    safetyMessage: string;
+    dataLimitation: string;
+  })
+  ```
+- Bot reply bubble shows a short confirmation: `**Understood:** {understoodNeed} · _{urgency}_` followed by the safety message and "Showing N facilities on the right →". The richer rendering lives in the right pane.
+- On HTTP error from `/api/ask-caremap` (LLM down, Databricks down, etc.), show an error bubble — do NOT fall back to demo data through the LLM path. (Demo fallback would require re-implementing intent parsing client-side, which defeats the purpose. A clear error is better.)
 
-**Chat ↔ results wiring**
-- `ChatPanel` is refactored to **lift its result state up** via two new optional props:
-  - `onResults?: (facilities: Facility[], selectedNeed: MedicalNeed | "", source: "live" | "demo") => void`
-  - `onSearchStart?: () => void`
-- Inside `ChatPanel`, after each successful (or fallback) query, call `onResults(...)` with the **full** facility list (not just top 3) so the right pane can show all matches.
-- The chat bubbles **no longer render `FacilityCard`s inline**. They keep the conversational text + disclaimer only ("Top N facilities for X — see results on the right →" type wording). The `BotMessage.facilities` field and the inline grid in `ChatPanel` are removed.
-- Existing example chips, parsing, "Searching Databricks…" loader, and demo fallback messaging remain.
+### 2. `src/routes/index.tsx` — render intent on the right pane
 
-**Right pane states**
-- **Initial** (no query yet): friendly empty-state card — "Ask a question on the left to see matching facilities here." (per your answer).
-- **Loading**: same skeleton grid currently used during search.
-- **Results**: `FacilityCard` grid (2 cols on `md+`, 1 on mobile within the right pane). `selectedNeed` comes from the chat's parsed need.
-- **Empty** (query returned 0): "No matching facilities for that question."
-- **Source badge**: keep the existing "Live Databricks data" / "Demo data" pill above the grid; drive it from the `source` value the chat passes up.
-- **Multi-query**: each new question **replaces** the right pane (no accumulation).
+- Add state for `intent` (the parsed LLM result) alongside existing `results` / `selectedNeed` / `dataSource`.
+- Above the facility grid, render an "Understood as" panel when `intent` is set:
+  - **Urgency badge** — color-coded: emergency = destructive, urgent = warning, routine = muted.
+  - **Understood need** chip (e.g. "Vaccination / Post-exposure Care").
+  - **Safety message** in a prominent alert (uses existing `Alert` component from shadcn).
+  - **User explanation** as supporting text.
+  - **Data limitation** alert when `intent.dataLimitation` is non-empty (shown for the Vaccination need where the dataset can't confirm vaccine stock).
+- Keep the existing skeleton loading state, "ask a question" empty state, and "no matches" empty state.
+- Keep the `FacilityCard` grid for results — `selectedNeed` will now be the LLM's `understoodNeed` so the card highlights the right capability.
 
-## Files to change
+### 3. No changes required elsewhere
 
-1. **`src/routes/index.tsx`**
-   - Remove dropdown form, related state/handlers/imports.
-   - Change `TabsList` to `grid-cols-2`; remove the `chat` `TabsTrigger` + `TabsContent`.
-   - Replace the `search` `TabsContent` body with a `grid lg:grid-cols-5` layout: `ChatPanel` (`lg:col-span-2`) on the left, results section (`lg:col-span-3`) on the right.
-   - Hold `chatResults`, `chatNeed`, `chatSource`, `chatLoading` state at this level; pass `onSearchStart` / `onResults` into `ChatPanel`; render the right pane from this state.
+- `src/routes/api/search-facilities.ts` stays as-is (still used by the Planner dashboard and remains a valid endpoint).
+- `src/lib/facilities.ts`, `FacilityCard.tsx`, `routeTree.gen.ts` already updated.
 
-2. **`src/components/ChatPanel.tsx`**
-   - Add optional `onResults` and `onSearchStart` props.
-   - Drop the inline `FacilityCard` rendering and the `facilities` field on `BotMessage` (chat bubbles become text-only).
-   - On every send: call `onSearchStart()` before the fetch; call `onResults(facilities, need, "live" | "demo")` after.
-   - Update the bot reply text to point users to the right pane (e.g. "Found N facilities for **ICU + Oxygen** in **Bihar** — showing them on the right.").
-   - Remove the now-unused `FacilityCard` import.
+## Safety behavior preserved
 
-3. *(No changes)* `src/components/FacilityCard.tsx`, API routes, `PlannerDashboard`, `DatabricksStatusCard`.
+The LLM never invents hospital names — facility list only comes from Databricks. The system prompt in `ask-caremap.ts` already forbids diagnosis / medication / "wait" advice and forces emergency-style safety messaging for severe symptoms. The frontend just surfaces what the backend returns.
 
-## Acceptance check
-- Patient / Health Worker tab shows chat on the left, empty-state card on the right initially.
-- Asking "ICU in Maharashtra" populates the right pane with `FacilityCard`s and a Live/Demo badge; chat shows a short text confirmation only.
-- Asking a second question fully replaces the right-pane results.
-- Only two tabs are visible; `Ask CareMap` is gone.
-- On mobile, chat stacks above results; nothing overflows.
+## Files touched
+
+- `src/components/ChatPanel.tsx` (refactor)
+- `src/routes/index.tsx` (render intent panel + safety alert)

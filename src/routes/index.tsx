@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { AlertCircle, Database, MessageSquare, ShieldCheck, Stethoscope, TestTube2 } from "lucide-react";
+import { AlertCircle, AlertTriangle, Database, Info, MessageSquare, ShieldCheck, Stethoscope, TestTube2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { FacilityCard } from "@/components/FacilityCard";
 import { PlannerDashboard } from "@/components/PlannerDashboard";
-import { ChatPanel } from "@/components/ChatPanel";
+import { ChatPanel, type ParsedIntent } from "@/components/ChatPanel";
 import { DatabricksStatusCard } from "@/components/DatabricksStatusCard";
 import { type Facility, type MedicalNeed } from "@/lib/facilities";
 
@@ -28,11 +28,18 @@ export const Route = createFileRoute("/")({
   }),
 });
 
+const URGENCY_BADGE: Record<ParsedIntent["urgency"], string> = {
+  emergency: "border-destructive/40 bg-destructive/10 text-destructive",
+  urgent: "border-warning/40 bg-warning/15 text-warning-foreground",
+  routine: "border-border bg-muted text-foreground",
+};
+
 function Index() {
   const [results, setResults] = useState<Facility[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [selectedNeed, setSelectedNeed] = useState<MedicalNeed | "">("");
   const [dataSource, setDataSource] = useState<"live" | "demo" | null>(null);
+  const [intent, setIntent] = useState<ParsedIntent | null>(null);
 
   return (
     <div className="min-h-dvh bg-background">
@@ -70,10 +77,11 @@ function Index() {
                   onSearchStart={() => {
                     setLoading(true);
                   }}
-                  onResults={(facilities, need, source) => {
+                  onResults={(facilities, need, source, parsedIntent) => {
                     setResults(facilities);
                     setSelectedNeed(need);
                     setDataSource(source);
+                    setIntent(parsedIntent ?? null);
                     setLoading(false);
                   }}
                 />
@@ -110,6 +118,53 @@ function Index() {
                     )}
                   </div>
                 </div>
+
+                {/* LLM-parsed intent panel */}
+                {intent && !loading && (
+                  <div className="mb-3 rounded-xl border border-border/70 bg-card p-4 space-y-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        Understood as
+                      </span>
+                      <span className="inline-flex items-center rounded-full border border-border bg-muted px-2 py-0.5 text-xs font-medium text-foreground">
+                        {intent.understoodNeed}
+                      </span>
+                      <span
+                        className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${URGENCY_BADGE[intent.urgency]}`}
+                      >
+                        {intent.urgency}
+                      </span>
+                    </div>
+                    {intent.userExplanation && (
+                      <p className="text-sm leading-relaxed text-foreground/90">
+                        {intent.userExplanation}
+                      </p>
+                    )}
+                    {intent.safetyMessage && (
+                      <Alert
+                        className={
+                          intent.urgency === "emergency"
+                            ? "border-destructive/40 bg-destructive/10"
+                            : "border-warning/40 bg-warning/10"
+                        }
+                      >
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertTitle>Safety guidance</AlertTitle>
+                        <AlertDescription>{intent.safetyMessage}</AlertDescription>
+                      </Alert>
+                    )}
+                    {intent.dataLimitation && (
+                      <Alert className="border-border bg-muted/40">
+                        <Info className="h-4 w-4" />
+                        <AlertTitle>Data limitation</AlertTitle>
+                        <AlertDescription>{intent.dataLimitation}</AlertDescription>
+                      </Alert>
+                    )}
+                    <p className="text-[11px] text-muted-foreground pt-1">
+                      Results based on available facility data — please verify by calling the facility before traveling.
+                    </p>
+                  </div>
+                )}
 
                 {dataSource === "demo" && !loading && results && results.length > 0 && (
                   <Alert className="mb-3 border-warning/40 bg-warning/10">
