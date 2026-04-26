@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import type { Facility, MedicalNeed } from "@/lib/facilities";
+import type { DecisionTrace, Facility, MedicalNeed } from "@/lib/facilities";
 import { getStateVariants, getCanonicalState } from "@/lib/location-normalization";
 
 const AI_GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
