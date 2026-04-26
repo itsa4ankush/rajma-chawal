@@ -203,10 +203,10 @@ export function PlannerDashboard() {
         </Alert>
       )}
 
-      {/* Stat grid — five flat blocks divided by hairlines */}
+      {/* Stat grid — Clay cards */}
       <section
         aria-label="Summary"
-        className="grid grid-cols-2 gap-0 sm:grid-cols-3 lg:grid-cols-5 border-t border-l border-hairline [&>div]:border-r [&>div]:border-b [&>div]:border-hairline"
+        className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5"
       >
         <StatCard label="Total Facilities" value={totals.total} icon={Building2} />
         <StatCard label="High-Trust Surgery" value={totals.highSurgery} icon={Scissors} />
