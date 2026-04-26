@@ -123,12 +123,12 @@ function Index() {
 
           <TabsContent value="search" className="mt-0">
             <div className="grid grid-cols-1 gap-0 lg:grid-cols-12 lg:gap-8">
-              {/* LEFT — Ask CareMap column */}
+              {/* LEFT — Ask Raahat column */}
               <section
-                aria-label="Ask CareMap"
+                aria-label="Ask Raahat"
                 className="lg:col-span-5 lg:border-r lg:border-hairline lg:pr-8"
               >
-                <RibbonHeader>Ask CareMap</RibbonHeader>
+                <RibbonHeader>Ask Raahat</RibbonHeader>
                 <div className="mt-3 rounded-2xl border border-hairline bg-card shadow-[var(--shadow-clay)] overflow-hidden">
                   <ChatPanel
                     onSearchStart={() => setLoading(true)}
