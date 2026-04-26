@@ -115,7 +115,7 @@ export const Route = createFileRoute("/api/search-facilities")({
   server: {
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: corsHeaders }),
-      POST: async ({ request }) => {
+      POST: async ({ request }: { request: Request }) => {
         const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
         const DATABRICKS_API_KEY = process.env.DATABRICKS_API_KEY;
         const WAREHOUSE_ID = process.env.DATABRICKS_WAREHOUSE_ID;
