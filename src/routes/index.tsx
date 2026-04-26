@@ -63,12 +63,21 @@ function RibbonHeader({ children }: { children: React.ReactNode }) {
   );
 }
 
+type ViewMode = "both" | "map" | "list";
+
 function Index() {
   const [results, setResults] = useState<Facility[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [selectedNeed, setSelectedNeed] = useState<MedicalNeed | "">("");
   const [dataSource, setDataSource] = useState<"live" | "demo" | null>(null);
   const [intent, setIntent] = useState<ParsedIntent | null>(null);
+  const [center, setCenter] = useState<{ lat: number; lng: number } | null>(null);
+  const [view, setView] = useState<ViewMode>("both");
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [openSignal, setOpenSignal] = useState<{ id: string; n: number } | null>(null);
+
+  const showMap = (view === "both" || view === "map") && results !== null && results.length > 0;
+  const showList = view === "both" || view === "list";
 
   return (
     <div className="min-h-dvh bg-paper text-ink">
@@ -145,6 +154,48 @@ function Index() {
                           ? `${results.length} ${results.length === 1 ? "Facility" : "Facilities"}`
                           : "Facilities"}
                     </span>
+                    {dataSource && !loading && (
+                      <span className="flex items-center gap-1 text-paper/70">
+                        <span className="h-3 w-px bg-paper/40" />
+                        {dataSource === "live" ? (
+                          <>
+                            <Database className="h-3 w-3" /> Live
+                          </>
+                        ) : (
+                          <>
+                            <TestTube2 className="h-3 w-3" /> Demo
+                          </>
+                        )}
+                      </span>
+                    )}
+                    {results && results.length > 0 && !loading && (
+                      <span className="ml-auto flex items-center border border-paper/40">
+                        {(
+                          [
+                            { v: "both", label: "Both", Icon: Rows },
+                            { v: "map", label: "Map", Icon: MapIcon },
+                            { v: "list", label: "List", Icon: ListIcon },
+                          ] as const
+                        ).map(({ v, label, Icon }) => (
+                          <button
+                            key={v}
+                            type="button"
+                            onClick={() => setView(v)}
+                            aria-pressed={view === v}
+                            className={`flex items-center gap-1 px-2 py-1 font-mono uppercase tracking-[0.08em] text-[10px] font-bold transition-colors ${
+                              view === v
+                                ? "bg-paper text-ink"
+                                : "bg-transparent text-paper/80 hover:bg-paper/10"
+                            }`}
+                          >
+                            <Icon className="h-3 w-3" />
+                            <span className="hidden sm:inline">{label}</span>
+                          </button>
+                        ))}
+                      </span>
+                    )}
+                  </span>
+                </RibbonHeader>
                     {dataSource && !loading && (
                       <span className="flex items-center gap-1 text-paper/70">
                         <span className="h-3 w-px bg-paper/40" />
