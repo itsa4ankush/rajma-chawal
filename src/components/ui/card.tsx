@@ -3,16 +3,17 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 /**
- * WIRED has no "cards" — only blocks separated by hairlines.
- * This Card primitive renders a flat block with no shadow, no radius, and a
- * 1px hairline border. Use sparingly; prefer raw layout + <hr/> rules.
+ * Raycast-style card.
+ * - Elevated surface (#101111), 16px radius
+ * - Double-ring shadow for macOS-native containment
+ * - Inter 22px/400 heading, +0.2px tracking on body
  */
 const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
       className={cn(
-        "border border-hairline bg-paper text-foreground",
+        "bg-card text-card-foreground rounded-2xl border border-[rgb(255_255_255_/_0.06)] shadow-[var(--shadow-ring)]",
         className,
       )}
       {...props}
@@ -32,7 +33,7 @@ const CardTitle = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivE
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn("font-display text-2xl leading-[1.05] tracking-tight", className)}
+      className={cn("font-sans text-[22px] font-medium leading-[1.15] tracking-normal", className)}
       {...props}
     />
   ),
@@ -41,7 +42,11 @@ CardTitle.displayName = "CardTitle";
 
 const CardDescription = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn("font-serif text-sm text-caption", className)} {...props} />
+    <div
+      ref={ref}
+      className={cn("font-sans text-sm text-muted-foreground tracking-[0.01em]", className)}
+      {...props}
+    />
   ),
 );
 CardDescription.displayName = "CardDescription";
