@@ -228,7 +228,7 @@ export function ChatPanel({ onSearchStart, onResults }: ChatPanelProps = {}) {
         });
         const safety = intent.safetyMessage ? `${intent.safetyMessage}\n\n` : "";
         reply = {
-          text: `**Understood as:** ${intent.understoodNeed} · _${intent.urgency}_\n\n${safety}${data.promptForLocation || "Please share your location (city, state, or PIN code) so I can find the nearest facilities."}`,
+          text: `${safety}${data.promptForLocation || "Share your location (city, state, or PIN) to find facilities nearby."}`,
           intent,
           awaitingLocation: true,
         };
@@ -240,15 +240,16 @@ export function ChatPanel({ onSearchStart, onResults }: ChatPanelProps = {}) {
 
         const count = facilities.length;
         const dbxNote = data.dataSourceError
-          ? `\n\n**Data source note:** ${data.dataSourceError}`
+          ? `\n\n_Data source note: ${data.dataSourceError}_`
           : "";
+        const safety = intent.safetyMessage ? `${intent.safetyMessage}\n\n` : "";
         const matchLine =
           count === 0
-            ? "I couldn't find matching facilities in the available data near that location. Try a nearby city or a different PIN."
-            : `Showing **${count}** matching ${count === 1 ? "facility" : "facilities"} sorted by distance →`;
+            ? "No matching facilities found nearby. Try a different city or PIN."
+            : `${count} ${count === 1 ? "facility" : "facilities"} nearby →`;
 
         reply = {
-          text: `**Understood as:** ${intent.understoodNeed} · _${intent.urgency}_\n\n${intent.safetyMessage}\n\n${matchLine}${dbxNote}`,
+          text: `${safety}${matchLine}${dbxNote}`,
           intent,
         };
       }
