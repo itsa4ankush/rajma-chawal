@@ -1,7 +1,6 @@
+/// <reference types="@tanstack/start-client-core/dist/esm/serverRoute" />
 import { createRouter, useRouter } from "@tanstack/react-router";
-// Side-effect import to load TanStack Start's module augmentation
-// that adds the `server` property to file route options.
-import "@tanstack/react-start";
+import "@tanstack/start-client-core/dist/esm/serverRoute.js";
 import { routeTree } from "./routeTree.gen";
 
 function DefaultErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
