@@ -41,6 +41,8 @@ export interface Facility {
   has_neonatal_care: boolean;
   has_ambulance: boolean;
   is_24_7: boolean;
+  distance_km?: number;
+  matchedCapability?: string;
 }
 
 export const MEDICAL_NEEDS: MedicalNeed[] = [

@@ -348,6 +348,13 @@ export function FacilityCard({
                 <span className="truncate">
                   {facility.address_city}, {facility.address_stateOrRegion} · PIN {facility.address_zipOrPostcode}
                 </span>
+                {typeof facility.distance_km === "number" && Number.isFinite(facility.distance_km) && (
+                  <span className="shrink-0 ml-1 inline-flex items-center rounded-full border border-accent/30 bg-accent/10 px-1.5 py-0.5 text-[10px] font-medium text-accent">
+                    {facility.distance_km < 1
+                      ? `${Math.round(facility.distance_km * 1000)} m`
+                      : `${facility.distance_km.toFixed(1)} km`} away
+                  </span>
+                )}
               </div>
             </div>
             <span

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type { Facility, MedicalNeed } from "@/lib/facilities";
-import { getStateVariants } from "@/lib/location-normalization";
+import { getStateVariants, getCanonicalState } from "@/lib/location-normalization";
 
 const AI_GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
 const DBX_GATEWAY = "https://connector-gateway.lovable.dev/databricks";
@@ -43,6 +43,10 @@ interface ParsedIntent {
   preferredFacilityTypes: string[];
   explanationForUser: string;
   safetyMessage: string;
+  locationMentioned: boolean;
+  extractedState: string | null;
+  extractedCity: string | null;
+  extractedPinCode: string | null;
 }
 
 const SYSTEM_PROMPT = `You are CareMap's medical intent parser for India.
@@ -70,6 +74,13 @@ Mapping guidance:
 - Pregnancy emergency, labor complications → "Maternal Care" (urgency: emergency)
 - High fever alone → "General Medicine"; if combined with breathing difficulty / convulsions / infants → "Emergency Care"
 
+Location extraction:
+- Identify any Indian state, city/town, district, area, or 6-digit PIN code mentioned in the user's message.
+- Set locationMentioned = true if ANY place is mentioned, otherwise false.
+- extractedState: canonical Indian state name (e.g. "Bihar", "Tamil Nadu", "Maharashtra") if you can confidently infer one (either directly or from a city). null otherwise.
+- extractedCity: the city/town if mentioned, otherwise null.
+- extractedPinCode: 6-digit PIN code if present, otherwise null.
+
 urgency: "emergency" | "urgent" | "routine"`;
 
 const TOOL = {
@@ -87,6 +98,10 @@ const TOOL = {
         preferredFacilityTypes: { type: "array", items: { type: "string" } },
         explanationForUser: { type: "string" },
         safetyMessage: { type: "string" },
+        locationMentioned: { type: "boolean" },
+        extractedState: { type: ["string", "null"] },
+        extractedCity: { type: ["string", "null"] },
+        extractedPinCode: { type: ["string", "null"] },
       },
       required: [
         "medicalNeed",
@@ -96,6 +111,10 @@ const TOOL = {
         "preferredFacilityTypes",
         "explanationForUser",
         "safetyMessage",
+        "locationMentioned",
+        "extractedState",
+        "extractedCity",
+        "extractedPinCode",
       ],
       additionalProperties: false,
     },
@@ -181,6 +200,11 @@ function rowsToFacilities(resp: DbxResp): Facility[] {
     const obj: Record<string, unknown> = {};
     cols.forEach((c, i) => { obj[c.name] = row[i]; });
     const num = (v: unknown) => (v == null ? 0 : Number(v));
+    const numOrUndef = (v: unknown) => {
+      if (v == null) return undefined;
+      const n = Number(v);
+      return Number.isFinite(n) ? n : undefined;
+    };
     const bool = (v: unknown) => v === true || v === 1 || v === "1" || v === "true";
     const str = (v: unknown) => (v == null ? "" : String(v));
     const trust = num(obj.trust_score);
@@ -215,8 +239,75 @@ function rowsToFacilities(resp: DbxResp): Facility[] {
       has_neonatal_care: bool(obj.has_neonatal_care),
       has_ambulance: bool(obj.has_ambulance),
       is_24_7: bool(obj.is_24_7),
+      distance_km: numOrUndef(obj.distance_km),
     };
   });
+}
+
+async function runDbxQuery(
+  statement: string,
+  apiKey: string,
+  dbxKey: string,
+  warehouseId: string,
+): Promise<DbxResp> {
+  const res = await fetch(`${DBX_GATEWAY}/2.0/sql/statements`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "X-Connection-Api-Key": dbxKey,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      warehouse_id: warehouseId,
+      statement,
+      wait_timeout: "30s",
+      format: "JSON_ARRAY",
+      disposition: "INLINE",
+    }),
+  });
+  const data = (await res.json()) as DbxResp;
+  if (!res.ok) throw new Error(`Databricks query failed (${res.status})`);
+  if (data.status?.state && data.status.state !== "SUCCEEDED") {
+    throw new Error(data.status.error?.message || `Databricks state: ${data.status.state}`);
+  }
+  return data;
+}
+
+async function resolveCenter(
+  state: string | undefined,
+  city: string | undefined,
+  pinCode: string | undefined,
+  apiKey: string,
+  dbxKey: string,
+  warehouseId: string,
+): Promise<{ lat: number; lng: number } | null> {
+  const filters: string[] = ["latitude IS NOT NULL", "longitude IS NOT NULL"];
+  if (pinCode?.trim()) {
+    filters.push(`address_zipOrPostcode = '${escapeSqlString(pinCode.trim())}'`);
+  } else if (city?.trim()) {
+    filters.push(`LOWER(address_city) LIKE LOWER('%${escapeSqlString(city.trim())}%')`);
+    if (state?.trim()) {
+      const variants = getStateVariants(state.trim()).map(escapeSqlString);
+      filters.push(`address_stateOrRegion IN ('${variants.join("', '")}')`);
+    }
+  } else if (state?.trim()) {
+    const variants = getStateVariants(state.trim()).map(escapeSqlString);
+    filters.push(`address_stateOrRegion IN ('${variants.join("', '")}')`);
+  } else {
+    return null;
+  }
+  const stmt = `SELECT AVG(latitude) AS lat, AVG(longitude) AS lng FROM ${TABLE} WHERE ${filters.join(" AND ")} LIMIT 1`;
+  try {
+    const data = await runDbxQuery(stmt, apiKey, dbxKey, warehouseId);
+    const row = data.result?.data_array?.[0];
+    if (!row) return null;
+    const lat = Number(row[0]);
+    const lng = Number(row[1]);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng) || (lat === 0 && lng === 0)) return null;
+    return { lat, lng };
+  } catch {
+    return null;
+  }
 }
 
 const SELECT_FIELDS = [
@@ -238,44 +329,59 @@ async function searchFacilities(
   dbxKey: string,
   warehouseId: string,
 ): Promise<Facility[]> {
-  const where: string[] = [];
+  // Try to resolve a center point for proximity sorting.
+  const center = await resolveCenter(state, city, pinCode, apiKey, dbxKey, warehouseId);
+
+  const baseWhere: string[] = [];
   if (state?.trim()) {
     const variants = getStateVariants(state.trim()).map(escapeSqlString);
-    where.push(`address_stateOrRegion IN ('${variants.join("', '")}')`);
+    baseWhere.push(`address_stateOrRegion IN ('${variants.join("', '")}')`);
   }
-  if (city?.trim()) {
-    where.push(`LOWER(address_city) LIKE LOWER('%${escapeSqlString(city.trim())}%')`);
-  }
-  if (pinCode?.trim()) {
-    where.push(`address_zipOrPostcode = '${escapeSqlString(pinCode.trim())}'`);
-  }
+  const cityFilter = city?.trim()
+    ? `LOWER(address_city) LIKE LOWER('%${escapeSqlString(city.trim())}%')`
+    : null;
+  const pinFilter = pinCode?.trim()
+    ? `address_zipOrPostcode = '${escapeSqlString(pinCode.trim())}'`
+    : null;
+  if (pinFilter) baseWhere.push(pinFilter);
+  else if (cityFilter) baseWhere.push(cityFilter);
+
   const needFilter = buildNeedFilter(need);
-  if (needFilter) where.push(needFilter);
+  if (needFilter) baseWhere.push(needFilter);
 
-  const whereClause = where.length ? `WHERE ${where.join(" AND ")}` : "";
-  const statement = `SELECT ${SELECT_FIELDS} FROM ${TABLE} ${whereClause} ORDER BY trust_score DESC LIMIT 5`;
+  const buildStatement = (where: string[], withDistance: boolean) => {
+    const distExpr = withDistance && center
+      ? `, (6371 * acos(LEAST(1.0, GREATEST(-1.0, cos(radians(${center.lat})) * cos(radians(latitude)) * cos(radians(longitude) - radians(${center.lng})) + sin(radians(${center.lat})) * sin(radians(latitude)))))) AS distance_km`
+      : "";
+    const allWhere = withDistance && center
+      ? [...where, "latitude IS NOT NULL", "longitude IS NOT NULL"]
+      : where;
+    const whereClause = allWhere.length ? `WHERE ${allWhere.join(" AND ")}` : "";
+    const orderBy = withDistance && center
+      ? "ORDER BY distance_km ASC, trust_score DESC"
+      : "ORDER BY trust_score DESC";
+    return `SELECT ${SELECT_FIELDS}${distExpr} FROM ${TABLE} ${whereClause} ${orderBy} LIMIT 5`;
+  };
 
-  const res = await fetch(`${DBX_GATEWAY}/2.0/sql/statements`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "X-Connection-Api-Key": dbxKey,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      warehouse_id: warehouseId,
-      statement,
-      wait_timeout: "30s",
-      format: "JSON_ARRAY",
-      disposition: "INLINE",
-    }),
-  });
-  const data = (await res.json()) as DbxResp;
-  if (!res.ok) throw new Error(`Databricks query failed (${res.status})`);
-  if (data.status?.state && data.status.state !== "SUCCEEDED") {
-    throw new Error(data.status.error?.message || `Databricks state: ${data.status.state}`);
+  // First attempt: strict filters + distance sort.
+  let data = await runDbxQuery(buildStatement(baseWhere, true), apiKey, dbxKey, warehouseId);
+  let facilities = rowsToFacilities(data);
+
+  // Fallback: if strict filters yielded too few results AND we had a city filter,
+  // broaden to state-only with distance sort so genuinely closer facilities surface.
+  if (facilities.length < 3 && cityFilter && !pinFilter && center) {
+    const broadened = baseWhere.filter((w) => w !== cityFilter);
+    data = await runDbxQuery(buildStatement(broadened, true), apiKey, dbxKey, warehouseId);
+    facilities = rowsToFacilities(data);
   }
-  return rowsToFacilities(data);
+
+  // Final fallback: no center resolved → trust-score sort, original behavior.
+  if (facilities.length === 0 && !center) {
+    data = await runDbxQuery(buildStatement(baseWhere, false), apiKey, dbxKey, warehouseId);
+    facilities = rowsToFacilities(data);
+  }
+
+  return facilities;
 }
 
 function capabilityForNeed(f: Facility, need: MedicalNeed): string {
@@ -324,15 +430,46 @@ export const Route = createFileRoute("/api/ask-caremap")({
           return jsonResponse({ error: `Intent parsing failed: ${msg}` }, 502);
         }
 
-        // 2. Query Databricks
+        // 2. Resolve final location: prefer explicit body params, fall back to LLM-extracted.
+        const canonicalState =
+          (body.state?.trim() && getCanonicalState(body.state.trim())) ||
+          (intent.extractedState && getCanonicalState(intent.extractedState)) ||
+          body.state?.trim() ||
+          intent.extractedState ||
+          "";
+        const resolvedCity = (body.city?.trim() || intent.extractedCity || "").trim();
+        const rawPin = (body.pinCode?.trim() || intent.extractedPinCode || "").trim();
+        const resolvedPin = /^\d{6}$/.test(rawPin) ? rawPin : "";
+
+        const hasLocation = Boolean(canonicalState || resolvedCity || resolvedPin);
+
+        const dataLimitation =
+          intent.medicalNeed === "Vaccination / Post-exposure Care" ? VACCINE_LIMITATION : "";
+
+        // 3. If no location, ask for it (still surface safety guidance).
+        if (!hasLocation) {
+          return jsonResponse({
+            needsLocation: true,
+            understoodNeed: intent.medicalNeed,
+            urgency: intent.urgency,
+            userExplanation: intent.explanationForUser,
+            safetyMessage: intent.safetyMessage,
+            dataLimitation,
+            promptForLocation:
+              "To find the nearest facilities, please share your location — a city, district, state, or 6-digit PIN code works.",
+            facilities: [],
+          });
+        }
+
+        // 4. Query Databricks with proximity sort.
         let facilities: Facility[] = [];
         let dbxError: string | null = null;
         try {
           facilities = await searchFacilities(
             intent.medicalNeed,
-            body.state,
-            body.city,
-            body.pinCode,
+            canonicalState || undefined,
+            resolvedCity || undefined,
+            resolvedPin || undefined,
             LOVABLE_API_KEY,
             DATABRICKS_API_KEY,
             WAREHOUSE_ID,
@@ -341,16 +478,13 @@ export const Route = createFileRoute("/api/ask-caremap")({
           dbxError = err instanceof Error ? err.message : "Databricks unavailable";
         }
 
-        // 3. Build per-facility match info (kept on Facility shape so existing FacilityCard works)
         const enriched = facilities.map((f) => ({
           ...f,
           matchedCapability: capabilityForNeed(f, intent.medicalNeed),
         }));
 
-        const dataLimitation =
-          intent.medicalNeed === "Vaccination / Post-exposure Care" ? VACCINE_LIMITATION : "";
-
         return jsonResponse({
+          needsLocation: false,
           understoodNeed: intent.medicalNeed,
           specialtyNeed: intent.specialtyNeed,
           urgency: intent.urgency,
@@ -358,6 +492,11 @@ export const Route = createFileRoute("/api/ask-caremap")({
           safetyMessage: intent.safetyMessage,
           dataLimitation,
           dataSourceError: dbxError,
+          resolvedLocation: {
+            state: canonicalState || null,
+            city: resolvedCity || null,
+            pinCode: resolvedPin || null,
+          },
           facilities: enriched,
         });
       },
