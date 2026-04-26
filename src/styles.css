@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap");
 
 @import "tailwindcss" source(none);
 @source "../src";
@@ -7,27 +7,22 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * WIRED-inspired editorial design system.
+ * Raycast-inspired design system.
  *
- * Palette is intentionally narrow:
- *   - Paper white background, ink-black type
- *   - Two grays (caption + hairline)
- *   - One single accent: link blue #057dbc
- *
- * Corners are 0 by default. Shadows are 0 by religion.
- * Type roles never trade: serif display for shouting, serif body for reading,
- * sans for clicking, mono UPPERCASE for labels.
+ * Near-black blue-tinted background (#07080a). Inter everywhere with positive
+ * letter-spacing (+0.2px) for airy dark-mode legibility. Multi-layer shadows
+ * with inset highlights simulate macOS-native physical depth. Raycast Red
+ * (#FF6363) is punctuation only — never pervasive.
  */
 
 @theme inline {
-  /* All container radii collapse to 0 — only icon buttons (rounded-full) escape */
-  --radius-sm: 0;
-  --radius-md: 0;
-  --radius-lg: 0;
-  --radius-xl: 0;
-  --radius-2xl: 0;
-  --radius-3xl: 0;
-  --radius-4xl: 0;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-3xl: 20px;
+  --radius-4xl: 86px;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -58,6 +53,9 @@
   --color-caption: var(--caption);
   --color-hairline: var(--hairline);
   --color-link: var(--link);
+  --color-brand: var(--brand);
+  --color-surface-100: var(--surface-100);
+  --color-surface-200: var(--surface-200);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
@@ -72,84 +70,90 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  --font-display: "Playfair Display", Georgia, "Times New Roman", serif;
-  --font-serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-display: "Inter", system-ui, -apple-system, "Helvetica Neue", sans-serif;
+  --font-serif: "Inter", system-ui, -apple-system, "Helvetica Neue", sans-serif;
   --font-sans: "Inter", system-ui, -apple-system, "Helvetica Neue", sans-serif;
-  --font-mono: "JetBrains Mono", "SF Mono", Menlo, Monaco, "Courier New", monospace;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Monaco, monospace;
 }
 
 :root {
-  /* Editorial palette — ink + paper, one blue */
-  --paper: oklch(1 0 0);                    /* #ffffff Paper white */
-  --ink: oklch(0 0 0);                      /* #000000 WIRED black (pure) */
-  --page-ink: oklch(0.18 0 0);              /* #1a1a1a softer headline ink */
-  --caption: oklch(0.55 0 0);               /* #757575 caption gray */
-  --disabled: oklch(0.65 0 0);              /* #999999 */
-  --hairline: oklch(0.92 0.005 240);        /* #e2e8f0 quiet rule */
-  --link: oklch(0.55 0.13 240);             /* #057dbc the only accent */
-  --footer-ink: oklch(0.18 0 0);            /* #1a1a1a footer dark zone */
-  --error-red: oklch(0.58 0.22 25);
+  /* Raycast palette — near-black blue background, white type, red as punctuation */
+  --paper: oklch(0.09 0.005 240);            /* #07080a near-black with cool blue tint */
+  --ink: oklch(0.98 0 0);                    /* #f9f9f9 near-white primary text */
+  --page-ink: oklch(0.98 0 0);               /* near-white headlines */
+  --caption: oklch(0.65 0 0);                /* #9c9c9d medium gray secondary text */
+  --disabled: oklch(0.50 0 0);               /* #6a6b6c dim gray */
+  --hairline: oklch(0.28 0.005 240 / 0.6);   /* ~#252829 subtle cool border */
+  --link: oklch(0.74 0.16 240);              /* ~#55b3ff Raycast Blue */
+  --brand: oklch(0.72 0.20 20);              /* #FF6363 Raycast Red — accent only */
+  --surface-100: oklch(0.16 0.003 240);      /* #101111 elevated card surface */
+  --surface-200: oklch(0.20 0.003 240);      /* #1b1c1e badge/tag surface */
+  --footer-ink: oklch(0.06 0.005 240);
+  --error-red: oklch(0.72 0.20 20);
 
   /* Mapped semantic tokens */
   --background: var(--paper);
-  --foreground: var(--page-ink);
-  --card: var(--paper);
-  --card-foreground: var(--page-ink);
-  --popover: var(--paper);
-  --popover-foreground: var(--page-ink);
+  --foreground: var(--ink);
+  --card: var(--surface-100);
+  --card-foreground: var(--ink);
+  --popover: var(--surface-100);
+  --popover-foreground: var(--ink);
   --primary: var(--ink);
-  --primary-foreground: var(--paper);
-  --secondary: var(--paper);
-  --secondary-foreground: var(--page-ink);
-  --muted: oklch(0.97 0 0);
+  --primary-foreground: oklch(0.18 0.005 240);
+  --secondary: var(--surface-200);
+  --secondary-foreground: var(--ink);
+  --muted: var(--surface-100);
   --muted-foreground: var(--caption);
   --accent: var(--link);
-  --accent-foreground: var(--paper);
-  --destructive: var(--error-red);
-  --destructive-foreground: var(--paper);
-  --border: var(--ink);
-  --input: var(--ink);
-  --ring: var(--ink);
-  --success: oklch(0.50 0.15 155);
+  --accent-foreground: var(--ink);
+  --destructive: var(--brand);
+  --destructive-foreground: var(--ink);
+  --border: var(--hairline);
+  --input: oklch(1 0 0 / 0.08);
+  --ring: var(--link);
+  --success: oklch(0.74 0.14 150);
   --success-foreground: var(--paper);
-  --warning: oklch(0.55 0.18 50);
+  --warning: oklch(0.78 0.16 80);
   --warning-foreground: var(--paper);
-  --chart-1: var(--ink);
-  --chart-2: var(--link);
-  --chart-3: var(--caption);
-  --chart-4: oklch(0.55 0.18 50);
-  --chart-5: var(--error-red);
-  --sidebar: var(--paper);
-  --sidebar-foreground: var(--page-ink);
+  --chart-1: var(--link);
+  --chart-2: var(--brand);
+  --chart-3: oklch(0.74 0.14 150);
+  --chart-4: oklch(0.78 0.16 80);
+  --chart-5: var(--caption);
+  --sidebar: var(--surface-100);
+  --sidebar-foreground: var(--ink);
   --sidebar-primary: var(--ink);
   --sidebar-primary-foreground: var(--paper);
-  --sidebar-accent: var(--muted);
-  --sidebar-accent-foreground: var(--page-ink);
-  --sidebar-border: var(--ink);
-  --sidebar-ring: var(--ink);
+  --sidebar-accent: var(--surface-200);
+  --sidebar-accent-foreground: var(--ink);
+  --sidebar-border: var(--hairline);
+  --sidebar-ring: var(--link);
+
+  /* Raycast signature shadow stacks */
+  --shadow-ring:
+    0 0 0 1px rgb(27 28 30),
+    inset 0 0 0 1px rgb(7 8 10);
+  --shadow-button:
+    inset 0 1px 0 0 rgb(255 255 255 / 0.05),
+    0 0 0 1px rgb(255 255 255 / 0.12),
+    inset 0 -1px 0 0 rgb(0 0 0 / 0.20);
+  --shadow-key:
+    0 1.5px 0.5px 2.5px rgb(0 0 0 / 0.40),
+    inset 0 1px 0 0 rgb(255 255 255 / 0.08),
+    inset 0 -1px 0 0 rgb(0 0 0 / 0.30);
+  --shadow-floating:
+    0 0 0 2px rgb(0 0 0 / 0.50),
+    0 0 14px rgb(255 255 255 / 0.10),
+    inset 0 1px 0 0 rgb(255 255 255 / 0.05);
+  --glow-warm: 0 0 20px 5px rgb(215 201 175 / 0.05);
+  --glow-blue: 0 0 14px rgb(85 179 255 / 0.15);
+  --glow-red: 0 0 14px rgb(255 99 99 / 0.15);
 }
 
 .dark {
-  /* Inverted footer-style dark — used sparingly */
-  --background: var(--footer-ink);
-  --foreground: var(--paper);
-  --card: var(--footer-ink);
-  --card-foreground: var(--paper);
-  --popover: var(--footer-ink);
-  --popover-foreground: var(--paper);
-  --primary: var(--paper);
-  --primary-foreground: var(--ink);
-  --secondary: oklch(0.25 0 0);
-  --secondary-foreground: var(--paper);
-  --muted: oklch(0.22 0 0);
-  --muted-foreground: oklch(0.70 0 0);
-  --accent: var(--link);
-  --accent-foreground: var(--paper);
-  --destructive: var(--error-red);
-  --destructive-foreground: var(--paper);
-  --border: var(--paper);
-  --input: var(--paper);
-  --ring: var(--paper);
+  /* Already dark by default — keep .dark identical so toggling does nothing harmful */
+  --background: var(--paper);
+  --foreground: var(--ink);
 }
 
 @layer base {
@@ -158,115 +162,154 @@
   }
 
   html, body {
-    background-color: var(--color-paper);
+    background-color: var(--color-background);
     color: var(--color-foreground);
-    font-family: var(--font-serif);
+    font-family: var(--font-sans);
+    font-feature-settings: "calt", "kern", "liga", "ss03";
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    letter-spacing: 0.2px;
   }
 
-  /* Editorial type roles. */
-  h1, h2, h3, .font-display {
-    font-family: var(--font-display);
+  /* Headings — Inter, weight 500–600, tight line-height, neutral tracking */
+  h1, h2, h3, h4, h5, h6, .font-display {
+    font-family: var(--font-sans);
     color: var(--color-foreground);
-    letter-spacing: -0.01em;
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: 1.15;
+    font-feature-settings: "calt", "kern", "ss02", "ss08";
   }
 
-  /* Mono labels are ALWAYS uppercase with wide tracking. */
+  /* Mono labels — used sparingly, no forced uppercase */
   .kicker, .ribbon, .meta {
     font-family: var(--font-mono);
     text-transform: uppercase;
-    letter-spacing: 0.09em;
+    letter-spacing: 0.08em;
     font-weight: 500;
+    color: var(--color-caption);
+    font-size: 12px;
   }
 
-  /* Inline editorial links: underlined, blue on hover (the only color move). */
+  /* Editorial inline link — Raycast Blue on hover */
   a.editorial {
     color: var(--color-foreground);
     text-decoration: underline;
     text-underline-offset: 3px;
     text-decoration-thickness: 1px;
-    transition: color 120ms;
+    transition: opacity 150ms, color 150ms;
   }
   a.editorial:hover {
     color: var(--color-link);
+    opacity: 0.85;
   }
 
-  /* Hairline rules sit at element boundaries. */
   hr {
     border: 0;
     border-top: 1px solid var(--color-hairline);
     margin: 0;
   }
+
+  /* Selection — subtle blue tint */
+  ::selection {
+    background: rgb(85 179 255 / 0.25);
+    color: var(--color-foreground);
+  }
 }
 
-/* Utility: a full-bleed black ribbon section marker. */
+/* Section ribbon — kept for compatibility, restyled as subtle dark band */
 @utility ribbon-bar {
-  background-color: var(--color-ink);
-  color: var(--color-paper);
+  background-color: var(--color-surface-200);
+  color: var(--color-foreground);
   font-family: var(--font-mono);
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  font-weight: 700;
+  letter-spacing: 0.08em;
+  font-weight: 600;
   font-size: 0.75rem;
   line-height: 1;
   padding: 0.625rem 0.875rem;
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-md);
 }
 
-/* Leaflet WIRED overrides — square popups, hairline borders, no shadows. */
+/* Raycast-style keyboard key cap */
+@utility key-cap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
+  background: linear-gradient(180deg, #121212 0%, #0d0d0d 100%);
+  border-radius: 4px;
+  box-shadow: var(--shadow-key);
+  color: var(--color-foreground);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+/* Leaflet — Raycast dark overrides */
 .leaflet-container {
-  font-family: var(--font-serif);
-  background: var(--color-paper);
+  font-family: var(--font-sans);
+  background: var(--color-surface-100);
   z-index: 0;
-  /* New stacking context — keeps Leaflet's internal pane z-indexes
-     (markers 600, popups 700, controls 800) scoped inside the map so
-     they cannot render above shadcn Dialog (z-50) while still preserving
-     marker hit-testing. */
   isolation: isolate;
 }
 .leaflet-popup-content-wrapper,
 .leaflet-popup-tip {
-  border-radius: 0 !important;
-  box-shadow: none !important;
+  border-radius: 8px !important;
+  box-shadow: var(--shadow-floating) !important;
 }
 .leaflet-popup-content-wrapper {
-  border: 2px solid var(--color-ink);
-  background: var(--color-paper);
+  border: 1px solid rgb(255 255 255 / 0.08);
+  background: var(--color-surface-100);
+  color: var(--color-foreground);
   padding: 12px 14px;
 }
 .leaflet-popup-tip {
-  background: var(--color-ink);
+  background: var(--color-surface-100);
   border: none;
 }
 .leaflet-popup-content {
   margin: 0 !important;
-  line-height: 1.4;
+  line-height: 1.5;
+  color: var(--color-foreground);
 }
 .leaflet-popup-close-button {
-  color: var(--color-ink) !important;
+  color: var(--color-caption) !important;
   font-size: 18px !important;
   padding: 4px 6px !important;
 }
+.leaflet-popup-close-button:hover {
+  color: var(--color-foreground) !important;
+}
 .leaflet-control-zoom a {
-  border-radius: 0 !important;
-  border: 2px solid var(--color-ink) !important;
-  background: var(--color-paper) !important;
-  color: var(--color-ink) !important;
-  font-family: var(--font-mono);
-  font-weight: 700;
+  border-radius: 6px !important;
+  border: 1px solid rgb(255 255 255 / 0.08) !important;
+  background: var(--color-surface-100) !important;
+  color: var(--color-foreground) !important;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  box-shadow: var(--shadow-button);
+  transition: opacity 150ms;
 }
 .leaflet-control-zoom a:hover {
-  background: var(--color-ink) !important;
-  color: var(--color-paper) !important;
+  opacity: 0.7;
 }
 .leaflet-control-attribution {
   font-family: var(--font-mono) !important;
   font-size: 9px !important;
   letter-spacing: 0.04em;
-  background: var(--color-paper) !important;
+  background: var(--color-surface-100) !important;
+  color: var(--color-caption) !important;
   border: 1px solid var(--color-hairline);
-  border-radius: 0 !important;
+  border-radius: 4px !important;
   padding: 2px 6px !important;
+}
+.leaflet-control-attribution a {
+  color: var(--color-link) !important;
 }
 .caremap-marker, .caremap-center-marker {
   background: transparent !important;
