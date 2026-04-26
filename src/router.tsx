@@ -1,5 +1,4 @@
 import { createRouter, useRouter } from "@tanstack/react-router";
-import "./types/tanstack-start-augment";
 import { routeTree } from "./routeTree.gen";
 
 function DefaultErrorComponent({ error, reset }: { error: Error; reset: () => void }) {

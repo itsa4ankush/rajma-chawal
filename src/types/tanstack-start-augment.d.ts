@@ -1,11 +1,12 @@
-// Force-load TanStack Start's module augmentation that adds the `server`
-// property to file route options. The package's barrel uses `export type *`
-// which strips side-effect augmentations, so we reference the source file
-// directly via TypeScript's nodenext-style subpath resolution.
-import "@tanstack/start-client-core";
+// Ambient module augmentation that adds the `server` property to TanStack
+// Router's file route options. The official augmentation lives in
+// @tanstack/start-client-core/dist/esm/serverRoute.d.ts but is not loaded
+// because the package's barrel uses `export type *` (which strips
+// side-effect augmentations).
+//
+// This file MUST stay ambient — no top-level import/export — so the
+// augmentation is global.
 
-// Re-declare the augmentation locally as a fallback. This mirrors
-// node_modules/@tanstack/start-client-core/dist/esm/serverRoute.d.ts.
 declare module "@tanstack/router-core" {
   interface FilebaseRouteOptionsInterface<
     TRegister,
@@ -30,12 +31,16 @@ declare module "@tanstack/router-core" {
         | Partial<
             Record<
               "ANY" | "GET" | "POST" | "PUT" | "PATCH" | "DELETE" | "OPTIONS" | "HEAD",
-              (ctx: { request: Request; params: any; context: any; pathname: string; next: any }) => Response | Promise<Response> | undefined | Promise<undefined>
+              (ctx: {
+                request: Request;
+                params: any;
+                context: any;
+                pathname: string;
+                next: (...args: any[]) => any;
+              }) => Response | Promise<Response> | undefined | Promise<undefined>
             >
           >
         | ((opts: { createHandlers: (...args: any[]) => any }) => any);
     };
   }
 }
-
-export {};
