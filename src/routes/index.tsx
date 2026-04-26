@@ -5,12 +5,16 @@ import {
   AlertTriangle,
   Database,
   Info,
+  List as ListIcon,
+  Map as MapIcon,
   MessageSquare,
+  Rows,
   TestTube2,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { FacilityCard } from "@/components/FacilityCard";
+import { FacilitiesMap } from "@/components/FacilitiesMap";
 import { PlannerDashboard } from "@/components/PlannerDashboard";
 import { ChatPanel, type ParsedIntent } from "@/components/ChatPanel";
 import { DatabricksStatusCard } from "@/components/DatabricksStatusCard";
