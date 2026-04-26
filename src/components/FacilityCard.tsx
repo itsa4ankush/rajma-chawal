@@ -242,21 +242,33 @@ function FacilityDetailsDialog({
             </Alert>
           )}
 
-          {/* ── 1. Raw Dataset Evidence ────────────────────────────── */}
-          <SectionHeader index={1} icon={FileText} title="Raw Dataset Evidence" subtitle="Verbatim values from the source row" />
-          <RawEvidenceSection facility={facility} />
-
-          {/* ── 2. System Interpretation ───────────────────────────── */}
-          <SectionHeader index={2} icon={Activity} title="System Interpretation" subtitle="Derived signal checks" />
-          <InterpretationSection facility={facility} />
-
-          {/* ── 3. Trust Score Breakdown ───────────────────────────── */}
-          <SectionHeader index={3} icon={ShieldCheck} title="Trust Score Breakdown" subtitle="How the score was calculated" />
-          <TrustBreakdownSection facility={facility} />
-
-          {/* ── 4. Decision Trace (collapsed by default) ───────────── */}
-          <SectionHeader index={4} icon={Sparkles} title="Decision Trace" subtitle="Full audit log of this recommendation" />
-          <DecisionTraceSection facility={facility} />
+          {(() => {
+            const hasAudit =
+              (facility.truth_gap_flag_count ?? 0) > 0 ||
+              !!facility.audit_severity ||
+              !!facility.audit_flags;
+            let n = 0;
+            return (
+              <>
+                {hasAudit && (
+                  <>
+                    <SectionHeader index={++n} icon={FileText} title="Source Citation" subtitle="Provenance for this row" />
+                    <SourceCitationSection facility={facility} />
+                    <SectionHeader index={++n} icon={AlertTriangle} title="Truth Gap Flags" subtitle="Potential contradictions detected in source data" />
+                    <TruthGapFlagsSection facility={facility} />
+                  </>
+                )}
+                <SectionHeader index={++n} icon={FileText} title="Raw Dataset Evidence" subtitle="Verbatim values from the source row" />
+                <RawEvidenceSection facility={facility} />
+                <SectionHeader index={++n} icon={Activity} title="System Interpretation" subtitle="Derived signal checks" />
+                <InterpretationSection facility={facility} />
+                <SectionHeader index={++n} icon={ShieldCheck} title="Trust Score Breakdown" subtitle="How the score was calculated" />
+                <TrustBreakdownSection facility={facility} />
+                <SectionHeader index={++n} icon={Sparkles} title="Decision Trace" subtitle="Full audit log of this recommendation" />
+                <DecisionTraceSection facility={facility} />
+              </>
+            );
+          })()}
 
           <p className="border-t border-hairline pt-4 font-mono uppercase tracking-[0.08em] text-[10px] text-caption">
             Generated from public health directories, facility self-reports, and
@@ -342,6 +354,98 @@ function RawEvidenceSection({ facility }: { facility: Facility }) {
   );
 }
 
+function SourceCitationSection({ facility }: { facility: Facility }) {
+  return (
+    <div className="rounded-md border border-hairline bg-paper p-4">
+      <KV
+        label="Source Table"
+        value={<span className="font-mono text-[12px] break-all">{facility.source_table || "—"}</span>}
+      />
+      <KV
+        label="Row ID"
+        value={
+          <span className="font-mono text-[12px] break-all">
+            {facility.facility_row_id || facility.id}
+          </span>
+        }
+      />
+      <KV label="Facility" value={facility.name} />
+      <KV
+        label="Location"
+        value={`${facility.address_city}, ${facility.address_stateOrRegion} · PIN ${facility.address_zipOrPostcode || "—"}`}
+      />
+    </div>
+  );
+}
+
+function severityTone(sev?: "High" | "Medium" | "Low") {
+  if (sev === "High") return "bg-destructive text-white";
+  if (sev === "Medium") return "bg-warning text-ink";
+  return "bg-ink text-white";
+}
+
+function parseFlags(flags?: string): string[] {
+  if (!flags) return [];
+  return flags
+    .split(/[|,;]/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+function humanizeFlag(flag: string): string {
+  return flag
+    .replace(/[_-]+/g, " ")
+    .replace(/\bmismatch\b/gi, "mismatch")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function TruthGapFlagsSection({ facility }: { facility: Facility }) {
+  const flags = parseFlags(facility.audit_flags);
+  return (
+    <div className="rounded-md border border-hairline bg-paper p-4 space-y-3">
+      <div className="flex flex-wrap items-center gap-3">
+        {facility.audit_severity && (
+          <span
+            className={`font-mono uppercase tracking-[0.08em] text-[10px] font-bold px-2 py-1 rounded-md ${severityTone(facility.audit_severity)}`}
+          >
+            Severity · {facility.audit_severity}
+          </span>
+        )}
+        <span className="font-mono uppercase tracking-[0.08em] text-[10px] font-bold text-caption">
+          Truth Gap Flags
+        </span>
+        <span className="font-display text-2xl font-black tabular-nums text-ink leading-none">
+          {facility.truth_gap_flag_count ?? flags.length}
+        </span>
+      </div>
+      {flags.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {flags.map((f) => (
+            <span
+              key={f}
+              className="inline-flex items-center gap-1 rounded-md border border-hairline bg-oat-light px-2 py-0.5 font-mono uppercase tracking-[0.08em] text-[10px] font-bold text-ink"
+            >
+              <AlertTriangle className="h-3 w-3" />
+              {humanizeFlag(f)}
+            </span>
+          ))}
+        </div>
+      )}
+      {facility.audit_reason && (
+        <div className="border-t border-hairline pt-2">
+          <span className="font-mono uppercase tracking-[0.08em] text-[10px] font-bold text-caption">
+            Audit Reason
+          </span>
+          <p className="mt-1 font-serif text-[13px] text-ink">{facility.audit_reason}</p>
+        </div>
+      )}
+      <p className="font-mono uppercase tracking-[0.06em] text-[9px] text-caption">
+        Potential contradiction detected from dataset evidence — not a real-time hospital inspection. Requires verification.
+      </p>
+    </div>
+  );
+}
+
 function SignalRow({ label, present }: { label: string; present: boolean }) {
   return (
     <li className="flex items-center justify-between gap-3 py-1.5 border-b border-hairline last:border-b-0">
@@ -359,16 +463,33 @@ function SignalRow({ label, present }: { label: string; present: boolean }) {
 }
 
 function InterpretationSection({ facility }: { facility: Facility }) {
+  const hasClaims =
+    facility.claimed_surgery !== undefined ||
+    facility.claimed_icu !== undefined ||
+    facility.claimed_emergency !== undefined ||
+    facility.claimed_dialysis !== undefined ||
+    facility.claimed_neonatal !== undefined ||
+    facility.claimed_trauma !== undefined;
   return (
     <ul className="rounded-md border border-hairline bg-paper p-4">
-      <SignalRow label="Oxygen supply" present={facility.has_oxygen} />
-      <SignalRow label="ICU" present={facility.has_icu} />
-      <SignalRow label="Operation theatre" present={facility.has_operation_theatre} />
-      <SignalRow label="Surgeon" present={facility.has_surgeon} />
-      <SignalRow label="Anesthesiologist" present={facility.has_anesthesiologist} />
-      <SignalRow label="Dialysis" present={facility.has_dialysis} />
-      <SignalRow label="Ambulance" present={facility.has_ambulance} />
-      <SignalRow label="24/7 availability" present={facility.is_24_7} />
+      {hasClaims && (
+        <>
+          <SignalRow label="Claimed surgery" present={!!facility.claimed_surgery} />
+          <SignalRow label="Claimed ICU" present={!!facility.claimed_icu} />
+          <SignalRow label="Claimed emergency" present={!!facility.claimed_emergency} />
+          <SignalRow label="Claimed dialysis" present={!!facility.claimed_dialysis} />
+          <SignalRow label="Claimed neonatal" present={!!facility.claimed_neonatal} />
+          <SignalRow label="Claimed trauma" present={!!facility.claimed_trauma} />
+        </>
+      )}
+      <SignalRow label="Oxygen confirmed" present={facility.has_oxygen} />
+      <SignalRow label="Operation theatre confirmed" present={facility.has_operation_theatre} />
+      <SignalRow label="Surgeon confirmed" present={facility.has_surgeon} />
+      <SignalRow label="Anesthesiologist confirmed" present={facility.has_anesthesiologist} />
+      <SignalRow label="ICU confirmed" present={facility.has_icu} />
+      <SignalRow label="Dialysis confirmed" present={facility.has_dialysis} />
+      <SignalRow label="Ambulance confirmed" present={facility.has_ambulance} />
+      <SignalRow label="24/7 confirmed" present={facility.is_24_7} />
     </ul>
   );
 }

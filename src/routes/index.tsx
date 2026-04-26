@@ -18,6 +18,7 @@ import { FacilitiesMapClient as FacilitiesMap } from "@/components/FacilitiesMap
 import { PlannerDashboard } from "@/components/PlannerDashboard";
 import { ChatPanel, type ParsedIntent } from "@/components/ChatPanel";
 import { DatabricksStatusCard } from "@/components/DatabricksStatusCard";
+import { TruthGapAudit } from "@/components/TruthGapAudit";
 import { type Facility, type MedicalNeed } from "@/lib/facilities";
 
 export const Route = createFileRoute("/")({
@@ -278,6 +279,10 @@ function Index() {
 
           <TabsContent value="dashboard" className="mt-0">
             <PlannerDashboard />
+          </TabsContent>
+
+          <TabsContent value="audit" className="mt-0">
+            <TruthGapAudit />
           </TabsContent>
         </Tabs>
       </main>

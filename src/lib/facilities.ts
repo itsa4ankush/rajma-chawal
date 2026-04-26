@@ -62,6 +62,19 @@ export interface Facility {
   has_neonatal_care: boolean;
   has_ambulance: boolean;
   is_24_7: boolean;
+  // ── Truth Gap Audit (source, optional — only on audit endpoints) ──
+  /** Booleans for what the facility *claims* to offer, from the source row. */
+  claimed_surgery?: boolean;
+  claimed_icu?: boolean;
+  claimed_emergency?: boolean;
+  claimed_dialysis?: boolean;
+  claimed_neonatal?: boolean;
+  claimed_trauma?: boolean;
+  /** Pipe- or comma-separated flag list, e.g. "surgery_mismatch|icu_mismatch". */
+  audit_flags?: string;
+  truth_gap_flag_count?: number;
+  audit_severity?: "High" | "Medium" | "Low";
+  audit_reason?: string;
   // ── UI-only ─────────────────────────────────────────────────────
   distance_km?: number;
   matchedCapability?: string;
