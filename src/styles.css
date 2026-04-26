@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap");
 
 @import "tailwindcss" source(none);
 @source "../src";
@@ -7,22 +7,22 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Raycast-inspired design system.
+ * Sentry-inspired design system.
  *
- * Near-black blue-tinted background (#07080a). Inter everywhere with positive
- * letter-spacing (+0.2px) for airy dark-mode legibility. Multi-layer shadows
- * with inset highlights simulate macOS-native physical depth. Raycast Red
- * (#FF6363) is punctuation only — never pervasive.
+ * Deep purple-black backgrounds (#1f1633, #150f23) — never pure black.
+ * Warm purple accent spectrum + lime-green pop. Rubik for UI everywhere,
+ * uppercase + 0.2px tracking on labels/buttons. Inset shadows on primary
+ * buttons (tactile pressed feel); ambient purple glow around hero.
  */
 
 @theme inline {
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
   --radius-xl: 12px;
-  --radius-2xl: 16px;
-  --radius-3xl: 20px;
-  --radius-4xl: 86px;
+  --radius-2xl: 13px;
+  --radius-3xl: 18px;
+  --radius-4xl: 24px;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -54,6 +54,9 @@
   --color-hairline: var(--hairline);
   --color-link: var(--link);
   --color-brand: var(--brand);
+  --color-lime: var(--lime);
+  --color-coral: var(--coral);
+  --color-pink: var(--pink);
   --color-surface-100: var(--surface-100);
   --color-surface-200: var(--surface-200);
   --color-chart-1: var(--chart-1);
@@ -70,26 +73,30 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  --font-display: "Inter", system-ui, -apple-system, "Helvetica Neue", sans-serif;
-  --font-serif: "Inter", system-ui, -apple-system, "Helvetica Neue", sans-serif;
-  --font-sans: "Inter", system-ui, -apple-system, "Helvetica Neue", sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Monaco, monospace;
+  --font-display: "Rubik", -apple-system, system-ui, "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-serif: "Rubik", -apple-system, system-ui, "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-sans: "Rubik", -apple-system, system-ui, "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-mono: "JetBrains Mono", Monaco, Menlo, "Ubuntu Mono", monospace;
 }
 
 :root {
-  /* Raycast palette — near-black blue background, white type, red as punctuation */
-  --paper: oklch(0.09 0.005 240);            /* #07080a near-black with cool blue tint */
-  --ink: oklch(0.98 0 0);                    /* #f9f9f9 near-white primary text */
-  --page-ink: oklch(0.98 0 0);               /* near-white headlines */
-  --caption: oklch(0.65 0 0);                /* #9c9c9d medium gray secondary text */
-  --disabled: oklch(0.50 0 0);               /* #6a6b6c dim gray */
-  --hairline: oklch(0.28 0.005 240 / 0.6);   /* ~#252829 subtle cool border */
-  --link: oklch(0.74 0.16 240);              /* ~#55b3ff Raycast Blue */
-  --brand: oklch(0.72 0.20 20);              /* #FF6363 Raycast Red — accent only */
-  --surface-100: oklch(0.16 0.003 240);      /* #101111 elevated card surface */
-  --surface-200: oklch(0.20 0.003 240);      /* #1b1c1e badge/tag surface */
-  --footer-ink: oklch(0.06 0.005 240);
-  --error-red: oklch(0.72 0.20 20);
+  /* Sentry palette — deep purple-blacks, warm purple spectrum, lime pop */
+  --paper: oklch(0.20 0.06 295);             /* #1f1633 deep purple background */
+  --ink: oklch(1 0 0);                       /* #ffffff primary text */
+  --page-ink: oklch(1 0 0);
+  --caption: oklch(0.88 0.01 280);           /* #e5e7eb secondary text */
+  --disabled: oklch(0.65 0.03 285);
+  --hairline: oklch(0.32 0.07 290);          /* #362d59 border purple */
+  --link: oklch(0.62 0.16 285);              /* #6a5fc1 Sentry purple */
+  --brand: oklch(0.55 0.13 290);             /* #79628c muted purple (button bg) */
+  --lime: oklch(0.91 0.20 125);              /* #c2ef4e high-visibility accent */
+  --coral: oklch(0.82 0.12 50);              /* #ffb287 focus warm */
+  --pink: oklch(0.75 0.16 0);                /* #fa7faa decorative */
+  --surface-100: oklch(0.16 0.05 295);       /* #150f23 deeper sections */
+  --surface-200: oklch(0.28 0.08 290);       /* #362d59 elevated cards */
+  --violet-deep: oklch(0.32 0.16 285);       /* #422082 active states */
+  --footer-ink: oklch(0.13 0.04 295);
+  --error-red: oklch(0.65 0.22 25);
 
   /* Mapped semantic tokens */
   --background: var(--paper);
@@ -98,60 +105,54 @@
   --card-foreground: var(--ink);
   --popover: var(--surface-100);
   --popover-foreground: var(--ink);
-  --primary: var(--ink);
-  --primary-foreground: oklch(0.18 0.005 240);
+  --primary: var(--brand);
+  --primary-foreground: var(--ink);
   --secondary: var(--surface-200);
   --secondary-foreground: var(--ink);
   --muted: var(--surface-100);
   --muted-foreground: var(--caption);
-  --accent: var(--link);
-  --accent-foreground: var(--ink);
-  --destructive: var(--brand);
+  --accent: var(--lime);
+  --accent-foreground: oklch(0.20 0.06 295);
+  --destructive: var(--error-red);
   --destructive-foreground: var(--ink);
   --border: var(--hairline);
-  --input: oklch(1 0 0 / 0.08);
+  --input: oklch(1 0 0 / 0.10);
   --ring: var(--link);
-  --success: oklch(0.74 0.14 150);
-  --success-foreground: var(--paper);
-  --warning: oklch(0.78 0.16 80);
-  --warning-foreground: var(--paper);
+  --success: var(--lime);
+  --success-foreground: oklch(0.20 0.06 295);
+  --warning: var(--coral);
+  --warning-foreground: oklch(0.20 0.06 295);
   --chart-1: var(--link);
-  --chart-2: var(--brand);
-  --chart-3: oklch(0.74 0.14 150);
-  --chart-4: oklch(0.78 0.16 80);
-  --chart-5: var(--caption);
+  --chart-2: var(--lime);
+  --chart-3: var(--coral);
+  --chart-4: var(--pink);
+  --chart-5: var(--brand);
   --sidebar: var(--surface-100);
   --sidebar-foreground: var(--ink);
-  --sidebar-primary: var(--ink);
-  --sidebar-primary-foreground: var(--paper);
+  --sidebar-primary: var(--link);
+  --sidebar-primary-foreground: var(--ink);
   --sidebar-accent: var(--surface-200);
   --sidebar-accent-foreground: var(--ink);
   --sidebar-border: var(--hairline);
   --sidebar-ring: var(--link);
 
-  /* Raycast signature shadow stacks */
-  --shadow-ring:
-    0 0 0 1px rgb(27 28 30),
-    inset 0 0 0 1px rgb(7 8 10);
-  --shadow-button:
-    inset 0 1px 0 0 rgb(255 255 255 / 0.05),
-    0 0 0 1px rgb(255 255 255 / 0.12),
-    inset 0 -1px 0 0 rgb(0 0 0 / 0.20);
-  --shadow-key:
-    0 1.5px 0.5px 2.5px rgb(0 0 0 / 0.40),
-    inset 0 1px 0 0 rgb(255 255 255 / 0.08),
-    inset 0 -1px 0 0 rgb(0 0 0 / 0.30);
-  --shadow-floating:
-    0 0 0 2px rgb(0 0 0 / 0.50),
-    0 0 14px rgb(255 255 255 / 0.10),
-    inset 0 1px 0 0 rgb(255 255 255 / 0.05);
-  --glow-warm: 0 0 20px 5px rgb(215 201 175 / 0.05);
-  --glow-blue: 0 0 14px rgb(85 179 255 / 0.15);
-  --glow-red: 0 0 14px rgb(255 99 99 / 0.15);
+  /* Sentry signature shadows */
+  --shadow-button-inset:
+    inset 0 1px 3px 0 rgb(0 0 0 / 0.10);
+  --shadow-button-hover:
+    0 0.5rem 1.5rem rgb(0 0 0 / 0.18);
+  --shadow-card:
+    0 10px 15px -3px rgb(0 0 0 / 0.10);
+  --shadow-glass:
+    0 2px 8px rgb(0 0 0 / 0.08);
+  --shadow-ambient:
+    0 4px 4px 9px rgb(22 15 36 / 0.90);
+  --glow-purple: 0 0 40px rgb(106 95 193 / 0.25);
+  --glow-lime: 0 0 24px rgb(194 239 78 / 0.30);
 }
 
 .dark {
-  /* Already dark by default — keep .dark identical so toggling does nothing harmful */
+  /* Already dark by default — keep parity */
   --background: var(--paper);
   --foreground: var(--ink);
 }
@@ -165,43 +166,46 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
-    font-feature-settings: "calt", "kern", "liga", "ss03";
+    font-weight: 400;
+    line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
-    letter-spacing: 0.2px;
   }
 
-  /* Headings — Inter, weight 500–600, tight line-height, neutral tracking */
+  /* Headings — Rubik, tight line-height */
   h1, h2, h3, h4, h5, h6, .font-display {
     font-family: var(--font-sans);
     color: var(--color-foreground);
-    font-weight: 600;
-    letter-spacing: 0;
-    line-height: 1.15;
-    font-feature-settings: "calt", "kern", "ss02", "ss08";
-  }
-
-  /* Mono labels — used sparingly, no forced uppercase */
-  .kicker, .ribbon, .meta {
-    font-family: var(--font-mono);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
     font-weight: 500;
-    color: var(--color-caption);
-    font-size: 12px;
+    letter-spacing: 0;
+    line-height: 1.20;
   }
 
-  /* Editorial inline link — Raycast Blue on hover */
+  h1 { font-size: 3rem; font-weight: 700; line-height: 1.20; }
+  h2 { font-size: 1.875rem; font-weight: 400; line-height: 1.20; }
+  h3 { font-size: 1.5rem; font-weight: 500; line-height: 1.25; }
+
+  /* Uppercase mono labels — system pattern */
+  .kicker, .ribbon, .meta {
+    font-family: var(--font-sans);
+    text-transform: uppercase;
+    letter-spacing: 0.2px;
+    font-weight: 600;
+    color: var(--color-lime);
+    font-size: 0.875rem;
+    line-height: 1.25;
+  }
+
+  /* Editorial inline link — Sentry purple on hover */
   a.editorial {
     color: var(--color-foreground);
     text-decoration: underline;
     text-underline-offset: 3px;
     text-decoration-thickness: 1px;
-    transition: opacity 150ms, color 150ms;
+    transition: color 150ms;
   }
   a.editorial:hover {
     color: var(--color-link);
-    opacity: 0.85;
   }
 
   hr {
@@ -210,47 +214,38 @@
     margin: 0;
   }
 
-  /* Selection — subtle blue tint */
   ::selection {
-    background: rgb(85 179 255 / 0.25);
+    background: rgb(106 95 193 / 0.40);
     color: var(--color-foreground);
   }
 }
 
-/* Section ribbon — kept for compatibility, restyled as subtle dark band */
+/* Section ribbon — restyled as lime-accented label band */
 @utility ribbon-bar {
   background-color: var(--color-surface-200);
-  color: var(--color-foreground);
-  font-family: var(--font-mono);
+  color: var(--color-lime);
+  font-family: var(--font-sans);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.2px;
   font-weight: 600;
-  font-size: 0.75rem;
-  line-height: 1;
+  font-size: 0.875rem;
+  line-height: 1.25;
   padding: 0.625rem 0.875rem;
   border: 1px solid var(--color-hairline);
   border-radius: var(--radius-md);
 }
 
-/* Raycast-style keyboard key cap */
-@utility key-cap {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 24px;
-  height: 24px;
-  padding: 0 6px;
-  background: linear-gradient(180deg, #121212 0%, #0d0d0d 100%);
-  border-radius: 4px;
-  box-shadow: var(--shadow-key);
-  color: var(--color-foreground);
-  font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0;
+/* Frosted glass surface */
+@utility glass-panel {
+  background: rgb(255 255 255 / 0.06);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  border: 1px solid rgb(255 255 255 / 0.10);
+  border-radius: 12px;
+  box-shadow: var(--shadow-glass);
 }
 
-/* Leaflet — Raycast dark overrides */
+/* Leaflet — Sentry purple-dark overrides */
 .leaflet-container {
   font-family: var(--font-sans);
   background: var(--color-surface-100);
@@ -260,10 +255,10 @@
 .leaflet-popup-content-wrapper,
 .leaflet-popup-tip {
   border-radius: 8px !important;
-  box-shadow: var(--shadow-floating) !important;
+  box-shadow: var(--shadow-card) !important;
 }
 .leaflet-popup-content-wrapper {
-  border: 1px solid rgb(255 255 255 / 0.08);
+  border: 1px solid var(--color-hairline);
   background: var(--color-surface-100);
   color: var(--color-foreground);
   padding: 12px 14px;
@@ -286,26 +281,27 @@
   color: var(--color-foreground) !important;
 }
 .leaflet-control-zoom a {
-  border-radius: 6px !important;
-  border: 1px solid rgb(255 255 255 / 0.08) !important;
-  background: var(--color-surface-100) !important;
-  color: var(--color-foreground) !important;
+  border-radius: 8px !important;
+  border: 1px solid #584674 !important;
+  background: #79628c !important;
+  color: #ffffff !important;
   font-family: var(--font-sans);
-  font-weight: 600;
-  box-shadow: var(--shadow-button);
-  transition: opacity 150ms;
+  font-weight: 700;
+  box-shadow: var(--shadow-button-inset);
+  transition: box-shadow 150ms;
 }
 .leaflet-control-zoom a:hover {
-  opacity: 0.7;
+  box-shadow: var(--shadow-button-hover);
 }
 .leaflet-control-attribution {
-  font-family: var(--font-mono) !important;
-  font-size: 9px !important;
-  letter-spacing: 0.04em;
+  font-family: var(--font-sans) !important;
+  font-size: 10px !important;
+  letter-spacing: 0.25px;
+  text-transform: uppercase;
   background: var(--color-surface-100) !important;
   color: var(--color-caption) !important;
   border: 1px solid var(--color-hairline);
-  border-radius: 4px !important;
+  border-radius: 6px !important;
   padding: 2px 6px !important;
 }
 .leaflet-control-attribution a {

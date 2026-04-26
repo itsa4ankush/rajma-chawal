@@ -5,43 +5,41 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 /**
- * Raycast-style button system.
- * - Inter 16px / 600 / +0.3px tracking
- * - Hover transitions are opacity-based (0.7), not color swaps
- * - Multi-layer inset shadows simulate macOS-native depth
- * - Pill (default/cta) for primary actions, 6px radius for secondary
+ * Sentry-style button system.
+ * - Rubik UPPERCASE 14px / 500–700 / +0.2px tracking
+ * - Primary: muted purple (#79628c) with inset tactile shadow → elevated on hover
+ * - Glass: frosted white translucent
+ * - White solid: high-visibility CTA, hovers to Sentry purple
  */
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap font-sans font-semibold tracking-[0.01em] transition-opacity duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-40 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap font-sans uppercase tracking-[0.2px] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-40 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        // Primary CTA — semi-transparent white pill, dark text, full white on hover
+        // Primary — muted purple, tactile inset shadow, elevates on hover
         default:
-          "bg-[hsla(0,0%,100%,0.92)] text-[#18191a] rounded-full hover:bg-white hover:opacity-100 shadow-[var(--shadow-button)]",
-        // Inverted — solid white pill (alias of default)
+          "bg-[#79628c] text-white border border-[#584674] font-bold rounded-[13px] shadow-[inset_0_1px_3px_0_rgb(0_0_0_/_0.10)] hover:shadow-[0_0.5rem_1.5rem_rgb(0_0_0_/_0.18)]",
+        // Inverted = high-visibility white solid CTA → hovers to Sentry purple
         inverted:
-          "bg-white text-[#18191a] rounded-full hover:opacity-80 shadow-[var(--shadow-button)]",
-        // Destructive — Raycast Red glow
+          "bg-white text-[#1f1633] font-bold rounded-lg hover:bg-[#6a5fc1] hover:text-white",
         destructive:
-          "bg-transparent text-foreground border border-[rgb(255_99_99_/_0.4)] rounded-md hover:opacity-70 shadow-[var(--glow-red)]",
-        // Secondary — transparent with subtle white border, square 6px radius
+          "bg-destructive text-destructive-foreground font-bold rounded-lg hover:opacity-90",
+        // Glass — frosted white, translucent
         outline:
-          "bg-transparent text-foreground border border-[rgb(255_255_255_/_0.10)] rounded-md hover:opacity-70 shadow-[0_7px_3px_rgb(0_0_0_/_0.03)]",
+          "bg-white/[0.18] backdrop-blur-md text-white border border-white/10 font-medium rounded-xl shadow-[0_2px_8px_rgb(0_0_0_/_0.08)] hover:bg-[rgb(54_22_107_/_0.30)]",
         secondary:
-          "bg-[var(--color-surface-200)] text-foreground border border-[rgb(255_255_255_/_0.06)] rounded-md hover:opacity-70",
-        // Ghost — gray text, brightens to white
+          "bg-[var(--color-surface-200)] text-foreground border border-[var(--color-hairline)] font-medium rounded-lg hover:bg-[var(--violet-deep)]",
+        // Ghost — no background, lights to Sentry purple
         ghost:
-          "bg-transparent text-caption rounded-full hover:text-foreground hover:opacity-100",
+          "bg-transparent text-foreground rounded-lg font-medium hover:text-link normal-case tracking-normal",
         link:
-          "bg-transparent text-foreground underline underline-offset-[3px] decoration-1 hover:text-link hover:opacity-100",
+          "bg-transparent text-foreground underline underline-offset-[3px] decoration-1 hover:text-link normal-case tracking-normal font-medium",
       },
       size: {
-        default: "h-10 px-5 text-[14px] leading-none",
-        sm: "h-8 px-3 text-[13px] leading-none",
-        lg: "h-12 px-7 text-[16px] leading-none",
-        // Round icon button
-        icon: "h-9 w-9 rounded-full border border-[rgb(255_255_255_/_0.08)] hover:opacity-70",
+        default: "h-10 px-4 py-3 text-[14px] leading-tight",
+        sm: "h-8 px-3 text-[12px] leading-tight",
+        lg: "h-12 px-6 text-[14px] leading-tight",
+        icon: "h-9 w-9 rounded-full border border-[var(--color-hairline)] bg-[var(--color-surface-200)]",
       },
     },
     defaultVariants: {
