@@ -248,8 +248,6 @@ function FacilityDetailsDialog({
                     <TruthGapFlagsSection facility={facility} />
                   </>
                 )}
-                <SectionHeader index={++n} icon={FileText} title="Raw Dataset Evidence" subtitle="Verbatim values from the source row" />
-                <RawEvidenceSection facility={facility} />
                 <SectionHeader index={++n} icon={Activity} title="System Interpretation" subtitle="Derived signal checks" />
                 <InterpretationSection facility={facility} />
                 <SectionHeader index={++n} icon={ShieldCheck} title="Trust Score Breakdown" subtitle="How the score was calculated" />
