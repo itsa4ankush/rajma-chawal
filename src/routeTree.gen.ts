@@ -14,6 +14,7 @@ import { Route as ApiSearchFacilitiesRouteImport } from './routes/api/search-fac
 import { Route as ApiMedicalDesertsRouteImport } from './routes/api/medical-deserts'
 import { Route as ApiLocationOptionsRouteImport } from './routes/api/location-options'
 import { Route as ApiDatabricksHealthRouteImport } from './routes/api/databricks-health'
+import { Route as ApiAskCaremapRouteImport } from './routes/api/ask-caremap'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -40,9 +41,15 @@ const ApiDatabricksHealthRoute = ApiDatabricksHealthRouteImport.update({
   path: '/api/databricks-health',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAskCaremapRoute = ApiAskCaremapRouteImport.update({
+  id: '/api/ask-caremap',
+  path: '/api/ask-caremap',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/api/ask-caremap': typeof ApiAskCaremapRoute
   '/api/databricks-health': typeof ApiDatabricksHealthRoute
   '/api/location-options': typeof ApiLocationOptionsRoute
   '/api/medical-deserts': typeof ApiMedicalDesertsRoute
@@ -50,6 +57,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/api/ask-caremap': typeof ApiAskCaremapRoute
   '/api/databricks-health': typeof ApiDatabricksHealthRoute
   '/api/location-options': typeof ApiLocationOptionsRoute
   '/api/medical-deserts': typeof ApiMedicalDesertsRoute
@@ -58,6 +66,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/api/ask-caremap': typeof ApiAskCaremapRoute
   '/api/databricks-health': typeof ApiDatabricksHealthRoute
   '/api/location-options': typeof ApiLocationOptionsRoute
   '/api/medical-deserts': typeof ApiMedicalDesertsRoute
@@ -67,6 +76,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/api/ask-caremap'
     | '/api/databricks-health'
     | '/api/location-options'
     | '/api/medical-deserts'
@@ -74,6 +84,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/api/ask-caremap'
     | '/api/databricks-health'
     | '/api/location-options'
     | '/api/medical-deserts'
@@ -81,6 +92,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/api/ask-caremap'
     | '/api/databricks-health'
     | '/api/location-options'
     | '/api/medical-deserts'
@@ -89,6 +101,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApiAskCaremapRoute: typeof ApiAskCaremapRoute
   ApiDatabricksHealthRoute: typeof ApiDatabricksHealthRoute
   ApiLocationOptionsRoute: typeof ApiLocationOptionsRoute
   ApiMedicalDesertsRoute: typeof ApiMedicalDesertsRoute
@@ -132,11 +145,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDatabricksHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/ask-caremap': {
+      id: '/api/ask-caremap'
+      path: '/api/ask-caremap'
+      fullPath: '/api/ask-caremap'
+      preLoaderRoute: typeof ApiAskCaremapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApiAskCaremapRoute: ApiAskCaremapRoute,
   ApiDatabricksHealthRoute: ApiDatabricksHealthRoute,
   ApiLocationOptionsRoute: ApiLocationOptionsRoute,
   ApiMedicalDesertsRoute: ApiMedicalDesertsRoute,
