@@ -218,13 +218,12 @@
   font-family: var(--font-serif);
   background: var(--color-paper);
   z-index: 0;
+  /* New stacking context — keeps Leaflet's internal pane z-indexes
+     (markers 600, popups 700, controls 800) scoped inside the map so
+     they cannot render above shadcn Dialog (z-50) while still preserving
+     marker hit-testing. */
+  isolation: isolate;
 }
-/* Clamp Leaflet's internal stacking so its panes/markers/controls cannot
-   render above shadcn Dialog (z-50) or other portaled overlays. */
-.leaflet-pane,
-.leaflet-top,
-.leaflet-bottom { z-index: auto !important; }
-.leaflet-control { z-index: 1 !important; }
 .leaflet-popup-content-wrapper,
 .leaflet-popup-tip {
   border-radius: 0 !important;
