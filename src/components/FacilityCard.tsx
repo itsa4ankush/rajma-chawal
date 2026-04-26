@@ -320,106 +320,46 @@ export function FacilityCard({
         id={`facility-${facility.id}`}
         onMouseEnter={() => onHover?.(facility.id)}
         onMouseLeave={() => onHover?.(null)}
-        className={`group rounded-2xl border bg-card p-5 sm:p-6 shadow-[var(--shadow-clay)] transition-all ${
+        className={`group rounded-2xl border bg-card p-3 sm:p-4 shadow-[var(--shadow-clay)] transition-all ${
           isActive ? "border-link ring-2 ring-link/20" : "border-hairline"
         }`}
       >
-        <div className="flex items-start gap-4 sm:gap-6">
-          {/* Display-serif numeral, "Most Popular" treatment */}
-          {typeof index === "number" && (
-            <div className="shrink-0 font-display text-4xl sm:text-5xl font-black leading-none tabular-nums text-ink select-none">
-              {String(index).padStart(2, "0")}
-            </div>
-          )}
-
+        <div className="flex items-start gap-3">
           <div className="min-w-0 flex-1">
-            {/* Mono kicker */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-mono uppercase tracking-[0.12em] text-[11px] font-bold text-ink">
-                {capabilityName}
-              </span>
-              <span className="h-2 w-2 bg-ink" />
-              <span className="font-mono uppercase tracking-[0.1em] text-[11px] font-bold text-caption">
-                Capability · {capability}
+            {/* Mono kicker — compact */}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="font-mono uppercase tracking-[0.1em] text-[10px] font-bold text-ink">
+                {capabilityName} · {capability}
               </span>
               {typeof facility.distance_km === "number" && Number.isFinite(facility.distance_km) && (
                 <>
-                  <span className="h-2 w-2 bg-ink" />
-                  <span className="font-mono uppercase tracking-[0.1em] text-[11px] font-bold text-caption tabular-nums">
+                  <span className="h-1.5 w-1.5 bg-caption rounded-full" />
+                  <span className="font-mono uppercase tracking-[0.08em] text-[10px] font-bold text-caption tabular-nums">
                     {facility.distance_km < 1
-                      ? `${Math.round(facility.distance_km * 1000)} M`
-                      : `${facility.distance_km.toFixed(1)} KM`} AWAY
+                      ? `${Math.round(facility.distance_km * 1000)}m`
+                      : `${facility.distance_km.toFixed(1)}km`}
                   </span>
                 </>
               )}
             </div>
 
-            {/* Display headline */}
-            <h3 className="mt-2 font-display text-2xl sm:text-[28px] font-black leading-[1.08] tracking-tight text-ink group-hover:text-link transition-colors">
-              <button
-                type="button"
-                onClick={() => setOpen(true)}
-                className="text-left"
-              >
+            {/* Compact headline */}
+            <h3 className="mt-1 font-sans text-base sm:text-lg font-semibold leading-snug tracking-[-0.32px] text-ink group-hover:text-link transition-colors">
+              <button type="button" onClick={() => setOpen(true)} className="text-left">
                 {facility.name}
               </button>
             </h3>
 
-            {/* Serif deck — location */}
-            <p className="mt-2 font-serif text-[15px] leading-snug text-page-ink flex items-center gap-1.5">
-              <MapPin className="h-3.5 w-3.5 shrink-0 text-caption" />
-              {facility.address_city}, {facility.address_stateOrRegion} · PIN {facility.address_zipOrPostcode}
+            {/* Location — single line */}
+            <p className="mt-0.5 font-sans text-[13px] leading-snug text-caption flex items-center gap-1">
+              <MapPin className="h-3 w-3 shrink-0" />
+              {facility.address_city}, {facility.address_stateOrRegion}
             </p>
-
-            {/* Trust score row — flat bar, no rounded corners */}
-            <div className="mt-4 flex items-center gap-3">
-              <span className="font-mono uppercase tracking-[0.08em] text-[10px] font-bold text-caption shrink-0">
-                Trust
-              </span>
-              <div className="flex-1 h-[3px] bg-hairline">
-                <div className="h-full bg-ink" style={{ width: `${facility.trust_score}%` }} />
-              </div>
-              <span className="font-mono text-[11px] font-bold tabular-nums text-ink shrink-0">
-                {facility.trust_score}/100
-              </span>
-            </div>
-
-            {/* Risk warning — left-rule treatment */}
-            <div className="mt-4 border-l-[3px] border-destructive pl-3">
-              <span className="font-mono uppercase tracking-[0.1em] text-[10px] font-bold text-destructive flex items-center gap-1">
-                <AlertTriangle className="h-3 w-3" /> Risk Warning
-              </span>
-              <p className="mt-1 font-serif text-[14px] leading-snug text-page-ink">
-                {facility.risk_warning}
-              </p>
-            </div>
-
-            {/* Why recommended */}
-            <div className="mt-3 border-l-[3px] border-ink pl-3">
-              <span className="font-mono uppercase tracking-[0.1em] text-[10px] font-bold text-ink flex items-center gap-1">
-                <Sparkles className="h-3 w-3" /> Why Recommended
-              </span>
-              <p className="mt-1 font-serif text-[14px] leading-snug text-page-ink">
-                {facility.recommendation_reason}
-              </p>
-            </div>
-
-            {/* Capability checklist */}
-            <div className="mt-4">
-              <span className="font-mono uppercase tracking-[0.1em] text-[10px] font-bold text-caption">
-                Verified Capabilities
-              </span>
-              <div className="mt-2">
-                <CapabilityChecklist facility={facility} />
-              </div>
-            </div>
-
-            <div className="mt-5">
-              <Button size="sm" onClick={() => setOpen(true)}>
-                View Full Audit
-              </Button>
-            </div>
           </div>
+
+          <Button size="sm" variant="outline" onClick={() => setOpen(true)} className="shrink-0">
+            Details
+          </Button>
         </div>
       </article>
 
