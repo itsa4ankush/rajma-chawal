@@ -5,12 +5,16 @@ import {
   AlertTriangle,
   Database,
   Info,
+  List as ListIcon,
+  Map as MapIcon,
   MessageSquare,
+  Rows,
   TestTube2,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { FacilityCard } from "@/components/FacilityCard";
+import { FacilitiesMap } from "@/components/FacilitiesMap";
 import { PlannerDashboard } from "@/components/PlannerDashboard";
 import { ChatPanel, type ParsedIntent } from "@/components/ChatPanel";
 import { DatabricksStatusCard } from "@/components/DatabricksStatusCard";
@@ -59,12 +63,21 @@ function RibbonHeader({ children }: { children: React.ReactNode }) {
   );
 }
 
+type ViewMode = "both" | "map" | "list";
+
 function Index() {
   const [results, setResults] = useState<Facility[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [selectedNeed, setSelectedNeed] = useState<MedicalNeed | "">("");
   const [dataSource, setDataSource] = useState<"live" | "demo" | null>(null);
   const [intent, setIntent] = useState<ParsedIntent | null>(null);
+  const [center, setCenter] = useState<{ lat: number; lng: number } | null>(null);
+  const [view, setView] = useState<ViewMode>("both");
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [openSignal, setOpenSignal] = useState<{ id: string; n: number } | null>(null);
+
+  const showMap = (view === "both" || view === "map") && results !== null && results.length > 0;
+  const showList = view === "both" || view === "list";
 
   return (
     <div className="min-h-dvh bg-paper text-ink">
@@ -119,11 +132,13 @@ function Index() {
                 <div className="mt-0 border-x border-b border-hairline">
                   <ChatPanel
                     onSearchStart={() => setLoading(true)}
-                    onResults={(facilities, need, source, parsedIntent) => {
+                    onResults={(facilities, need, source, parsedIntent, resolvedCenter) => {
                       setResults(facilities);
                       setSelectedNeed(need);
                       setDataSource(source);
                       setIntent(parsedIntent ?? null);
+                      setCenter(resolvedCenter ?? null);
+                      setActiveId(null);
                       setLoading(false);
                     }}
                   />
@@ -153,6 +168,32 @@ function Index() {
                             <TestTube2 className="h-3 w-3" /> Demo
                           </>
                         )}
+                      </span>
+                    )}
+                    {results && results.length > 0 && !loading && (
+                      <span className="ml-auto flex items-center border border-paper/40">
+                        {(
+                          [
+                            { v: "both", label: "Both", Icon: Rows },
+                            { v: "map", label: "Map", Icon: MapIcon },
+                            { v: "list", label: "List", Icon: ListIcon },
+                          ] as const
+                        ).map(({ v, label, Icon }) => (
+                          <button
+                            key={v}
+                            type="button"
+                            onClick={() => setView(v)}
+                            aria-pressed={view === v}
+                            className={`flex items-center gap-1 px-2 py-1 font-mono uppercase tracking-[0.08em] text-[10px] font-bold transition-colors ${
+                              view === v
+                                ? "bg-paper text-ink"
+                                : "bg-transparent text-paper/80 hover:bg-paper/10"
+                            }`}
+                          >
+                            <Icon className="h-3 w-3" />
+                            <span className="hidden sm:inline">{label}</span>
+                          </button>
+                        ))}
                       </span>
                     )}
                   </span>
@@ -214,7 +255,24 @@ function Index() {
                   </Alert>
                 )}
 
-                {/* Results grid */}
+                {/* Map (above cards) */}
+                {showMap && (
+                  <div className="mt-6">
+                    <FacilitiesMap
+                      facilities={results!}
+                      selectedNeed={selectedNeed}
+                      centerHint={center}
+                      activeId={activeId}
+                      onMarkerHover={setActiveId}
+                      onMarkerClick={(id) =>
+                        setOpenSignal({ id, n: (openSignal?.n ?? 0) + 1 })
+                      }
+                      height={view === "map" ? 620 : 400}
+                    />
+                  </div>
+                )}
+
+                {/* Results list */}
                 <div className="mt-6">
                   {loading ? (
                     <div className="grid grid-cols-1 gap-0 divide-y divide-ink border-t border-b border-ink">
@@ -241,7 +299,7 @@ function Index() {
                         broadening your search.
                       </p>
                     </div>
-                  ) : (
+                  ) : showList ? (
                     <div className="border-t border-ink">
                       {results.map((f, idx) => (
                         <FacilityCard
@@ -249,10 +307,15 @@ function Index() {
                           facility={f}
                           selectedNeed={selectedNeed}
                           index={idx + 1}
+                          isActive={activeId === f.id}
+                          onHover={setActiveId}
+                          openSignal={
+                            openSignal?.id === f.id ? openSignal.n : undefined
+                          }
                         />
                       ))}
                     </div>
-                  )}
+                  ) : null}
                 </div>
               </section>
             </div>

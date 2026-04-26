@@ -71,6 +71,7 @@ export interface ChatPanelProps {
     selectedNeed: MedicalNeed | "",
     source: "live" | "demo",
     intent?: ParsedIntent,
+    center?: { lat: number; lng: number } | null,
   ) => void;
 }
 
@@ -169,6 +170,7 @@ export function ChatPanel({ onSearchStart, onResults }: ChatPanelProps = {}) {
       dataLimitation?: string;
       dataSourceError?: string | null;
       facilities?: Facility[];
+      resolvedCenter?: { lat: number; lng: number } | null;
       error?: string;
     };
     if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
@@ -214,7 +216,7 @@ export function ChatPanel({ onSearchStart, onResults }: ChatPanelProps = {}) {
       };
 
       if (data.needsLocation) {
-        onResults?.([], "", "live", undefined);
+        onResults?.([], "", "live", undefined, null);
         setPending({
           originalMessage: pending?.originalMessage ?? trimmed,
           intent,
@@ -228,7 +230,7 @@ export function ChatPanel({ onSearchStart, onResults }: ChatPanelProps = {}) {
       } else {
         const facilities = data.facilities ?? [];
         const need = asMedicalNeed(intent.understoodNeed);
-        onResults?.(facilities, need, "live", intent);
+        onResults?.(facilities, need, "live", intent, data.resolvedCenter ?? null);
         setPending(null);
 
         const count = facilities.length;
