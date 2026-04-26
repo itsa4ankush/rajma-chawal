@@ -250,6 +250,8 @@ function FacilityDetailsDialog({
                 )}
                 <SectionHeader index={++n} icon={ShieldCheck} title="Trust Score Breakdown" subtitle="How the score was calculated" />
                 <TrustBreakdownSection facility={facility} />
+                <SectionHeader index={++n} icon={Sparkles} title="Decision Trace" subtitle="Full audit log of this recommendation" />
+                <DecisionTraceSection facility={facility} />
               </>
             );
           })()}
