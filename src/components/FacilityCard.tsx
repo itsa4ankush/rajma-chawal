@@ -3,6 +3,7 @@ import {
   AlertTriangle,
   Ambulance,
   Check,
+  Database,
   Droplet,
   FileText,
   HeartPulse,
@@ -17,6 +18,12 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useRef, useState } from "react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
