@@ -1,6 +1,5 @@
-/// <reference types="@tanstack/start-client-core/dist/esm/serverRoute" />
 import { createRouter, useRouter } from "@tanstack/react-router";
-import "@tanstack/start-client-core/dist/esm/serverRoute.js";
+import "./types/tanstack-start-augment";
 import { routeTree } from "./routeTree.gen";
 
 function DefaultErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
