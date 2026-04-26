@@ -310,17 +310,17 @@ export function ChatPanel({ onSearchStart, onResults }: ChatPanelProps = {}) {
             <div key={i} className="flex justify-start">
               <div className="flex items-start gap-2 max-w-[92%]">
                 <div
-                  className={`flex h-7 w-7 shrink-0 items-center justify-center border ${
-                    m.content.isError ? "border-destructive bg-paper text-destructive" : "border-ink bg-paper text-ink"
+                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border ${
+                    m.content.isError ? "border-destructive bg-white text-destructive" : "border-hairline bg-white text-ink"
                   }`}
                 >
                   {m.content.isError ? <AlertTriangle className="h-3.5 w-3.5" /> : <Bot className="h-3.5 w-3.5" />}
                 </div>
                 <div
-                  className={`px-3 py-2 ${
+                  className={`px-3 py-2 rounded-2xl bg-oat-light/60 ${
                     m.content.isError
                       ? "border-l-[3px] border-destructive"
-                      : "border-l-[3px] border-ink"
+                      : ""
                   }`}
                 >
                   {m.content.intent && (
