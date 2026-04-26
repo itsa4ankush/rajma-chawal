@@ -40,6 +40,10 @@ const NEED_TO_FIELD: Record<MedicalNeed, keyof Facility> = {
   Dialysis: "dialysis_capability",
   "Neonatal Care": "neonatal_capability",
   "Trauma Care": "trauma_capability",
+  "Emergency Care": "emergency_surgery_capability",
+  "Maternal Care": "neonatal_capability",
+  "General Medicine": "emergency_surgery_capability",
+  "Vaccination / Post-exposure Care": "emergency_surgery_capability",
 };
 
 function trustTone(score: number) {

@@ -5,7 +5,11 @@ export type MedicalNeed =
   | "ICU + Oxygen"
   | "Dialysis"
   | "Neonatal Care"
-  | "Trauma Care";
+  | "Trauma Care"
+  | "Emergency Care"
+  | "Maternal Care"
+  | "General Medicine"
+  | "Vaccination / Post-exposure Care";
 
 /**
  * Facility shape mirrors a future Databricks JSON/CSV export.
@@ -45,6 +49,10 @@ export const MEDICAL_NEEDS: MedicalNeed[] = [
   "Dialysis",
   "Neonatal Care",
   "Trauma Care",
+  "Emergency Care",
+  "Maternal Care",
+  "General Medicine",
+  "Vaccination / Post-exposure Care",
 ];
 
 export const INDIAN_STATES = ["Bihar", "Karnataka", "Maharashtra", "Uttar Pradesh"];
@@ -55,9 +63,17 @@ export const NEED_TO_CAPABILITY_FIELD: Record<MedicalNeed, keyof Facility> = {
   Dialysis: "dialysis_capability",
   "Neonatal Care": "neonatal_capability",
   "Trauma Care": "trauma_capability",
+  "Emergency Care": "emergency_surgery_capability",
+  "Maternal Care": "neonatal_capability",
+  "General Medicine": "emergency_surgery_capability",
+  "Vaccination / Post-exposure Care": "emergency_surgery_capability",
 };
 
 export function facilityMatchesNeed(f: Facility, need: MedicalNeed): boolean {
+  if (need === "Emergency Care") return f.has_ambulance || f.is_24_7;
+  if (need === "Neonatal Care") return f.has_neonatal_care;
+  if (need === "Maternal Care") return f.has_neonatal_care || f.is_24_7;
+  if (need === "General Medicine" || need === "Vaccination / Post-exposure Care") return f.is_24_7;
   const cap = f[NEED_TO_CAPABILITY_FIELD[need]] as Capability;
   return cap === "High" || cap === "Medium";
 }
