@@ -320,53 +320,65 @@ export function FacilityCard({
         id={`facility-${facility.id}`}
         onMouseEnter={() => onHover?.(facility.id)}
         onMouseLeave={() => onHover?.(null)}
-        className={`group rounded-2xl border bg-card p-3 sm:p-4 shadow-[var(--shadow-clay)] transition-all ${
+        className={`group flex h-full flex-col rounded-2xl border bg-card p-3 sm:p-4 shadow-[var(--shadow-clay)] transition-all ${
           isActive ? "border-link ring-2 ring-link/20" : "border-hairline"
         }`}
       >
-        <div className="flex items-start gap-3">
+        <div className="flex items-start gap-2">
           <div className="min-w-0 flex-1">
-            {/* Mono kicker — compact */}
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="font-mono uppercase tracking-[0.1em] text-[10px] font-bold text-ink">
-                {capabilityName} · {capability}
-              </span>
-              {typeof facility.distance_km === "number" && Number.isFinite(facility.distance_km) && (
-                <>
-                  <span className="h-1.5 w-1.5 bg-caption rounded-full" />
-                  <span className="font-mono uppercase tracking-[0.08em] text-[10px] font-bold text-caption tabular-nums">
-                    {facility.distance_km < 1
-                      ? `${Math.round(facility.distance_km * 1000)}m`
-                      : `${facility.distance_km.toFixed(1)}km`}
-                  </span>
-                </>
-              )}
-              <span
-                className="ml-auto inline-flex items-center gap-1 rounded-full border border-hairline bg-oat-light px-2 py-0.5 font-mono uppercase tracking-[0.08em] text-[10px] font-bold text-ink tabular-nums"
-                title={`Trust score: ${facility.trust_score}/100 — ${trustText(facility.trust_score)}`}
+            {/* Compact headline — truncated */}
+            <h3 className="font-sans text-base font-semibold leading-snug tracking-[-0.32px] text-ink group-hover:text-link transition-colors">
+              <button
+                type="button"
+                onClick={() => setOpen(true)}
+                className="block w-full text-left truncate"
+                title={facility.name}
               >
-                <ShieldCheck className="h-2.5 w-2.5" />
-                {facility.trust_score}
-              </span>
-            </div>
-
-            {/* Compact headline */}
-            <h3 className="mt-1 font-sans text-base sm:text-lg font-semibold leading-snug tracking-[-0.32px] text-ink group-hover:text-link transition-colors">
-              <button type="button" onClick={() => setOpen(true)} className="text-left">
                 {facility.name}
               </button>
             </h3>
 
-            {/* Location — single line */}
-            <p className="mt-0.5 font-sans text-[13px] leading-snug text-caption flex items-center gap-1">
+            {/* Location — single line, truncated */}
+            <p className="mt-0.5 font-sans text-[13px] leading-snug text-caption flex items-center gap-1 min-w-0">
               <MapPin className="h-3 w-3 shrink-0" />
-              {facility.address_city}, {facility.address_stateOrRegion}
+              <span className="truncate">
+                {facility.address_city}, {facility.address_stateOrRegion}
+              </span>
             </p>
           </div>
 
           <Button size="sm" variant="outline" onClick={() => setOpen(true)} className="shrink-0">
             Details
           </Button>
+        </div>
+
+        {/* Bottom meta row — icon-led pills */}
+        <div className="mt-3 pt-3 border-t border-hairline flex items-center gap-1.5 flex-wrap">
+          <span
+            className="inline-flex items-center gap-1 rounded-full border border-hairline bg-oat-light px-2 py-0.5 font-mono uppercase tracking-[0.08em] text-[10px] font-bold text-ink tabular-nums"
+            title={`Trust score: ${facility.trust_score}/100 — ${trustText(facility.trust_score)}`}
+          >
+            <ShieldCheck className="h-3 w-3" />
+            {facility.trust_score}
+          </span>
+          <span
+            className="inline-flex items-center gap-1 rounded-full border border-hairline bg-oat-light px-2 py-0.5 font-mono uppercase tracking-[0.08em] text-[10px] font-bold text-ink"
+            title={`${capabilityName}: ${capability}`}
+          >
+            <Activity className="h-3 w-3" />
+            {capability}
+          </span>
+          {typeof facility.distance_km === "number" && Number.isFinite(facility.distance_km) && (
+            <span
+              className="inline-flex items-center gap-1 rounded-full border border-hairline bg-oat-light px-2 py-0.5 font-mono uppercase tracking-[0.08em] text-[10px] font-bold text-caption tabular-nums"
+              title="Distance"
+            >
+              <MapPin className="h-3 w-3" />
+              {facility.distance_km < 1
+                ? `${Math.round(facility.distance_km * 1000)}m`
+                : `${facility.distance_km.toFixed(1)}km`}
+            </span>
+          )}
         </div>
       </article>
 
