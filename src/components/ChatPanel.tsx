@@ -334,7 +334,7 @@ export function ChatPanel({ onSearchStart, onResults }: ChatPanelProps = {}) {
                         {m.content.intent.understoodNeed}
                       </span>
                       {m.content.awaitingLocation && (
-                        <span className="font-mono uppercase tracking-[0.08em] text-[10px] font-bold px-2 py-1 bg-warning text-paper inline-flex items-center gap-1">
+                        <span className="font-mono uppercase tracking-[0.08em] text-[10px] font-bold px-2 py-1 rounded-md bg-warning text-ink inline-flex items-center gap-1">
                           <MapPin className="h-3 w-3" /> Location
                         </span>
                       )}
