@@ -341,6 +341,13 @@ export function FacilityCard({
                   </span>
                 </>
               )}
+              <span
+                className="ml-auto inline-flex items-center gap-1 rounded-full border border-hairline bg-oat-light px-2 py-0.5 font-mono uppercase tracking-[0.08em] text-[10px] font-bold text-ink tabular-nums"
+                title={`Trust score: ${facility.trust_score}/100 — ${trustText(facility.trust_score)}`}
+              >
+                <ShieldCheck className="h-2.5 w-2.5" />
+                {facility.trust_score}
+              </span>
             </div>
 
             {/* Compact headline */}
