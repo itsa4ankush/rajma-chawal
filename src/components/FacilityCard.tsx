@@ -242,24 +242,20 @@ function FacilityDetailsDialog({
             </Alert>
           )}
 
-          {/* ── 1. Source Citation ─────────────────────────────────── */}
-          <SectionHeader index={1} icon={Database} title="Source Citation" subtitle="Where this row came from" />
-          <SourceCitationSection facility={facility} />
-
-          {/* ── 2. Raw Dataset Evidence ────────────────────────────── */}
-          <SectionHeader index={2} icon={FileText} title="Raw Dataset Evidence" subtitle="Verbatim values from the source row" />
+          {/* ── 1. Raw Dataset Evidence ────────────────────────────── */}
+          <SectionHeader index={1} icon={FileText} title="Raw Dataset Evidence" subtitle="Verbatim values from the source row" />
           <RawEvidenceSection facility={facility} />
 
-          {/* ── 3. System Interpretation ───────────────────────────── */}
-          <SectionHeader index={3} icon={Activity} title="System Interpretation" subtitle="Derived signal checks" />
+          {/* ── 2. System Interpretation ───────────────────────────── */}
+          <SectionHeader index={2} icon={Activity} title="System Interpretation" subtitle="Derived signal checks" />
           <InterpretationSection facility={facility} />
 
-          {/* ── 4. Trust Score Breakdown ───────────────────────────── */}
-          <SectionHeader index={4} icon={ShieldCheck} title="Trust Score Breakdown" subtitle="How the score was calculated" />
+          {/* ── 3. Trust Score Breakdown ───────────────────────────── */}
+          <SectionHeader index={3} icon={ShieldCheck} title="Trust Score Breakdown" subtitle="How the score was calculated" />
           <TrustBreakdownSection facility={facility} />
 
-          {/* ── 5. Decision Trace (collapsed by default) ───────────── */}
-          <SectionHeader index={5} icon={Sparkles} title="Decision Trace" subtitle="Full audit log of this recommendation" />
+          {/* ── 4. Decision Trace (collapsed by default) ───────────── */}
+          <SectionHeader index={4} icon={Sparkles} title="Decision Trace" subtitle="Full audit log of this recommendation" />
           <DecisionTraceSection facility={facility} />
 
           <p className="border-t border-hairline pt-4 font-mono uppercase tracking-[0.08em] text-[10px] text-caption">
