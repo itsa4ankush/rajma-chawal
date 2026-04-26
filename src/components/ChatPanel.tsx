@@ -358,7 +358,7 @@ export function ChatPanel({ onSearchStart, onResults }: ChatPanelProps = {}) {
             <button
               key={ex}
               onClick={() => void send(ex)}
-              className="font-mono uppercase tracking-[0.08em] text-[10px] font-bold border border-ink bg-paper px-3 py-1.5 hover:bg-ink hover:text-paper transition-colors disabled:opacity-40"
+              className="font-mono uppercase tracking-[0.08em] text-[10px] font-bold rounded-lg border border-hairline bg-white px-3 py-1.5 hover:bg-ink hover:text-white transition-colors disabled:opacity-40"
               disabled={busy}
             >
               {ex}
