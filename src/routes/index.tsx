@@ -196,22 +196,6 @@ function Index() {
                     )}
                   </span>
                 </RibbonHeader>
-                    {dataSource && !loading && (
-                      <span className="flex items-center gap-1 text-paper/70">
-                        <span className="h-3 w-px bg-paper/40" />
-                        {dataSource === "live" ? (
-                          <>
-                            <Database className="h-3 w-3" /> Live
-                          </>
-                        ) : (
-                          <>
-                            <TestTube2 className="h-3 w-3" /> Demo
-                          </>
-                        )}
-                      </span>
-                    )}
-                  </span>
-                </RibbonHeader>
 
                 {/* Intent panel — editorial pull-quote treatment */}
                 {intent && !loading && (
