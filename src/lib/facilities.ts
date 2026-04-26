@@ -12,26 +12,47 @@ export type MedicalNeed =
   | "Vaccination / Post-exposure Care";
 
 /**
- * Facility shape mirrors a future Databricks JSON/CSV export.
- * Field names are snake_case to match the export contract.
+ * Facility shape mirrors a Databricks export from
+ * `workspace.default.healthcare_facility_intelligence`.
+ *
+ * Two groups of fields:
+ * - SOURCE fields: come straight from the Databricks row (citations).
+ * - DERIVED fields: computed by our server (trust narrative, capability for need).
  */
 export interface Facility {
   id: string;
+  // ── Source citation ─────────────────────────────────────────────
+  /** Stable row identifier from the source table. */
+  facility_row_id?: string;
+  /** Fully-qualified source table, e.g. workspace.default.healthcare_facility_intelligence. */
+  source_table?: string;
+  // ── Identity & address (source) ─────────────────────────────────
   name: string;
   address_stateOrRegion: string;
   address_city: string;
   address_zipOrPostcode: string;
   latitude: number;
   longitude: number;
+  // ── Raw clinical text (source, may be empty) ────────────────────
+  description?: string;
+  specialties?: string;
+  procedure?: string;
+  equipment?: string;
+  capability?: string;
+  numberDoctors?: number | string;
+  capacity?: number | string;
+  // ── Capability summary (source) ─────────────────────────────────
   emergency_surgery_capability: Capability;
   icu_capability: Capability;
   dialysis_capability: Capability;
   // Derived/secondary capabilities used by the UI
   neonatal_capability: Capability;
   trauma_capability: Capability;
+  // ── Trust & narrative (mixed: trust_score is source; warning/reason are derived) ──
   trust_score: number;
   risk_warning: string;
   recommendation_reason: string;
+  // ── Boolean signal flags (source) ───────────────────────────────
   has_icu: boolean;
   has_oxygen: boolean;
   has_operation_theatre: boolean;
@@ -41,9 +62,29 @@ export interface Facility {
   has_neonatal_care: boolean;
   has_ambulance: boolean;
   is_24_7: boolean;
+  // ── UI-only ─────────────────────────────────────────────────────
   distance_km?: number;
   matchedCapability?: string;
+  /** Decision trace attached server-side so the audit modal can show how this row was selected. */
+  decision_trace?: DecisionTrace;
 }
+
+/**
+ * How a facility row was reached. Built on the server during a single
+ * /api/ask-caremap call so the audit modal can show full traceability.
+ */
+export interface DecisionTrace {
+  user_message: string;
+  parsed_intent: MedicalNeed;
+  location: { state: string | null; city: string | null; pinCode: string | null };
+  source_table: string;
+  filters_applied: string[];
+  ranking: string;
+  candidate_rows: number;
+  returned_rows: number;
+  fields_used_for_recommendation: string[];
+}
+
 
 export const MEDICAL_NEEDS: MedicalNeed[] = [
   "Emergency Surgery",
