@@ -217,7 +217,14 @@
 .leaflet-container {
   font-family: var(--font-serif);
   background: var(--color-paper);
+  z-index: 0;
 }
+/* Clamp Leaflet's internal stacking so its panes/markers/controls cannot
+   render above shadcn Dialog (z-50) or other portaled overlays. */
+.leaflet-pane,
+.leaflet-top,
+.leaflet-bottom { z-index: auto !important; }
+.leaflet-control { z-index: 1 !important; }
 .leaflet-popup-content-wrapper,
 .leaflet-popup-tip {
   border-radius: 0 !important;
