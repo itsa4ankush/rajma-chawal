@@ -132,11 +132,13 @@ function Index() {
                 <div className="mt-0 border-x border-b border-hairline">
                   <ChatPanel
                     onSearchStart={() => setLoading(true)}
-                    onResults={(facilities, need, source, parsedIntent) => {
+                    onResults={(facilities, need, source, parsedIntent, resolvedCenter) => {
                       setResults(facilities);
                       setSelectedNeed(need);
                       setDataSource(source);
                       setIntent(parsedIntent ?? null);
+                      setCenter(resolvedCenter ?? null);
+                      setActiveId(null);
                       setLoading(false);
                     }}
                   />
