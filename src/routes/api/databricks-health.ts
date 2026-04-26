@@ -54,11 +54,16 @@ export const Route = createFileRoute("/api/databricks-health")({
             }),
           });
 
-          const data = (await dbxRes.json()) as DatabricksStatementResponse;
+          const rawText = await dbxRes.text();
+          let data: DatabricksStatementResponse = {};
+          try { data = JSON.parse(rawText) as DatabricksStatementResponse; } catch { /* keep raw */ }
           if (!dbxRes.ok) {
+            const detail = (data as { message?: string })?.message
+              || data.status?.error?.message
+              || rawText.slice(0, 300);
             return jsonResponse({
               status: "error",
-              message: `Databricks query failed [${dbxRes.status}]`,
+              message: `Databricks query failed [${dbxRes.status}]: ${detail}`,
             });
           }
           const stmtState = data.status?.state;
