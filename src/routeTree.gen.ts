@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiTruthGapAuditRouteImport } from './routes/api/truth-gap-audit'
 import { Route as ApiSearchFacilitiesRouteImport } from './routes/api/search-facilities'
 import { Route as ApiMedicalDesertsRouteImport } from './routes/api/medical-deserts'
 import { Route as ApiLocationOptionsRouteImport } from './routes/api/location-options'
@@ -19,6 +20,11 @@ import { Route as ApiAskCaremapRouteImport } from './routes/api/ask-caremap'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiTruthGapAuditRoute = ApiTruthGapAuditRouteImport.update({
+  id: '/api/truth-gap-audit',
+  path: '/api/truth-gap-audit',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiSearchFacilitiesRoute = ApiSearchFacilitiesRouteImport.update({
@@ -54,6 +60,7 @@ export interface FileRoutesByFullPath {
   '/api/location-options': typeof ApiLocationOptionsRoute
   '/api/medical-deserts': typeof ApiMedicalDesertsRoute
   '/api/search-facilities': typeof ApiSearchFacilitiesRoute
+  '/api/truth-gap-audit': typeof ApiTruthGapAuditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -62,6 +69,7 @@ export interface FileRoutesByTo {
   '/api/location-options': typeof ApiLocationOptionsRoute
   '/api/medical-deserts': typeof ApiMedicalDesertsRoute
   '/api/search-facilities': typeof ApiSearchFacilitiesRoute
+  '/api/truth-gap-audit': typeof ApiTruthGapAuditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -71,6 +79,7 @@ export interface FileRoutesById {
   '/api/location-options': typeof ApiLocationOptionsRoute
   '/api/medical-deserts': typeof ApiMedicalDesertsRoute
   '/api/search-facilities': typeof ApiSearchFacilitiesRoute
+  '/api/truth-gap-audit': typeof ApiTruthGapAuditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -81,6 +90,7 @@ export interface FileRouteTypes {
     | '/api/location-options'
     | '/api/medical-deserts'
     | '/api/search-facilities'
+    | '/api/truth-gap-audit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -89,6 +99,7 @@ export interface FileRouteTypes {
     | '/api/location-options'
     | '/api/medical-deserts'
     | '/api/search-facilities'
+    | '/api/truth-gap-audit'
   id:
     | '__root__'
     | '/'
@@ -97,6 +108,7 @@ export interface FileRouteTypes {
     | '/api/location-options'
     | '/api/medical-deserts'
     | '/api/search-facilities'
+    | '/api/truth-gap-audit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -106,6 +118,7 @@ export interface RootRouteChildren {
   ApiLocationOptionsRoute: typeof ApiLocationOptionsRoute
   ApiMedicalDesertsRoute: typeof ApiMedicalDesertsRoute
   ApiSearchFacilitiesRoute: typeof ApiSearchFacilitiesRoute
+  ApiTruthGapAuditRoute: typeof ApiTruthGapAuditRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -115,6 +128,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/truth-gap-audit': {
+      id: '/api/truth-gap-audit'
+      path: '/api/truth-gap-audit'
+      fullPath: '/api/truth-gap-audit'
+      preLoaderRoute: typeof ApiTruthGapAuditRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/search-facilities': {
@@ -162,6 +182,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiLocationOptionsRoute: ApiLocationOptionsRoute,
   ApiMedicalDesertsRoute: ApiMedicalDesertsRoute,
   ApiSearchFacilitiesRoute: ApiSearchFacilitiesRoute,
+  ApiTruthGapAuditRoute: ApiTruthGapAuditRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

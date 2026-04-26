@@ -242,21 +242,33 @@ function FacilityDetailsDialog({
             </Alert>
           )}
 
-          {/* ── 1. Raw Dataset Evidence ────────────────────────────── */}
-          <SectionHeader index={1} icon={FileText} title="Raw Dataset Evidence" subtitle="Verbatim values from the source row" />
-          <RawEvidenceSection facility={facility} />
-
-          {/* ── 2. System Interpretation ───────────────────────────── */}
-          <SectionHeader index={2} icon={Activity} title="System Interpretation" subtitle="Derived signal checks" />
-          <InterpretationSection facility={facility} />
-
-          {/* ── 3. Trust Score Breakdown ───────────────────────────── */}
-          <SectionHeader index={3} icon={ShieldCheck} title="Trust Score Breakdown" subtitle="How the score was calculated" />
-          <TrustBreakdownSection facility={facility} />
-
-          {/* ── 4. Decision Trace (collapsed by default) ───────────── */}
-          <SectionHeader index={4} icon={Sparkles} title="Decision Trace" subtitle="Full audit log of this recommendation" />
-          <DecisionTraceSection facility={facility} />
+          {(() => {
+            const hasAudit =
+              (facility.truth_gap_flag_count ?? 0) > 0 ||
+              !!facility.audit_severity ||
+              !!facility.audit_flags;
+            let n = 0;
+            return (
+              <>
+                {hasAudit && (
+                  <>
+                    <SectionHeader index={++n} icon={FileText} title="Source Citation" subtitle="Provenance for this row" />
+                    <SourceCitationSection facility={facility} />
+                    <SectionHeader index={++n} icon={AlertTriangle} title="Truth Gap Flags" subtitle="Potential contradictions detected in source data" />
+                    <TruthGapFlagsSection facility={facility} />
+                  </>
+                )}
+                <SectionHeader index={++n} icon={FileText} title="Raw Dataset Evidence" subtitle="Verbatim values from the source row" />
+                <RawEvidenceSection facility={facility} />
+                <SectionHeader index={++n} icon={Activity} title="System Interpretation" subtitle="Derived signal checks" />
+                <InterpretationSection facility={facility} />
+                <SectionHeader index={++n} icon={ShieldCheck} title="Trust Score Breakdown" subtitle="How the score was calculated" />
+                <TrustBreakdownSection facility={facility} />
+                <SectionHeader index={++n} icon={Sparkles} title="Decision Trace" subtitle="Full audit log of this recommendation" />
+                <DecisionTraceSection facility={facility} />
+              </>
+            );
+          })()}
 
           <p className="border-t border-hairline pt-4 font-mono uppercase tracking-[0.08em] text-[10px] text-caption">
             Generated from public health directories, facility self-reports, and
