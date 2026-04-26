@@ -98,14 +98,12 @@ function Index() {
       <header className="border-b border-hairline bg-paper">
         <div className="mx-auto max-w-[1400px] px-4 py-8 sm:px-6 sm:py-12">
           <div className="text-center">
-            <Kicker className="text-caption">Issue 01 · Healthcare Intelligence</Kicker>
+            <Kicker className="text-caption">Healthcare Intelligence</Kicker>
             <h1 className="mt-3 font-display text-5xl sm:text-7xl lg:text-[88px] font-black leading-[0.93] tracking-[-0.02em] text-ink">
               Raahat
             </h1>
             <p className="mx-auto mt-4 max-w-2xl font-serif text-base sm:text-lg leading-relaxed text-page-ink">
-              Find trusted care from messy healthcare data — hospital capability,
-              trust scores, and clear warnings, sourced from public records and
-              cross-checked rosters.
+              Find trusted hospitals near you.
             </p>
           </div>
         </div>
