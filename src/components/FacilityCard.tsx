@@ -3,7 +3,7 @@ import {
   AlertTriangle,
   Ambulance,
   Check,
-  Database,
+  
   Droplet,
   FileText,
   HeartPulse,
