@@ -124,10 +124,10 @@ function Index() {
               {/* LEFT — Ask CareMap column */}
               <section
                 aria-label="Ask CareMap"
-                className="lg:col-span-5 lg:border-r lg:border-ink lg:pr-8"
+                className="lg:col-span-5 lg:border-r lg:border-hairline lg:pr-8"
               >
                 <RibbonHeader>Ask CareMap</RibbonHeader>
-                <div className="mt-0 border-x border-b border-hairline">
+                <div className="mt-3 rounded-2xl border border-hairline bg-card shadow-[var(--shadow-clay)] overflow-hidden">
                   <ChatPanel
                     onSearchStart={() => setLoading(true)}
                     onResults={(facilities, need, source, parsedIntent, resolvedCenter) => {
