@@ -74,6 +74,13 @@ Mapping guidance:
 - Pregnancy emergency, labor complications → "Maternal Care" (urgency: emergency)
 - High fever alone → "General Medicine"; if combined with breathing difficulty / convulsions / infants → "Emergency Care"
 
+Location extraction:
+- Identify any Indian state, city/town, district, area, or 6-digit PIN code mentioned in the user's message.
+- Set locationMentioned = true if ANY place is mentioned, otherwise false.
+- extractedState: canonical Indian state name (e.g. "Bihar", "Tamil Nadu", "Maharashtra") if you can confidently infer one (either directly or from a city). null otherwise.
+- extractedCity: the city/town if mentioned, otherwise null.
+- extractedPinCode: 6-digit PIN code if present, otherwise null.
+
 urgency: "emergency" | "urgent" | "routine"`;
 
 const TOOL = {
