@@ -325,20 +325,20 @@ function Index() {
         </Tabs>
       </main>
 
-      {/* Footer — the ONLY inverted region */}
-      <footer className="mt-16 bg-footer-ink text-paper">
+      {/* Footer */}
+      <footer className="mt-16 bg-footer-ink text-white rounded-t-[40px]">
         <div className="mx-auto max-w-[1400px] px-4 py-12 sm:px-6">
           <div className="text-center">
-            <h2 className="font-display text-3xl sm:text-4xl font-black leading-tight">
+            <h2 className="font-display text-3xl sm:text-4xl font-semibold leading-tight text-white">
               CareMap
             </h2>
-            <p className="mt-2 font-mono uppercase tracking-[0.12em] text-[11px] text-paper/60">
+            <p className="mt-2 font-mono uppercase tracking-[0.12em] text-[11px] text-white/60">
               Healthcare Intelligence · India
             </p>
           </div>
-          <div className="mx-auto mt-8 h-px max-w-md bg-paper/20" />
+          <div className="mx-auto mt-8 h-px max-w-md bg-white/20" />
           <div className="mt-6 text-center">
-            <p className="font-serif text-sm text-paper/80">
+            <p className="text-sm text-white/80">
               Sample data shown for demonstration. Always verify with the
               facility before travel.
             </p>
