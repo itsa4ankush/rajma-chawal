@@ -1,44 +1,29 @@
 import { useEffect, useRef, useState } from "react";
-import { Bot, Loader2, Send, Sparkles, User } from "lucide-react";
+import { AlertTriangle, Bot, Loader2, Send, Sparkles, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { FACILITIES, facilityMatchesNeed, type Facility, type MedicalNeed } from "@/lib/facilities";
-
-const DISCLAIMER =
-  "_Results are based on structured Databricks facility intelligence and trust scoring._";
+import type { Facility, MedicalNeed } from "@/lib/facilities";
 
 const EXAMPLES = [
-  "Find emergency surgery in Bihar",
-  "ICU with oxygen in Maharashtra",
-  "Dialysis options in Tamil Nadu",
-  "Neonatal care in Kerala",
+  "I was bitten by a dog, what hospitals are nearby?",
+  "My father has chest pain",
+  "Newborn baby is not breathing properly",
+  "Need dialysis near Patna",
 ];
 
-interface ParsedQuery {
-  state?: string;
-  need?: MedicalNeed;
-}
-
-function parseQuery(raw: string, knownStates: string[]): ParsedQuery {
-  const q = raw.toLowerCase();
-  const parsed: ParsedQuery = {};
-  for (const s of knownStates) {
-    if (q.includes(s.toLowerCase())) {
-      parsed.state = s;
-      break;
-    }
-  }
-  if (q.includes("surgery")) parsed.need = "Emergency Surgery";
-  else if (q.includes("icu") || q.includes("oxygen")) parsed.need = "ICU + Oxygen";
-  else if (q.includes("dialysis")) parsed.need = "Dialysis";
-  else if (q.includes("neonatal") || q.includes("newborn")) parsed.need = "Neonatal Care";
-  else if (q.includes("trauma")) parsed.need = "Trauma Care";
-  return parsed;
+export interface ParsedIntent {
+  understoodNeed: string;
+  urgency: "emergency" | "urgent" | "routine";
+  userExplanation: string;
+  safetyMessage: string;
+  dataLimitation: string;
 }
 
 interface BotMessage {
   text: string;
+  intent?: ParsedIntent;
+  isError?: boolean;
 }
 
 type ChatMessage =
@@ -65,39 +50,51 @@ function MarkdownLite({ text }: { text: string }) {
   );
 }
 
+const URGENCY_TONE: Record<ParsedIntent["urgency"], string> = {
+  emergency: "border-destructive/40 bg-destructive/10 text-destructive",
+  urgent: "border-warning/40 bg-warning/15 text-warning-foreground",
+  routine: "border-border bg-muted text-foreground",
+};
+
 export interface ChatPanelProps {
   onSearchStart?: () => void;
   onResults?: (
     facilities: Facility[],
     selectedNeed: MedicalNeed | "",
     source: "live" | "demo",
+    intent?: ParsedIntent,
   ) => void;
 }
 
+const SUPPORTED_NEEDS: MedicalNeed[] = [
+  "Emergency Surgery",
+  "ICU + Oxygen",
+  "Dialysis",
+  "Neonatal Care",
+  "Trauma Care",
+  "Emergency Care",
+  "Maternal Care",
+  "General Medicine",
+  "Vaccination / Post-exposure Care",
+];
+
+function asMedicalNeed(v: string): MedicalNeed | "" {
+  return (SUPPORTED_NEEDS as string[]).includes(v) ? (v as MedicalNeed) : "";
+}
+
 export function ChatPanel({ onSearchStart, onResults }: ChatPanelProps = {}) {
-  const [knownStates, setKnownStates] = useState<string[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "bot",
       content: {
         text:
-          "Hi! I'm **CareMap**. Ask me about hospitals by **state** and **medical need** (emergency surgery, ICU + oxygen, dialysis, neonatal, trauma).\n\n" +
-          DISCLAIMER,
+          "Hi! I'm **CareMap**. Describe the health problem in plain language — for example *\"my father has chest pain\"* or *\"I was bitten by a dog\"* — and I'll find matching facilities.\n\n_I don't give medical diagnosis or treatment. For emergencies, please call local emergency services._",
       },
     },
   ]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    fetch("/api/location-options")
-      .then((r) => r.json())
-      .then((d) => {
-        if (Array.isArray(d?.states)) setKnownStates(d.states);
-      })
-      .catch(() => {});
-  }, []);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -111,73 +108,58 @@ export function ChatPanel({ onSearchStart, onResults }: ChatPanelProps = {}) {
     setMessages((m) => [...m, { role: "user", text: trimmed }, { role: "loading" }]);
     onSearchStart?.();
 
-    const parsed = parseQuery(trimmed, knownStates);
-    const need: MedicalNeed | "" = parsed.need ?? "";
     let reply: BotMessage;
-    let resultFacilities: Facility[] = [];
-    let resultSource: "live" | "demo" = "live";
-
-    const filterDesc = [
-      parsed.need ? `**${parsed.need}**` : null,
-      parsed.state ? `in **${parsed.state}**` : null,
-    ]
-      .filter(Boolean)
-      .join(" ");
 
     try {
-      const res = await fetch("/api/search-facilities", {
+      const res = await fetch("/api/ask-caremap", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          state: parsed.state,
-          city: undefined,
-          medicalNeed: parsed.need,
-        }),
+        body: JSON.stringify({ message: trimmed }),
       });
-      const data = (await res.json()) as { facilities?: Facility[]; error?: string };
+      const data = (await res.json()) as {
+        understoodNeed?: string;
+        urgency?: ParsedIntent["urgency"];
+        userExplanation?: string;
+        safetyMessage?: string;
+        dataLimitation?: string;
+        dataSourceError?: string | null;
+        facilities?: Facility[];
+        error?: string;
+      };
       if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
 
-      resultFacilities = data.facilities ?? [];
-      resultSource = "live";
+      const intent: ParsedIntent = {
+        understoodNeed: data.understoodNeed || "General Medicine",
+        urgency: data.urgency || "routine",
+        userExplanation: data.userExplanation || "",
+        safetyMessage: data.safetyMessage || "",
+        dataLimitation: data.dataLimitation || "",
+      };
+      const facilities = data.facilities ?? [];
+      const need = asMedicalNeed(intent.understoodNeed);
+      onResults?.(facilities, need, "live", intent);
 
-      if (resultFacilities.length === 0) {
-        reply = {
-          text:
-            `I couldn't find matching facilities${filterDesc ? ` for ${filterDesc}` : ""}. This may indicate a healthcare access gap.\n\n` +
-            DISCLAIMER,
-        };
-      } else {
-        reply = {
-          text:
-            `Found **${resultFacilities.length}** ${resultFacilities.length === 1 ? "facility" : "facilities"}${filterDesc ? ` for ${filterDesc}` : ""} — showing them on the right →\n\n` +
-            DISCLAIMER,
-        };
-      }
-    } catch {
-      // Fallback to demo data so the chat keeps working
-      let list = FACILITIES;
-      if (parsed.state) list = list.filter((f) => f.address_stateOrRegion === parsed.state);
-      if (parsed.need) {
-        const n = parsed.need;
-        list = list.filter((f) => facilityMatchesNeed(f, n));
-      }
-      resultFacilities = [...list].sort((a, b) => b.trust_score - a.trust_score);
-      resultSource = "demo";
+      const count = facilities.length;
+      const dbxNote = data.dataSourceError
+        ? `\n\n**Data source note:** ${data.dataSourceError}`
+        : "";
+      const matchLine =
+        count === 0
+          ? "I couldn't find matching facilities in the available data. This may indicate a healthcare access gap in your area."
+          : `Showing **${count}** matching ${count === 1 ? "facility" : "facilities"} on the right →`;
 
-      const demoNote =
-        "**Live Databricks connection is unavailable.** Showing **demo data** so you can keep exploring.";
-      if (resultFacilities.length === 0) {
-        reply = {
-          text: `${demoNote}\n\nNo demo matches${filterDesc ? ` for ${filterDesc}` : ""}.\n\n${DISCLAIMER}`,
-        };
-      } else {
-        reply = {
-          text: `${demoNote}\n\nFound **${resultFacilities.length}** demo ${resultFacilities.length === 1 ? "facility" : "facilities"}${filterDesc ? ` for ${filterDesc}` : ""} — showing them on the right →`,
-        };
-      }
+      reply = {
+        text: `**Understood as:** ${intent.understoodNeed} · _${intent.urgency}_\n\n${intent.safetyMessage}\n\n${matchLine}${dbxNote}`,
+        intent,
+      };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      onResults?.([], "", "live", undefined);
+      reply = {
+        text: `**I couldn't process that question right now.**\n\n${msg}\n\nPlease try again in a moment. If this is a medical emergency, call local emergency services immediately.`,
+        isError: true,
+      };
     }
-
-    onResults?.(resultFacilities, need, resultSource);
 
     setMessages((m) => {
       const without = m.filter((x) => x.role !== "loading");
@@ -196,7 +178,7 @@ export function ChatPanel({ onSearchStart, onResults }: ChatPanelProps = {}) {
           <div>
             <div className="text-sm font-semibold text-foreground">Ask CareMap</div>
             <div className="text-[11px] text-muted-foreground">
-              Structured Databricks facility intelligence + trust scoring
+              AI intent parser + Databricks facility intelligence
             </div>
           </div>
         </div>
@@ -221,17 +203,45 @@ export function ChatPanel({ onSearchStart, onResults }: ChatPanelProps = {}) {
                     <Bot className="h-3.5 w-3.5" />
                   </div>
                   <div className="rounded-2xl rounded-tl-sm bg-muted px-3 py-2 text-sm text-muted-foreground inline-flex items-center gap-2">
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" /> Searching Databricks…
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" /> Understanding your question…
                   </div>
                 </div>
               </div>
             ) : (
               <div key={i} className="flex justify-start">
                 <div className="flex items-start gap-2 max-w-[90%]">
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent">
-                    <Bot className="h-3.5 w-3.5" />
+                  <div
+                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${
+                      m.content.isError
+                        ? "bg-destructive/15 text-destructive"
+                        : "bg-accent/15 text-accent"
+                    }`}
+                  >
+                    {m.content.isError ? (
+                      <AlertTriangle className="h-3.5 w-3.5" />
+                    ) : (
+                      <Bot className="h-3.5 w-3.5" />
+                    )}
                   </div>
-                  <div className="rounded-2xl rounded-tl-sm bg-muted px-3 py-2">
+                  <div
+                    className={`rounded-2xl rounded-tl-sm px-3 py-2 ${
+                      m.content.isError
+                        ? "border border-destructive/30 bg-destructive/5"
+                        : "bg-muted"
+                    }`}
+                  >
+                    {m.content.intent && (
+                      <div className="mb-2 flex flex-wrap gap-1.5">
+                        <span
+                          className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide ${URGENCY_TONE[m.content.intent.urgency]}`}
+                        >
+                          {m.content.intent.urgency}
+                        </span>
+                        <span className="inline-flex items-center rounded-full border border-border bg-card px-2 py-0.5 text-[10px] font-medium text-foreground/80">
+                          {m.content.intent.understoodNeed}
+                        </span>
+                      </div>
+                    )}
                     <MarkdownLite text={m.content.text} />
                   </div>
                 </div>
@@ -265,7 +275,7 @@ export function ChatPanel({ onSearchStart, onResults }: ChatPanelProps = {}) {
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask about facilities by state and medical need…"
+            placeholder="Describe the health problem in your own words…"
             className="flex-1"
             disabled={busy}
           />
