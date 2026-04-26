@@ -163,9 +163,9 @@ export function FacilitiesMap({
           </div>
           <button data-caremap-open="${escapeHtml(f.id)}" style="
             margin-top:10px;width:100%;
-            font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;
+            font-family:'Space Mono',ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:0.08em;
             font-size:11px;font-weight:700;
-            background:#000;color:#fff;border:2px solid #000;
+            background:#000;color:#fff;border:1px solid #000;border-radius:8px;
             padding:6px 10px;cursor:pointer;
           ">View Full Audit</button>
         </div>
