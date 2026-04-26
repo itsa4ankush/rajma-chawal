@@ -197,16 +197,16 @@ function Index() {
                   </span>
                 </RibbonHeader>
 
-                {/* Intent panel — editorial pull-quote treatment */}
+                {/* Intent panel — Clay card */}
                 {intent && !loading && (
-                  <div className="border-x border-b-2 border-ink border-b-ink border-x-hairline bg-paper p-5 sm:p-6">
+                  <div className="mt-4 rounded-2xl border border-hairline bg-card p-5 sm:p-6 shadow-[var(--shadow-clay)]">
                     <div className="flex flex-wrap items-center gap-2">
                       <Kicker className="text-caption">Understood as</Kicker>
-                      <span className="font-mono uppercase tracking-[0.08em] text-[11px] font-bold border-2 border-ink bg-paper px-2 py-1 text-ink">
+                      <span className="font-mono uppercase tracking-[0.08em] text-[11px] font-bold rounded-md border border-hairline bg-oat-light px-2 py-1 text-ink">
                         {intent.understoodNeed}
                       </span>
                       <span
-                        className={`font-mono uppercase tracking-[0.1em] text-[10px] font-bold px-2 py-1 ${URGENCY_BADGE[intent.urgency]}`}
+                        className={`font-mono uppercase tracking-[0.1em] text-[10px] font-bold px-2 py-1 rounded-md ${URGENCY_BADGE[intent.urgency]}`}
                       >
                         {intent.urgency}
                       </span>
