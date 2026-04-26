@@ -179,12 +179,21 @@ export const Route = createFileRoute("/api/search-facilities")({
 
         const whereClause = where.length ? `WHERE ${where.join(" AND ")}` : "";
         const SELECT_FIELDS = [
+          "facility_row_id",
+          "source_table",
           "name",
           "address_stateOrRegion",
           "address_city",
           "address_zipOrPostcode",
           "latitude",
           "longitude",
+          "description",
+          "specialties",
+          "procedure",
+          "equipment",
+          "capability",
+          "numberDoctors",
+          "capacity",
           "emergency_surgery_capability",
           "icu_capability",
           "dialysis_capability",
