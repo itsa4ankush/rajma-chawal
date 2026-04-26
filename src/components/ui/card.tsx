@@ -2,11 +2,19 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
+/**
+ * WIRED has no "cards" — only blocks separated by hairlines.
+ * This Card primitive renders a flat block with no shadow, no radius, and a
+ * 1px hairline border. Use sparingly; prefer raw layout + <hr/> rules.
+ */
 const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn("rounded-xl border bg-card text-card-foreground shadow", className)}
+      className={cn(
+        "border border-hairline bg-paper text-foreground",
+        className,
+      )}
       {...props}
     />
   ),
@@ -24,7 +32,7 @@ const CardTitle = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivE
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn("font-semibold leading-none tracking-tight", className)}
+      className={cn("font-display text-2xl leading-[1.05] tracking-tight", className)}
       {...props}
     />
   ),
@@ -33,7 +41,7 @@ CardTitle.displayName = "CardTitle";
 
 const CardDescription = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn("text-sm text-muted-foreground", className)} {...props} />
+    <div ref={ref} className={cn("font-serif text-sm text-caption", className)} {...props} />
   ),
 );
 CardDescription.displayName = "CardDescription";

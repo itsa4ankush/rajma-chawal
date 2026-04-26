@@ -1,6 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { AlertCircle, AlertTriangle, Database, Info, MessageSquare, ShieldCheck, Stethoscope, TestTube2 } from "lucide-react";
+import {
+  AlertCircle,
+  AlertTriangle,
+  Database,
+  Info,
+  MessageSquare,
+  TestTube2,
+} from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { FacilityCard } from "@/components/FacilityCard";
@@ -29,10 +36,28 @@ export const Route = createFileRoute("/")({
 });
 
 const URGENCY_BADGE: Record<ParsedIntent["urgency"], string> = {
-  emergency: "border-destructive/40 bg-destructive/10 text-destructive",
-  urgent: "border-warning/40 bg-warning/15 text-warning-foreground",
-  routine: "border-border bg-muted text-foreground",
+  emergency: "bg-destructive text-paper",
+  urgent: "bg-warning text-paper",
+  routine: "bg-ink text-paper",
 };
+
+function Kicker({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return (
+    <span
+      className={`font-mono uppercase tracking-[0.1em] text-[11px] font-bold ${className}`}
+    >
+      {children}
+    </span>
+  );
+}
+
+function RibbonHeader({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="ribbon-bar flex items-center justify-between">
+      <span>{children}</span>
+    </div>
+  );
+}
 
 function Index() {
   const [results, setResults] = useState<Facility[] | null>(null);
@@ -42,111 +67,122 @@ function Index() {
   const [intent, setIntent] = useState<ParsedIntent | null>(null);
 
   return (
-    <div className="min-h-dvh bg-background">
-      <header className="border-b border-border/60 bg-card">
-        <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-5 sm:px-6">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
-            <Stethoscope className="h-5 w-5" />
-          </div>
-          <div className="min-w-0">
-            <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-foreground">
-              CareMap India
+    <div className="min-h-dvh bg-paper text-ink">
+      {/* Top utility ink strip */}
+      <div className="bg-ink text-paper">
+        <div className="mx-auto flex max-w-[1400px] items-center justify-between px-4 py-2 text-[11px] sm:px-6">
+          <span className="font-mono uppercase tracking-[0.12em]">
+            CareMap · Field Edition
+          </span>
+          <span className="hidden sm:inline font-mono uppercase tracking-[0.12em] text-paper/70">
+            Verified facility intelligence · India
+          </span>
+        </div>
+      </div>
+
+      {/* Masthead */}
+      <header className="border-b-2 border-ink bg-paper">
+        <div className="mx-auto max-w-[1400px] px-4 py-8 sm:px-6 sm:py-12">
+          <div className="text-center">
+            <Kicker className="text-caption">Issue 01 · Healthcare Intelligence</Kicker>
+            <h1 className="mt-3 font-display text-5xl sm:text-7xl lg:text-[88px] font-black leading-[0.93] tracking-[-0.02em] text-ink">
+              CareMap
             </h1>
-            <p className="text-xs sm:text-sm text-muted-foreground">
-              Find trusted care from messy healthcare data
+            <p className="mx-auto mt-4 max-w-2xl font-serif text-base sm:text-lg leading-relaxed text-page-ink">
+              Find trusted care from messy healthcare data — hospital capability,
+              trust scores, and clear warnings, sourced from public records and
+              cross-checked rosters.
             </p>
           </div>
-          <div className="ml-auto hidden sm:flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1 text-xs text-secondary-foreground">
-            <ShieldCheck className="h-3.5 w-3.5 text-accent" />
-            Verified sources
-          </div>
         </div>
+        {/* Double-rule under masthead — printerly */}
+        <div className="h-[1px] bg-ink" />
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
+      <main className="mx-auto max-w-[1400px] px-4 py-8 sm:px-6 sm:py-10">
         <Tabs defaultValue="search" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 max-w-xl mx-auto mb-6">
-            <TabsTrigger value="search">Patient / Health Worker</TabsTrigger>
-            <TabsTrigger value="dashboard">NGO / Planner</TabsTrigger>
-          </TabsList>
+          <div className="mb-8 flex justify-center">
+            <TabsList>
+              <TabsTrigger value="search">Patient · Health Worker</TabsTrigger>
+              <TabsTrigger value="dashboard">NGO · Planner</TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="search" className="mt-0">
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-              <div className="lg:col-span-2">
-                <ChatPanel
-                  onSearchStart={() => {
-                    setLoading(true);
-                  }}
-                  onResults={(facilities, need, source, parsedIntent) => {
-                    setResults(facilities);
-                    setSelectedNeed(need);
-                    setDataSource(source);
-                    setIntent(parsedIntent ?? null);
-                    setLoading(false);
-                  }}
-                />
-              </div>
+            <div className="grid grid-cols-1 gap-0 lg:grid-cols-12 lg:gap-8">
+              {/* LEFT — Ask CareMap column */}
+              <section
+                aria-label="Ask CareMap"
+                className="lg:col-span-5 lg:border-r lg:border-ink lg:pr-8"
+              >
+                <RibbonHeader>Ask CareMap</RibbonHeader>
+                <div className="mt-0 border-x border-b border-hairline">
+                  <ChatPanel
+                    onSearchStart={() => setLoading(true)}
+                    onResults={(facilities, need, source, parsedIntent) => {
+                      setResults(facilities);
+                      setSelectedNeed(need);
+                      setDataSource(source);
+                      setIntent(parsedIntent ?? null);
+                      setLoading(false);
+                    }}
+                  />
+                </div>
+              </section>
 
-              <section aria-label="Results" className="lg:col-span-3">
-                <div className="mb-3 flex items-baseline justify-between gap-3">
-                  <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                    {loading
-                      ? "Searching facilities..."
-                      : results
-                        ? `${results.length} facility${results.length === 1 ? "" : "s"} found`
-                        : "Ask CareMap to see facilities"}
-                  </h2>
-                  <div className="flex items-center gap-2">
+              {/* RIGHT — Editorial results column */}
+              <section aria-label="Results" className="lg:col-span-7 mt-8 lg:mt-0">
+                <RibbonHeader>
+                  <span className="flex items-center gap-3">
+                    <span>
+                      {loading
+                        ? "Searching…"
+                        : results
+                          ? `${results.length} ${results.length === 1 ? "Facility" : "Facilities"}`
+                          : "Facilities"}
+                    </span>
                     {dataSource && !loading && (
-                      <span
-                        className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium ${
-                          dataSource === "live"
-                            ? "border-success/30 bg-success/10 text-success"
-                            : "border-warning/40 bg-warning/15 text-warning-foreground"
-                        }`}
-                      >
+                      <span className="flex items-center gap-1 text-paper/70">
+                        <span className="h-3 w-px bg-paper/40" />
                         {dataSource === "live" ? (
                           <>
-                            <Database className="h-3 w-3" /> Live Databricks data
+                            <Database className="h-3 w-3" /> Live
                           </>
                         ) : (
                           <>
-                            <TestTube2 className="h-3 w-3" /> Demo data
+                            <TestTube2 className="h-3 w-3" /> Demo
                           </>
                         )}
                       </span>
                     )}
-                  </div>
-                </div>
+                  </span>
+                </RibbonHeader>
 
-                {/* LLM-parsed intent panel */}
+                {/* Intent panel — editorial pull-quote treatment */}
                 {intent && !loading && (
-                  <div className="mb-3 rounded-xl border border-border/70 bg-card p-4 space-y-2">
+                  <div className="border-x border-b-2 border-ink border-b-ink border-x-hairline bg-paper p-5 sm:p-6">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                        Understood as
-                      </span>
-                      <span className="inline-flex items-center rounded-full border border-border bg-muted px-2 py-0.5 text-xs font-medium text-foreground">
+                      <Kicker className="text-caption">Understood as</Kicker>
+                      <span className="font-mono uppercase tracking-[0.08em] text-[11px] font-bold border-2 border-ink bg-paper px-2 py-1 text-ink">
                         {intent.understoodNeed}
                       </span>
                       <span
-                        className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${URGENCY_BADGE[intent.urgency]}`}
+                        className={`font-mono uppercase tracking-[0.1em] text-[10px] font-bold px-2 py-1 ${URGENCY_BADGE[intent.urgency]}`}
                       >
                         {intent.urgency}
                       </span>
                     </div>
+
                     {intent.userExplanation && (
-                      <p className="text-sm leading-relaxed text-foreground/90">
+                      <p className="mt-4 font-serif text-base leading-[1.5] text-page-ink">
                         {intent.userExplanation}
                       </p>
                     )}
+
                     {intent.safetyMessage && (
                       <Alert
-                        className={
-                          intent.urgency === "emergency"
-                            ? "border-destructive/40 bg-destructive/10"
-                            : "border-warning/40 bg-warning/10"
-                        }
+                        variant={intent.urgency === "emergency" ? "destructive" : "default"}
+                        className="mt-4"
                       >
                         <AlertTriangle className="h-4 w-4" />
                         <AlertTitle>Safety guidance</AlertTitle>
@@ -154,57 +190,70 @@ function Index() {
                       </Alert>
                     )}
                     {intent.dataLimitation && (
-                      <Alert className="border-border bg-muted/40">
+                      <Alert className="mt-3">
                         <Info className="h-4 w-4" />
                         <AlertTitle>Data limitation</AlertTitle>
                         <AlertDescription>{intent.dataLimitation}</AlertDescription>
                       </Alert>
                     )}
-                    <p className="text-[11px] text-muted-foreground pt-1">
-                      Results based on available facility data — please verify by calling the facility before traveling.
+
+                    <p className="mt-4 border-t border-hairline pt-3 font-mono uppercase tracking-[0.08em] text-[10px] text-caption">
+                      Verify by calling the facility before traveling
                     </p>
                   </div>
                 )}
 
                 {dataSource === "demo" && !loading && results && results.length > 0 && (
-                  <Alert className="mb-3 border-warning/40 bg-warning/10">
+                  <Alert variant="destructive" className="mt-4">
                     <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>Live Databricks connection is unavailable.</AlertTitle>
+                    <AlertTitle>Live Databricks unavailable</AlertTitle>
                     <AlertDescription>
-                      Showing demo facility data so the app keeps working. Reconnect Databricks for live results.
+                      Showing demo facility data so the app keeps working.
+                      Reconnect Databricks for live results.
                     </AlertDescription>
                   </Alert>
                 )}
 
-                {loading ? (
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    {[0, 1, 2, 3].map((i) => (
-                      <div
-                        key={i}
-                        className="h-48 animate-pulse rounded-xl border border-border/60 bg-card"
-                      />
-                    ))}
-                  </div>
-                ) : results === null ? (
-                  <div className="rounded-xl border border-dashed border-border bg-card p-10 text-center">
-                    <MessageSquare className="mx-auto mb-3 h-6 w-6 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">
-                      Ask a question on the left to see matching facilities here.
-                    </p>
-                  </div>
-                ) : results.length === 0 ? (
-                  <div className="rounded-xl border border-dashed border-border bg-card p-10 text-center">
-                    <p className="text-sm text-muted-foreground">
-                      No matching facilities for that question. Try rephrasing or broadening it.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    {results.map((f) => (
-                      <FacilityCard key={f.id} facility={f} selectedNeed={selectedNeed} />
-                    ))}
-                  </div>
-                )}
+                {/* Results grid */}
+                <div className="mt-6">
+                  {loading ? (
+                    <div className="grid grid-cols-1 gap-0 divide-y divide-ink border-t border-b border-ink">
+                      {[0, 1, 2].map((i) => (
+                        <div
+                          key={i}
+                          className="h-44 animate-pulse bg-muted"
+                        />
+                      ))}
+                    </div>
+                  ) : results === null ? (
+                    <div className="border border-hairline bg-paper p-12 text-center">
+                      <MessageSquare className="mx-auto mb-4 h-6 w-6 text-caption" />
+                      <Kicker className="text-caption">Awaiting Query</Kicker>
+                      <p className="mt-3 font-serif text-base text-page-ink">
+                        Ask a question on the left to see matching facilities here.
+                      </p>
+                    </div>
+                  ) : results.length === 0 ? (
+                    <div className="border border-hairline bg-paper p-12 text-center">
+                      <Kicker className="text-caption">No Match</Kicker>
+                      <p className="mt-3 font-serif text-base text-page-ink">
+                        No matching facilities for that question. Try rephrasing or
+                        broadening your search.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="border-t border-ink">
+                      {results.map((f, idx) => (
+                        <FacilityCard
+                          key={f.id}
+                          facility={f}
+                          selectedNeed={selectedNeed}
+                          index={idx + 1}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
               </section>
             </div>
           </TabsContent>
@@ -213,12 +262,31 @@ function Index() {
             <PlannerDashboard />
           </TabsContent>
         </Tabs>
-
-        <footer className="mt-10 border-t border-border/60 pt-6 text-center text-xs text-muted-foreground">
-          <div>Sample data shown for demonstration. Always verify with the facility before travel.</div>
-          <DatabricksStatusCard />
-        </footer>
       </main>
+
+      {/* Footer — the ONLY inverted region */}
+      <footer className="mt-16 bg-footer-ink text-paper">
+        <div className="mx-auto max-w-[1400px] px-4 py-12 sm:px-6">
+          <div className="text-center">
+            <h2 className="font-display text-3xl sm:text-4xl font-black leading-tight">
+              CareMap
+            </h2>
+            <p className="mt-2 font-mono uppercase tracking-[0.12em] text-[11px] text-paper/60">
+              Healthcare Intelligence · India
+            </p>
+          </div>
+          <div className="mx-auto mt-8 h-px max-w-md bg-paper/20" />
+          <div className="mt-6 text-center">
+            <p className="font-serif text-sm text-paper/80">
+              Sample data shown for demonstration. Always verify with the
+              facility before travel.
+            </p>
+            <div className="mt-4 flex justify-center">
+              <DatabricksStatusCard />
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

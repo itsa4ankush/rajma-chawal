@@ -4,24 +4,42 @@ import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 
+/**
+ * WIRED-style button system.
+ * - Square corners (rounded-none) — except `icon` which is a true circle.
+ * - 2px hard black border on primary/outline.
+ * - Hover = full color inversion, 150ms color/bg only.
+ * - Apercu (Inter) 16px / 700 / 0.3px tracking.
+ */
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap font-sans font-bold uppercase tracking-[0.04em] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ink disabled:pointer-events-none disabled:opacity-40 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground shadow hover:bg-primary/90",
-        destructive: "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
+        // Primary: white bg, black 2px border, inverts on hover
+        default:
+          "bg-paper text-ink border-2 border-ink hover:bg-ink hover:text-paper",
+        // Inverted: black bg, white 2px border, inverts on hover
+        inverted:
+          "bg-ink text-paper border-2 border-ink hover:bg-paper hover:text-ink",
+        destructive:
+          "bg-paper text-destructive border-2 border-destructive hover:bg-destructive hover:text-paper",
         outline:
-          "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground",
-        secondary: "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
+          "bg-paper text-ink border-2 border-ink hover:bg-ink hover:text-paper",
+        secondary:
+          "bg-muted text-ink border-2 border-ink hover:bg-ink hover:text-paper",
+        // Editorial inline link — underlined, blue on hover
+        ghost:
+          "bg-transparent text-ink hover:text-link normal-case tracking-normal font-sans font-medium",
+        link:
+          "bg-transparent text-ink underline underline-offset-[3px] decoration-1 hover:text-link normal-case tracking-normal font-sans font-medium",
       },
       size: {
-        default: "h-9 px-4 py-2",
-        sm: "h-8 rounded-md px-3 text-xs",
-        lg: "h-10 rounded-md px-8",
-        icon: "h-9 w-9",
+        default: "h-11 px-6 text-[13px] leading-none",
+        sm: "h-9 px-4 text-[12px] leading-none",
+        lg: "h-12 px-8 text-sm leading-none",
+        // Round icon button — the ONLY non-square button shape
+        icon: "h-10 w-10 rounded-full border border-caption hover:border-ink",
       },
     },
     defaultVariants: {

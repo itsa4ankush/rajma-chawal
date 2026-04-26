@@ -1,7 +1,23 @@
 import { useEffect, useState } from "react";
-import { AlertCircle, AlertTriangle, Building2, Database, Droplet, HeartPulse, Loader2, Scissors, TestTube2 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  AlertCircle,
+  AlertTriangle,
+  Building2,
+  Database,
+  Droplet,
+  HeartPulse,
+  Loader2,
+  Scissors,
+  TestTube2,
+} from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { FACILITIES, type Facility } from "@/lib/facilities";
 
@@ -20,43 +36,32 @@ interface DesertCity {
 }
 
 const riskStyles: Record<RiskLevel, string> = {
-  High: "bg-destructive/10 text-destructive border-destructive/30",
-  Medium: "bg-warning/15 text-warning-foreground border-warning/40",
-  Low: "bg-success/10 text-success border-success/30",
+  High: "bg-destructive text-paper",
+  Medium: "bg-warning text-paper",
+  Low: "bg-ink text-paper",
 };
 
 function StatCard({
   label,
   value,
   icon: Icon,
-  tone,
 }: {
   label: string;
   value: number;
   icon: typeof Building2;
-  tone: "primary" | "success" | "accent" | "warning" | "destructive";
 }) {
-  const toneMap = {
-    primary: "bg-primary/10 text-primary",
-    success: "bg-success/10 text-success",
-    accent: "bg-accent/10 text-accent",
-    warning: "bg-warning/15 text-warning-foreground",
-    destructive: "bg-destructive/10 text-destructive",
-  };
   return (
-    <Card className="border-border/70">
-      <CardContent className="p-5 flex items-center gap-4">
-        <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${toneMap[tone]}`}>
-          <Icon className="h-5 w-5" />
-        </div>
-        <div className="min-w-0">
-          <div className="text-2xl font-bold text-foreground tabular-nums">
-            {value.toLocaleString()}
-          </div>
-          <div className="text-xs text-muted-foreground">{label}</div>
-        </div>
-      </CardContent>
-    </Card>
+    <div className="border border-hairline bg-paper p-5">
+      <div className="flex items-start justify-between gap-2">
+        <span className="font-mono uppercase tracking-[0.1em] text-[10px] font-bold text-caption">
+          {label}
+        </span>
+        <Icon className="h-4 w-4 text-ink shrink-0" />
+      </div>
+      <div className="mt-3 font-display text-4xl sm:text-5xl font-black leading-none text-ink tabular-nums">
+        {value.toLocaleString()}
+      </div>
+    </div>
   );
 }
 
@@ -150,7 +155,7 @@ export function PlannerDashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center rounded-2xl border border-border/70 bg-card p-12 text-sm text-muted-foreground">
+      <div className="flex items-center justify-center border border-hairline bg-paper p-12 font-mono uppercase tracking-[0.1em] text-[11px] font-bold text-caption">
         <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading planner data…
       </div>
     );
@@ -158,112 +163,109 @@ export function PlannerDashboard() {
 
   if (!cities || cities.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center text-sm text-muted-foreground">
+      <div className="border border-hairline bg-paper p-10 text-center font-serif text-base text-page-ink">
         No facility data available.
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      {/* Source badge — mono caps */}
       <div className="flex items-center justify-between gap-3">
+        <span className="font-mono uppercase tracking-[0.1em] text-[11px] font-bold text-caption">
+          District-level capability survey
+        </span>
         <span
-          className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium ${
-            dataSource === "live"
-              ? "border-success/30 bg-success/10 text-success"
-              : "border-warning/40 bg-warning/15 text-warning-foreground"
+          className={`inline-flex items-center gap-1 px-2 py-1 font-mono uppercase tracking-[0.08em] text-[10px] font-bold ${
+            dataSource === "live" ? "bg-ink text-paper" : "bg-warning text-paper"
           }`}
         >
           {dataSource === "live" ? (
             <>
-              <Database className="h-3 w-3" /> Live Databricks data
+              <Database className="h-3 w-3" /> Live
             </>
           ) : (
             <>
-              <TestTube2 className="h-3 w-3" /> Demo data
+              <TestTube2 className="h-3 w-3" /> Demo
             </>
           )}
         </span>
       </div>
 
       {dataSource === "demo" && (
-        <Alert className="border-warning/40 bg-warning/10">
+        <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Live Databricks connection is unavailable.</AlertTitle>
+          <AlertTitle>Live Databricks unavailable</AlertTitle>
           <AlertDescription>
             Showing demo planner data so the dashboard keeps working.
           </AlertDescription>
         </Alert>
       )}
 
+      {/* Stat grid — five flat blocks divided by hairlines */}
       <section
         aria-label="Summary"
-        className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5"
+        className="grid grid-cols-2 gap-0 sm:grid-cols-3 lg:grid-cols-5 border-t border-l border-hairline [&>div]:border-r [&>div]:border-b [&>div]:border-hairline"
       >
-        <StatCard label="Total facilities analyzed" value={totals.total} icon={Building2} tone="primary" />
-        <StatCard
-          label="High-trust emergency surgery"
-          value={totals.highSurgery}
-          icon={Scissors}
-          tone="success"
-        />
-        <StatCard label="High-trust ICU" value={totals.highICU} icon={HeartPulse} tone="accent" />
-        <StatCard label="Dialysis facilities" value={totals.dialysis} icon={Droplet} tone="primary" />
-        <StatCard
-          label="Facilities with warnings"
-          value={totals.warnings}
-          icon={AlertTriangle}
-          tone="warning"
-        />
+        <StatCard label="Total Facilities" value={totals.total} icon={Building2} />
+        <StatCard label="High-Trust Surgery" value={totals.highSurgery} icon={Scissors} />
+        <StatCard label="High-Trust ICU" value={totals.highICU} icon={HeartPulse} />
+        <StatCard label="Dialysis Facilities" value={totals.dialysis} icon={Droplet} />
+        <StatCard label="With Warnings" value={totals.warnings} icon={AlertTriangle} />
       </section>
 
-      <section
-        aria-label="Medical Desert View"
-        className="rounded-2xl border border-border/70 bg-card shadow-sm"
-      >
-        <div className="border-b border-border/60 p-4 sm:p-5">
-          <h2 className="text-base font-semibold text-foreground">Medical Desert View</h2>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Cities ranked by gaps in high-capability emergency, ICU, and dialysis coverage.
-          </p>
-        </div>
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>City</TableHead>
-                <TableHead>State</TableHead>
-                <TableHead className="text-right">Total</TableHead>
-                <TableHead className="text-right">High surgery</TableHead>
-                <TableHead className="text-right">High ICU</TableHead>
-                <TableHead className="text-right">Dialysis</TableHead>
-                <TableHead className="text-right">Avg trust</TableHead>
-                <TableHead className="text-right">Warnings</TableHead>
-                <TableHead>Risk</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {cities.slice(0, 100).map((r) => (
-                <TableRow key={`${r.city}-${r.state}`}>
-                  <TableCell className="font-medium">{r.city}</TableCell>
-                  <TableCell className="text-muted-foreground">{r.state}</TableCell>
-                  <TableCell className="text-right tabular-nums">{r.total_facilities}</TableCell>
-                  <TableCell className="text-right tabular-nums">{r.high_surgery_facilities}</TableCell>
-                  <TableCell className="text-right tabular-nums">{r.high_icu_facilities}</TableCell>
-                  <TableCell className="text-right tabular-nums">{r.dialysis_facilities}</TableCell>
-                  <TableCell className="text-right tabular-nums">{r.avg_trust_score}</TableCell>
-                  <TableCell className="text-right tabular-nums">{r.warning_facilities}</TableCell>
-                  <TableCell>
-                    <span
-                      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${riskStyles[r.risk_level]}`}
-                    >
-                      {r.risk_level}
-                    </span>
-                  </TableCell>
+      {/* Medical Desert View — black ribbon header + flat table */}
+      <section aria-label="Medical Desert View">
+        <div className="ribbon-bar">Medical Desert View</div>
+        <div className="border border-t-0 border-hairline">
+          <div className="border-b border-hairline p-4 sm:p-5">
+            <h2 className="font-display text-2xl sm:text-3xl font-black leading-tight text-ink">
+              Cities ranked by capability gap
+            </h2>
+            <p className="mt-1 font-serif text-sm text-page-ink">
+              Sorted by emergency surgery, ICU and dialysis coverage, then
+              average trust score.
+            </p>
+          </div>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-b-2 border-ink">
+                  <TableHead className="font-mono uppercase tracking-[0.1em] text-[10px] font-bold text-ink">City</TableHead>
+                  <TableHead className="font-mono uppercase tracking-[0.1em] text-[10px] font-bold text-ink">State</TableHead>
+                  <TableHead className="font-mono uppercase tracking-[0.1em] text-[10px] font-bold text-ink text-right">Total</TableHead>
+                  <TableHead className="font-mono uppercase tracking-[0.1em] text-[10px] font-bold text-ink text-right">Surgery</TableHead>
+                  <TableHead className="font-mono uppercase tracking-[0.1em] text-[10px] font-bold text-ink text-right">ICU</TableHead>
+                  <TableHead className="font-mono uppercase tracking-[0.1em] text-[10px] font-bold text-ink text-right">Dialysis</TableHead>
+                  <TableHead className="font-mono uppercase tracking-[0.1em] text-[10px] font-bold text-ink text-right">Trust</TableHead>
+                  <TableHead className="font-mono uppercase tracking-[0.1em] text-[10px] font-bold text-ink text-right">Warn</TableHead>
+                  <TableHead className="font-mono uppercase tracking-[0.1em] text-[10px] font-bold text-ink">Risk</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {cities.slice(0, 100).map((r) => (
+                  <TableRow key={`${r.city}-${r.state}`} className="border-b border-hairline">
+                    <TableCell className="font-serif font-semibold text-ink">{r.city}</TableCell>
+                    <TableCell className="font-serif text-caption">{r.state}</TableCell>
+                    <TableCell className="text-right tabular-nums font-mono text-[12px]">{r.total_facilities}</TableCell>
+                    <TableCell className="text-right tabular-nums font-mono text-[12px]">{r.high_surgery_facilities}</TableCell>
+                    <TableCell className="text-right tabular-nums font-mono text-[12px]">{r.high_icu_facilities}</TableCell>
+                    <TableCell className="text-right tabular-nums font-mono text-[12px]">{r.dialysis_facilities}</TableCell>
+                    <TableCell className="text-right tabular-nums font-mono text-[12px]">{r.avg_trust_score}</TableCell>
+                    <TableCell className="text-right tabular-nums font-mono text-[12px]">{r.warning_facilities}</TableCell>
+                    <TableCell>
+                      <span
+                        className={`inline-flex items-center px-2 py-1 font-mono uppercase tracking-[0.08em] text-[10px] font-bold ${riskStyles[r.risk_level]}`}
+                      >
+                        {r.risk_level}
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       </section>
     </div>
