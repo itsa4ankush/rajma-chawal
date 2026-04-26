@@ -352,32 +352,49 @@ export function FacilityCard({
           </Button>
         </div>
 
-        {/* Bottom meta row — icon-led pills */}
-        <div className="mt-3 pt-3 border-t border-hairline flex items-center gap-1.5 flex-wrap">
-          <span
-            className="inline-flex items-center gap-1 rounded-full border border-hairline bg-oat-light px-2 py-0.5 font-mono uppercase tracking-[0.08em] text-[10px] font-bold text-ink tabular-nums"
+        {/* Bottom meta row — labeled chips, each field clearly differentiated */}
+        <div className="mt-3 pt-3 border-t border-hairline grid grid-cols-2 gap-1.5">
+          {/* Matched need */}
+          <MetaChip
+            icon={Stethoscope}
+            label="Need"
+            value={capabilityName}
+            tone="neutral"
+            title={`Matched need: ${capabilityName}`}
+          />
+          {/* Capability level */}
+          <MetaChip
+            icon={Activity}
+            label="Capability"
+            value={capability}
+            tone={capability === "High" ? "good" : capability === "Medium" ? "warn" : "bad"}
+            title={`${capabilityName} capability: ${capability}`}
+          />
+          {/* Trust score */}
+          <MetaChip
+            icon={ShieldCheck}
+            label="Trust"
+            value={`${facility.trust_score}/100`}
+            tone={facility.trust_score >= 85 ? "good" : facility.trust_score >= 70 ? "warn" : "bad"}
             title={`Trust score: ${facility.trust_score}/100 — ${trustText(facility.trust_score)}`}
-          >
-            <ShieldCheck className="h-3 w-3" />
-            {facility.trust_score}
-          </span>
-          <span
-            className="inline-flex items-center gap-1 rounded-full border border-hairline bg-oat-light px-2 py-0.5 font-mono uppercase tracking-[0.08em] text-[10px] font-bold text-ink"
-            title={`${capabilityName}: ${capability}`}
-          >
-            <Activity className="h-3 w-3" />
-            {capability}
-          </span>
-          {typeof facility.distance_km === "number" && Number.isFinite(facility.distance_km) && (
-            <span
-              className="inline-flex items-center gap-1 rounded-full border border-hairline bg-oat-light px-2 py-0.5 font-mono uppercase tracking-[0.08em] text-[10px] font-bold text-caption tabular-nums"
-              title="Distance"
-            >
-              <MapPin className="h-3 w-3" />
-              {facility.distance_km < 1
-                ? `${Math.round(facility.distance_km * 1000)}m`
-                : `${facility.distance_km.toFixed(1)}km`}
-            </span>
+            mono
+          />
+          {/* Distance */}
+          {typeof facility.distance_km === "number" && Number.isFinite(facility.distance_km) ? (
+            <MetaChip
+              icon={MapPin}
+              label="Distance"
+              value={
+                facility.distance_km < 1
+                  ? `${Math.round(facility.distance_km * 1000)} m`
+                  : `${facility.distance_km.toFixed(1)} km`
+              }
+              tone="neutral"
+              title="Distance from search location"
+              mono
+            />
+          ) : (
+            <span />
           )}
         </div>
       </article>
