@@ -23,7 +23,7 @@ interface DatabricksStatementResponse {
 
 async function runQuery(statement: string): Promise<DatabricksStatementResponse> {
   const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY!;
-  const DATABRICKS_API_KEY = process.env.DATABRICKS_API_KEY!;
+  const DATABRICKS_API_KEY = (process.env.DATABRICKS_API_KEY_1 || process.env.DATABRICKS_API_KEY)!;
   const WAREHOUSE_ID = process.env.DATABRICKS_WAREHOUSE_ID!;
   const res = await fetch(`${GATEWAY_URL}/2.0/sql/statements`, {
     method: "POST",
@@ -57,7 +57,7 @@ export const Route = createFileRoute("/api/location-options")({
       OPTIONS: async () => new Response(null, { status: 204, headers: corsHeaders }),
       GET: async () => {
         const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
-        const DATABRICKS_API_KEY = process.env.DATABRICKS_API_KEY;
+        const DATABRICKS_API_KEY = process.env.DATABRICKS_API_KEY_1 || process.env.DATABRICKS_API_KEY;
         const WAREHOUSE_ID = process.env.DATABRICKS_WAREHOUSE_ID;
         if (!LOVABLE_API_KEY || !DATABRICKS_API_KEY || !WAREHOUSE_ID) {
           return jsonResponse(
