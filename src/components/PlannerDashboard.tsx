@@ -155,7 +155,7 @@ export function PlannerDashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center border border-hairline bg-paper p-12 font-mono uppercase tracking-[0.1em] text-[11px] font-bold text-caption">
+      <div className="flex items-center justify-center rounded-2xl border border-hairline bg-card p-12 font-mono uppercase tracking-[0.1em] text-[11px] font-bold text-caption shadow-[var(--shadow-clay)]">
         <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading planner data…
       </div>
     );
@@ -163,7 +163,7 @@ export function PlannerDashboard() {
 
   if (!cities || cities.length === 0) {
     return (
-      <div className="border border-hairline bg-paper p-10 text-center font-serif text-base text-page-ink">
+      <div className="rounded-2xl border border-hairline bg-card p-10 text-center text-base text-page-ink shadow-[var(--shadow-clay)]">
         No facility data available.
       </div>
     );
