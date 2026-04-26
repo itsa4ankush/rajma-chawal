@@ -280,6 +280,10 @@ function Index() {
           <TabsContent value="dashboard" className="mt-0">
             <PlannerDashboard />
           </TabsContent>
+
+          <TabsContent value="audit" className="mt-0">
+            <TruthGapAudit />
+          </TabsContent>
         </Tabs>
       </main>
 
