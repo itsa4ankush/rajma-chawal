@@ -527,9 +527,9 @@ function DecisionTraceSection({ facility }: { facility: Facility }) {
           <KV label="Candidate Rows" value={t.candidate_rows} mono />
           <KV label="Returned Rows" value={t.returned_rows} mono />
           <KV
-            label="This Row"
+            label="Row ID"
             value={
-              <span className="font-mono text-[12px]">
+              <span className="font-mono text-[12px] break-all">
                 {facility.facility_row_id || facility.id}
               </span>
             }
