@@ -3,14 +3,17 @@ import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 
+/**
+ * WIRED-style alert: a flat block framed by a 2px hard rule on the left edge,
+ * never a rounded card. Black ink for default, blood-red for destructive.
+ */
 const alertVariants = cva(
-  "relative w-full rounded-lg border px-4 py-3 text-sm [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground [&>svg~*]:pl-7",
+  "relative w-full border-l-[3px] py-3 pl-4 pr-4 text-sm bg-paper [&>svg+div]:translate-y-[-2px] [&>svg]:absolute [&>svg]:left-3 [&>svg]:top-3.5 [&>svg]:text-current [&>svg~*]:pl-7",
   {
     variants: {
       variant: {
-        default: "bg-background text-foreground",
-        destructive:
-          "border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive",
+        default: "border-ink text-ink",
+        destructive: "border-destructive text-destructive",
       },
     },
     defaultVariants: {
@@ -31,7 +34,10 @@ const AlertTitle = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<H
   ({ className, ...props }, ref) => (
     <h5
       ref={ref}
-      className={cn("mb-1 font-medium leading-none tracking-tight", className)}
+      className={cn(
+        "mb-1 font-mono text-[11px] uppercase tracking-[0.1em] font-bold leading-none",
+        className,
+      )}
       {...props}
     />
   ),
@@ -42,7 +48,7 @@ const AlertDescription = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("text-sm [&_p]:leading-relaxed", className)} {...props} />
+  <div ref={ref} className={cn("font-serif text-[14px] leading-relaxed [&_p]:leading-relaxed", className)} {...props} />
 ));
 AlertDescription.displayName = "AlertDescription";
 
