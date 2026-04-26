@@ -154,9 +154,9 @@ function FacilityDetailsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0 gap-0 border-2 border-ink">
-        {/* Audit-style header — black ribbon */}
-        <DialogHeader className="space-y-0 p-0 border-b-2 border-ink">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0 gap-0 rounded-3xl border border-hairline">
+        {/* Audit-style header */}
+        <DialogHeader className="space-y-0 p-0 border-b border-hairline">
           <div className="ribbon-bar flex items-center justify-between">
             <span className="flex items-center gap-2">
               <FileText className="h-3.5 w-3.5" />
@@ -213,7 +213,7 @@ function FacilityDetailsDialog({
               <div className="mt-2 font-mono uppercase tracking-[0.08em] text-[11px] font-bold text-ink">
                 {capabilityLabel(capability)}
               </div>
-              <div className="mt-3 inline-flex items-center gap-1.5 border-2 border-ink px-2 py-1 text-[11px] font-mono uppercase tracking-[0.08em] font-bold">
+              <div className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-hairline bg-oat-light px-2 py-1 text-[11px] font-mono uppercase tracking-[0.08em] font-bold">
                 <Activity className="h-3 w-3" /> Verified Signal
               </div>
             </section>
@@ -320,8 +320,8 @@ export function FacilityCard({
         id={`facility-${facility.id}`}
         onMouseEnter={() => onHover?.(facility.id)}
         onMouseLeave={() => onHover?.(null)}
-        className={`group border-b border-ink bg-paper py-6 sm:py-8 first:pt-6 transition-[border-color,background-color] ${
-          isActive ? "bg-muted border-l-[3px] border-l-link pl-3 sm:pl-4 -ml-3 sm:-ml-4" : ""
+        className={`group rounded-2xl border bg-card p-5 sm:p-6 shadow-[var(--shadow-clay)] transition-all ${
+          isActive ? "border-link ring-2 ring-link/20" : "border-hairline"
         }`}
       >
         <div className="flex items-start gap-4 sm:gap-6">

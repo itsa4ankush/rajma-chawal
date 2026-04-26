@@ -40,9 +40,9 @@ export const Route = createFileRoute("/")({
 });
 
 const URGENCY_BADGE: Record<ParsedIntent["urgency"], string> = {
-  emergency: "bg-destructive text-paper",
-  urgent: "bg-warning text-paper",
-  routine: "bg-ink text-paper",
+  emergency: "bg-destructive text-white",
+  urgent: "bg-warning text-ink",
+  routine: "bg-ink text-white",
 };
 
 function Kicker({ children, className = "" }: { children: React.ReactNode; className?: string }) {
@@ -81,20 +81,20 @@ function Index() {
 
   return (
     <div className="min-h-dvh bg-paper text-ink">
-      {/* Top utility ink strip */}
-      <div className="bg-ink text-paper">
+      {/* Top utility strip */}
+      <div className="bg-ink text-white">
         <div className="mx-auto flex max-w-[1400px] items-center justify-between px-4 py-2 text-[11px] sm:px-6">
           <span className="font-mono uppercase tracking-[0.12em]">
             CareMap · Field Edition
           </span>
-          <span className="hidden sm:inline font-mono uppercase tracking-[0.12em] text-paper/70">
+          <span className="hidden sm:inline font-mono uppercase tracking-[0.12em] text-white/70">
             Verified facility intelligence · India
           </span>
         </div>
       </div>
 
       {/* Masthead */}
-      <header className="border-b-2 border-ink bg-paper">
+      <header className="border-b border-hairline bg-paper">
         <div className="mx-auto max-w-[1400px] px-4 py-8 sm:px-6 sm:py-12">
           <div className="text-center">
             <Kicker className="text-caption">Issue 01 · Healthcare Intelligence</Kicker>
@@ -108,8 +108,6 @@ function Index() {
             </p>
           </div>
         </div>
-        {/* Double-rule under masthead — printerly */}
-        <div className="h-[1px] bg-ink" />
       </header>
 
       <main className="mx-auto max-w-[1400px] px-4 py-8 sm:px-6 sm:py-10">
@@ -126,10 +124,10 @@ function Index() {
               {/* LEFT — Ask CareMap column */}
               <section
                 aria-label="Ask CareMap"
-                className="lg:col-span-5 lg:border-r lg:border-ink lg:pr-8"
+                className="lg:col-span-5 lg:border-r lg:border-hairline lg:pr-8"
               >
                 <RibbonHeader>Ask CareMap</RibbonHeader>
-                <div className="mt-0 border-x border-b border-hairline">
+                <div className="mt-3 rounded-2xl border border-hairline bg-card shadow-[var(--shadow-clay)] overflow-hidden">
                   <ChatPanel
                     onSearchStart={() => setLoading(true)}
                     onResults={(facilities, need, source, parsedIntent, resolvedCenter) => {
@@ -157,8 +155,8 @@ function Index() {
                           : "Facilities"}
                     </span>
                     {dataSource && !loading && (
-                      <span className="flex items-center gap-1 text-paper/70">
-                        <span className="h-3 w-px bg-paper/40" />
+                      <span className="flex items-center gap-1 text-ink/70">
+                        <span className="h-3 w-px bg-ink/30" />
                         {dataSource === "live" ? (
                           <>
                             <Database className="h-3 w-3" /> Live
@@ -171,7 +169,7 @@ function Index() {
                       </span>
                     )}
                     {results && results.length > 0 && !loading && (
-                      <span className="ml-auto flex items-center border border-paper/40">
+                      <span className="ml-auto flex items-center rounded-lg border border-hairline bg-white overflow-hidden">
                         {(
                           [
                             { v: "both", label: "Both", Icon: Rows },
@@ -186,8 +184,8 @@ function Index() {
                             aria-pressed={view === v}
                             className={`flex items-center gap-1 px-2 py-1 font-mono uppercase tracking-[0.08em] text-[10px] font-bold transition-colors ${
                               view === v
-                                ? "bg-paper text-ink"
-                                : "bg-transparent text-paper/80 hover:bg-paper/10"
+                                ? "bg-ink text-white"
+                                : "bg-transparent text-ink/60 hover:bg-oat-light hover:text-ink"
                             }`}
                           >
                             <Icon className="h-3 w-3" />
@@ -199,16 +197,16 @@ function Index() {
                   </span>
                 </RibbonHeader>
 
-                {/* Intent panel — editorial pull-quote treatment */}
+                {/* Intent panel — Clay card */}
                 {intent && !loading && (
-                  <div className="border-x border-b-2 border-ink border-b-ink border-x-hairline bg-paper p-5 sm:p-6">
+                  <div className="mt-4 rounded-2xl border border-hairline bg-card p-5 sm:p-6 shadow-[var(--shadow-clay)]">
                     <div className="flex flex-wrap items-center gap-2">
                       <Kicker className="text-caption">Understood as</Kicker>
-                      <span className="font-mono uppercase tracking-[0.08em] text-[11px] font-bold border-2 border-ink bg-paper px-2 py-1 text-ink">
+                      <span className="font-mono uppercase tracking-[0.08em] text-[11px] font-bold rounded-md border border-hairline bg-oat-light px-2 py-1 text-ink">
                         {intent.understoodNeed}
                       </span>
                       <span
-                        className={`font-mono uppercase tracking-[0.1em] text-[10px] font-bold px-2 py-1 ${URGENCY_BADGE[intent.urgency]}`}
+                        className={`font-mono uppercase tracking-[0.1em] text-[10px] font-bold px-2 py-1 rounded-md ${URGENCY_BADGE[intent.urgency]}`}
                       >
                         {intent.urgency}
                       </span>
@@ -275,32 +273,32 @@ function Index() {
                 {/* Results list */}
                 <div className="mt-6">
                   {loading ? (
-                    <div className="grid grid-cols-1 gap-0 divide-y divide-ink border-t border-b border-ink">
+                    <div className="grid grid-cols-1 gap-4">
                       {[0, 1, 2].map((i) => (
                         <div
                           key={i}
-                          className="h-44 animate-pulse bg-muted"
+                          className="h-44 animate-pulse rounded-2xl bg-muted border border-hairline"
                         />
                       ))}
                     </div>
                   ) : results === null ? (
-                    <div className="border border-hairline bg-paper p-12 text-center">
+                    <div className="rounded-2xl border border-hairline bg-card p-12 text-center shadow-[var(--shadow-clay)]">
                       <MessageSquare className="mx-auto mb-4 h-6 w-6 text-caption" />
                       <Kicker className="text-caption">Awaiting Query</Kicker>
-                      <p className="mt-3 font-serif text-base text-page-ink">
+                      <p className="mt-3 text-base text-page-ink">
                         Ask a question on the left to see matching facilities here.
                       </p>
                     </div>
                   ) : results.length === 0 ? (
-                    <div className="border border-hairline bg-paper p-12 text-center">
+                    <div className="rounded-2xl border border-hairline bg-card p-12 text-center shadow-[var(--shadow-clay)]">
                       <Kicker className="text-caption">No Match</Kicker>
-                      <p className="mt-3 font-serif text-base text-page-ink">
+                      <p className="mt-3 text-base text-page-ink">
                         No matching facilities for that question. Try rephrasing or
                         broadening your search.
                       </p>
                     </div>
                   ) : showList ? (
-                    <div className="border-t border-ink">
+                    <div className="flex flex-col gap-4">
                       {results.map((f, idx) => (
                         <FacilityCard
                           key={f.id}
@@ -327,20 +325,20 @@ function Index() {
         </Tabs>
       </main>
 
-      {/* Footer — the ONLY inverted region */}
-      <footer className="mt-16 bg-footer-ink text-paper">
+      {/* Footer */}
+      <footer className="mt-16 bg-footer-ink text-white rounded-t-[40px]">
         <div className="mx-auto max-w-[1400px] px-4 py-12 sm:px-6">
           <div className="text-center">
-            <h2 className="font-display text-3xl sm:text-4xl font-black leading-tight">
+            <h2 className="font-display text-3xl sm:text-4xl font-semibold leading-tight text-white">
               CareMap
             </h2>
-            <p className="mt-2 font-mono uppercase tracking-[0.12em] text-[11px] text-paper/60">
+            <p className="mt-2 font-mono uppercase tracking-[0.12em] text-[11px] text-white/60">
               Healthcare Intelligence · India
             </p>
           </div>
-          <div className="mx-auto mt-8 h-px max-w-md bg-paper/20" />
+          <div className="mx-auto mt-8 h-px max-w-md bg-white/20" />
           <div className="mt-6 text-center">
-            <p className="font-serif text-sm text-paper/80">
+            <p className="text-sm text-white/80">
               Sample data shown for demonstration. Always verify with the
               facility before travel.
             </p>

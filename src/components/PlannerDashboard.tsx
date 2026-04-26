@@ -36,9 +36,9 @@ interface DesertCity {
 }
 
 const riskStyles: Record<RiskLevel, string> = {
-  High: "bg-destructive text-paper",
-  Medium: "bg-warning text-paper",
-  Low: "bg-ink text-paper",
+  High: "bg-destructive text-white rounded-md",
+  Medium: "bg-warning text-ink rounded-md",
+  Low: "bg-ink text-white rounded-md",
 };
 
 function StatCard({
@@ -51,7 +51,7 @@ function StatCard({
   icon: typeof Building2;
 }) {
   return (
-    <div className="border border-hairline bg-paper p-5">
+    <div className="rounded-2xl border border-hairline bg-card p-5 shadow-[var(--shadow-clay)]">
       <div className="flex items-start justify-between gap-2">
         <span className="font-mono uppercase tracking-[0.1em] text-[10px] font-bold text-caption">
           {label}
@@ -155,7 +155,7 @@ export function PlannerDashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center border border-hairline bg-paper p-12 font-mono uppercase tracking-[0.1em] text-[11px] font-bold text-caption">
+      <div className="flex items-center justify-center rounded-2xl border border-hairline bg-card p-12 font-mono uppercase tracking-[0.1em] text-[11px] font-bold text-caption shadow-[var(--shadow-clay)]">
         <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading planner data…
       </div>
     );
@@ -163,7 +163,7 @@ export function PlannerDashboard() {
 
   if (!cities || cities.length === 0) {
     return (
-      <div className="border border-hairline bg-paper p-10 text-center font-serif text-base text-page-ink">
+      <div className="rounded-2xl border border-hairline bg-card p-10 text-center text-base text-page-ink shadow-[var(--shadow-clay)]">
         No facility data available.
       </div>
     );
@@ -177,8 +177,8 @@ export function PlannerDashboard() {
           District-level capability survey
         </span>
         <span
-          className={`inline-flex items-center gap-1 px-2 py-1 font-mono uppercase tracking-[0.08em] text-[10px] font-bold ${
-            dataSource === "live" ? "bg-ink text-paper" : "bg-warning text-paper"
+          className={`inline-flex items-center gap-1 px-2 py-1 rounded-md font-mono uppercase tracking-[0.08em] text-[10px] font-bold ${
+            dataSource === "live" ? "bg-ink text-white" : "bg-warning text-ink"
           }`}
         >
           {dataSource === "live" ? (
@@ -203,10 +203,10 @@ export function PlannerDashboard() {
         </Alert>
       )}
 
-      {/* Stat grid — five flat blocks divided by hairlines */}
+      {/* Stat grid — Clay cards */}
       <section
         aria-label="Summary"
-        className="grid grid-cols-2 gap-0 sm:grid-cols-3 lg:grid-cols-5 border-t border-l border-hairline [&>div]:border-r [&>div]:border-b [&>div]:border-hairline"
+        className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5"
       >
         <StatCard label="Total Facilities" value={totals.total} icon={Building2} />
         <StatCard label="High-Trust Surgery" value={totals.highSurgery} icon={Scissors} />
@@ -215,15 +215,15 @@ export function PlannerDashboard() {
         <StatCard label="With Warnings" value={totals.warnings} icon={AlertTriangle} />
       </section>
 
-      {/* Medical Desert View — black ribbon header + flat table */}
+      {/* Medical Desert View — Clay card with table */}
       <section aria-label="Medical Desert View">
-        <div className="ribbon-bar">Medical Desert View</div>
-        <div className="border border-t-0 border-hairline">
+        <div className="ribbon-bar mb-3">Medical Desert View</div>
+        <div className="rounded-2xl border border-hairline bg-card shadow-[var(--shadow-clay)] overflow-hidden">
           <div className="border-b border-hairline p-4 sm:p-5">
-            <h2 className="font-display text-2xl sm:text-3xl font-black leading-tight text-ink">
+            <h2 className="text-2xl sm:text-3xl font-semibold leading-tight text-ink tracking-[-0.64px]">
               Cities ranked by capability gap
             </h2>
-            <p className="mt-1 font-serif text-sm text-page-ink">
+            <p className="mt-1 text-sm text-page-ink">
               Sorted by emergency surgery, ICU and dialysis coverage, then
               average trust score.
             </p>
@@ -231,7 +231,7 @@ export function PlannerDashboard() {
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="border-b-2 border-ink">
+                <TableRow className="border-b border-hairline">
                   <TableHead className="font-mono uppercase tracking-[0.1em] text-[10px] font-bold text-ink">City</TableHead>
                   <TableHead className="font-mono uppercase tracking-[0.1em] text-[10px] font-bold text-ink">State</TableHead>
                   <TableHead className="font-mono uppercase tracking-[0.1em] text-[10px] font-bold text-ink text-right">Total</TableHead>

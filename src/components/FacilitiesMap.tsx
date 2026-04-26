@@ -26,11 +26,13 @@ function makeNumberedIcon(index: number, active: boolean): L.DivIcon {
       width:30px;height:30px;
       background:${bg};
       color:${fg};
-      border:2px solid #000;
+      border:1px solid #000;
+      border-radius:50%;
       display:flex;align-items:center;justify-content:center;
-      font-family:'JetBrains Mono','SF Mono',Menlo,monospace;
+      font-family:'Space Mono',ui-monospace,Menlo,monospace;
       font-weight:700;font-size:12px;letter-spacing:0.04em;
       box-sizing:border-box;
+      box-shadow:0 1px 2px rgba(0,0,0,0.15);
     ">${num}</div>`,
     iconSize: [30, 30],
     iconAnchor: [15, 15],
@@ -161,9 +163,9 @@ export function FacilitiesMap({
           </div>
           <button data-caremap-open="${escapeHtml(f.id)}" style="
             margin-top:10px;width:100%;
-            font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;
+            font-family:'Space Mono',ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:0.08em;
             font-size:11px;font-weight:700;
-            background:#000;color:#fff;border:2px solid #000;
+            background:#000;color:#fff;border:1px solid #000;border-radius:8px;
             padding:6px 10px;cursor:pointer;
           ">View Full Audit</button>
         </div>
@@ -231,14 +233,14 @@ export function FacilitiesMap({
   if (placed.length === 0) {
     return (
       <div
-        className="border border-hairline bg-paper flex items-center justify-center"
+        className="rounded-2xl border border-hairline bg-card flex items-center justify-center shadow-[var(--shadow-clay)]"
         style={{ height }}
       >
         <div className="text-center px-6">
           <span className="font-mono uppercase tracking-[0.1em] text-[10px] font-bold text-caption">
             Map Unavailable
           </span>
-          <p className="mt-2 font-serif text-sm text-page-ink">
+          <p className="mt-2 text-sm text-page-ink">
             No coordinates for these facilities.
           </p>
         </div>
@@ -249,7 +251,7 @@ export function FacilitiesMap({
   return (
     <div
       ref={containerRef}
-      className="border border-ink bg-paper"
+      className="rounded-2xl border border-hairline bg-card overflow-hidden shadow-[var(--shadow-clay)]"
       style={{ height, width: "100%" }}
       aria-label="Map of matching facilities"
       role="application"

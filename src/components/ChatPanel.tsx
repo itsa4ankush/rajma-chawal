@@ -59,9 +59,9 @@ function MarkdownLite({ text }: { text: string }) {
 }
 
 const URGENCY_TONE: Record<ParsedIntent["urgency"], string> = {
-  emergency: "bg-destructive text-paper",
-  urgent: "bg-warning text-paper",
-  routine: "bg-ink text-paper",
+  emergency: "bg-destructive text-white rounded-md",
+  urgent: "bg-warning text-ink rounded-md",
+  routine: "bg-ink text-white rounded-md",
 };
 
 export interface ChatPanelProps {
@@ -287,10 +287,10 @@ export function ChatPanel({ onSearchStart, onResults }: ChatPanelProps = {}) {
           m.role === "user" ? (
             <div key={i} className="flex justify-end">
               <div className="flex items-start gap-2 max-w-[88%]">
-                <div className="bg-ink text-paper px-3 py-2 font-serif text-[14px] leading-snug">
+                <div className="bg-ink text-white px-3 py-2 rounded-2xl text-[14px] leading-snug">
                   {m.text}
                 </div>
-                <div className="flex h-7 w-7 shrink-0 items-center justify-center border border-ink bg-paper">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-hairline bg-white">
                   <User className="h-3.5 w-3.5" />
                 </div>
               </div>
@@ -298,7 +298,7 @@ export function ChatPanel({ onSearchStart, onResults }: ChatPanelProps = {}) {
           ) : m.role === "loading" ? (
             <div key={i} className="flex justify-start">
               <div className="flex items-start gap-2">
-                <div className="flex h-7 w-7 shrink-0 items-center justify-center border border-ink bg-paper">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-hairline bg-white">
                   <Bot className="h-3.5 w-3.5" />
                 </div>
                 <div className="border-l-[3px] border-caption pl-3 py-1 font-mono uppercase tracking-[0.1em] text-[11px] font-bold text-caption inline-flex items-center gap-2">
@@ -310,17 +310,17 @@ export function ChatPanel({ onSearchStart, onResults }: ChatPanelProps = {}) {
             <div key={i} className="flex justify-start">
               <div className="flex items-start gap-2 max-w-[92%]">
                 <div
-                  className={`flex h-7 w-7 shrink-0 items-center justify-center border ${
-                    m.content.isError ? "border-destructive bg-paper text-destructive" : "border-ink bg-paper text-ink"
+                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border ${
+                    m.content.isError ? "border-destructive bg-white text-destructive" : "border-hairline bg-white text-ink"
                   }`}
                 >
                   {m.content.isError ? <AlertTriangle className="h-3.5 w-3.5" /> : <Bot className="h-3.5 w-3.5" />}
                 </div>
                 <div
-                  className={`px-3 py-2 ${
+                  className={`px-3 py-2 rounded-2xl bg-oat-light/60 ${
                     m.content.isError
                       ? "border-l-[3px] border-destructive"
-                      : "border-l-[3px] border-ink"
+                      : ""
                   }`}
                 >
                   {m.content.intent && (
@@ -330,11 +330,11 @@ export function ChatPanel({ onSearchStart, onResults }: ChatPanelProps = {}) {
                       >
                         {m.content.intent.urgency}
                       </span>
-                      <span className="font-mono uppercase tracking-[0.08em] text-[10px] font-bold px-2 py-1 border border-ink text-ink">
+                      <span className="font-mono uppercase tracking-[0.08em] text-[10px] font-bold px-2 py-1 rounded-md border border-hairline bg-white text-ink">
                         {m.content.intent.understoodNeed}
                       </span>
                       {m.content.awaitingLocation && (
-                        <span className="font-mono uppercase tracking-[0.08em] text-[10px] font-bold px-2 py-1 bg-warning text-paper inline-flex items-center gap-1">
+                        <span className="font-mono uppercase tracking-[0.08em] text-[10px] font-bold px-2 py-1 rounded-md bg-warning text-ink inline-flex items-center gap-1">
                           <MapPin className="h-3 w-3" /> Location
                         </span>
                       )}
@@ -358,7 +358,7 @@ export function ChatPanel({ onSearchStart, onResults }: ChatPanelProps = {}) {
             <button
               key={ex}
               onClick={() => void send(ex)}
-              className="font-mono uppercase tracking-[0.08em] text-[10px] font-bold border border-ink bg-paper px-3 py-1.5 hover:bg-ink hover:text-paper transition-colors disabled:opacity-40"
+              className="font-mono uppercase tracking-[0.08em] text-[10px] font-bold rounded-lg border border-hairline bg-white px-3 py-1.5 hover:bg-ink hover:text-white transition-colors disabled:opacity-40"
               disabled={busy}
             >
               {ex}
@@ -374,7 +374,7 @@ export function ChatPanel({ onSearchStart, onResults }: ChatPanelProps = {}) {
             <button
               key={ex}
               onClick={() => void send(ex)}
-              className="font-serif text-[12px] border border-hairline bg-paper px-3 py-1.5 hover:border-ink hover:text-link transition-colors disabled:opacity-40"
+              className="text-[12px] rounded-lg border border-hairline bg-white px-3 py-1.5 hover:border-ink hover:text-link transition-colors disabled:opacity-40"
               disabled={busy}
             >
               {ex}
@@ -383,13 +383,13 @@ export function ChatPanel({ onSearchStart, onResults }: ChatPanelProps = {}) {
         </div>
       ) : null}
 
-      {/* Input — printerly 2px border */}
+      {/* Input */}
       <form
         onSubmit={(e) => {
           e.preventDefault();
           void send(input);
         }}
-        className="border-t-2 border-ink p-3 flex gap-2"
+        className="border-t border-hairline p-3 flex gap-2"
       >
         <Input
           value={input}
