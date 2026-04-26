@@ -25,13 +25,13 @@ export const Route = createFileRoute("/")({
   component: Index,
   head: () => ({
     meta: [
-      { title: "CareMap India — Find trusted healthcare facilities" },
+      { title: "Raahat India — Find trusted healthcare facilities" },
       {
         name: "description",
         content:
           "Find trusted hospitals across India by state, city, and medical need. Capability levels, trust scores, and clear warnings.",
       },
-      { property: "og:title", content: "CareMap India" },
+      { property: "og:title", content: "Raahat India" },
       {
         property: "og:description",
         content: "Find trusted care from messy healthcare data.",
@@ -86,7 +86,7 @@ function Index() {
       <div className="bg-ink text-white">
         <div className="mx-auto flex max-w-[1400px] items-center justify-between px-4 py-2 text-[11px] sm:px-6">
           <span className="font-mono uppercase tracking-[0.12em]">
-            CareMap · Field Edition
+            Raahat · Field Edition
           </span>
           <span className="hidden sm:inline font-mono uppercase tracking-[0.12em] text-white/70">
             Verified facility intelligence · India
@@ -100,7 +100,7 @@ function Index() {
           <div className="text-center">
             <Kicker className="text-caption">Issue 01 · Healthcare Intelligence</Kicker>
             <h1 className="mt-3 font-display text-5xl sm:text-7xl lg:text-[88px] font-black leading-[0.93] tracking-[-0.02em] text-ink">
-              CareMap
+              Raahat
             </h1>
             <p className="mx-auto mt-4 max-w-2xl font-serif text-base sm:text-lg leading-relaxed text-page-ink">
               Find trusted care from messy healthcare data — hospital capability,
@@ -123,12 +123,12 @@ function Index() {
 
           <TabsContent value="search" className="mt-0">
             <div className="grid grid-cols-1 gap-0 lg:grid-cols-12 lg:gap-8">
-              {/* LEFT — Ask CareMap column */}
+              {/* LEFT — Ask Raahat column */}
               <section
-                aria-label="Ask CareMap"
+                aria-label="Ask Raahat"
                 className="lg:col-span-5 lg:border-r lg:border-hairline lg:pr-8"
               >
-                <RibbonHeader>Ask CareMap</RibbonHeader>
+                <RibbonHeader>Ask Raahat</RibbonHeader>
                 <div className="mt-3 rounded-2xl border border-hairline bg-card shadow-[var(--shadow-clay)] overflow-hidden">
                   <ChatPanel
                     onSearchStart={() => setLoading(true)}
@@ -293,7 +293,7 @@ function Index() {
         <div className="mx-auto max-w-[1400px] px-4 py-12 sm:px-6">
           <div className="text-center">
             <h2 className="font-display text-3xl sm:text-4xl font-semibold leading-tight text-white">
-              CareMap
+              Raahat
             </h2>
             <p className="mt-2 font-mono uppercase tracking-[0.12em] text-[11px] text-white/60">
               Healthcare Intelligence · India

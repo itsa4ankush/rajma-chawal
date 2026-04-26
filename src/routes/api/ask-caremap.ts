@@ -49,7 +49,7 @@ interface ParsedIntent {
   extractedPinCode: string | null;
 }
 
-const SYSTEM_PROMPT = `You are CareMap's medical intent parser for India.
+const SYSTEM_PROMPT = `You are Raahat's medical intent parser for India.
 
 Your ONLY job: convert a user's plain-language health problem into a STRUCTURED healthcare search intent. You are NOT a doctor.
 
@@ -93,7 +93,7 @@ const TOOL = {
   type: "function" as const,
   function: {
     name: "parse_medical_intent",
-    description: "Return structured CareMap search intent.",
+    description: "Return structured Raahat search intent.",
     parameters: {
       type: "object",
       properties: {
