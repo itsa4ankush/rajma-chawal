@@ -25,13 +25,13 @@ export const Route = createFileRoute("/")({
   component: Index,
   head: () => ({
     meta: [
-      { title: "CareMap India — Find trusted healthcare facilities" },
+      { title: "Raahat India — Find trusted healthcare facilities" },
       {
         name: "description",
         content:
           "Find trusted hospitals across India by state, city, and medical need. Capability levels, trust scores, and clear warnings.",
       },
-      { property: "og:title", content: "CareMap India" },
+      { property: "og:title", content: "Raahat India" },
       {
         property: "og:description",
         content: "Find trusted care from messy healthcare data.",
