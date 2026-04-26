@@ -328,40 +328,6 @@ function fieldOrEmpty(v: string | number | undefined | null) {
   return s;
 }
 
-function SourceCitationSection({ facility }: { facility: Facility }) {
-  const fieldsUsed = facility.decision_trace?.fields_used_for_recommendation ?? [];
-  return (
-    <div className="rounded-md border border-hairline bg-oat-light/40 p-4">
-      <KV label="Source Table" value={<span className="font-mono text-[12px]">{facility.source_table || "—"}</span>} />
-      <KV label="Row ID" value={<span className="font-mono text-[12px]">{facility.facility_row_id || facility.id}</span>} />
-      <KV label="Facility" value={facility.name} />
-      <KV
-        label="Address"
-        value={`${facility.address_city}, ${facility.address_stateOrRegion} · PIN ${facility.address_zipOrPostcode}`}
-      />
-      <KV
-        label="Fields Used"
-        value={
-          fieldsUsed.length === 0 ? (
-            <NotProvided />
-          ) : (
-            <div className="flex flex-wrap gap-1">
-              {fieldsUsed.map((f) => (
-                <span
-                  key={f}
-                  className="font-mono text-[10px] uppercase tracking-[0.06em] border border-hairline bg-paper px-1.5 py-0.5"
-                >
-                  {f}
-                </span>
-              ))}
-            </div>
-          )
-        }
-      />
-    </div>
-  );
-}
-
 function RawEvidenceSection({ facility }: { facility: Facility }) {
   return (
     <div className="rounded-md border border-hairline bg-paper p-4">
