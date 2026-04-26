@@ -200,6 +200,11 @@ function rowsToFacilities(resp: DbxResp): Facility[] {
     const obj: Record<string, unknown> = {};
     cols.forEach((c, i) => { obj[c.name] = row[i]; });
     const num = (v: unknown) => (v == null ? 0 : Number(v));
+    const numOrUndef = (v: unknown) => {
+      if (v == null) return undefined;
+      const n = Number(v);
+      return Number.isFinite(n) ? n : undefined;
+    };
     const bool = (v: unknown) => v === true || v === 1 || v === "1" || v === "true";
     const str = (v: unknown) => (v == null ? "" : String(v));
     const trust = num(obj.trust_score);
@@ -234,8 +239,75 @@ function rowsToFacilities(resp: DbxResp): Facility[] {
       has_neonatal_care: bool(obj.has_neonatal_care),
       has_ambulance: bool(obj.has_ambulance),
       is_24_7: bool(obj.is_24_7),
+      distance_km: numOrUndef(obj.distance_km),
     };
   });
+}
+
+async function runDbxQuery(
+  statement: string,
+  apiKey: string,
+  dbxKey: string,
+  warehouseId: string,
+): Promise<DbxResp> {
+  const res = await fetch(`${DBX_GATEWAY}/2.0/sql/statements`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "X-Connection-Api-Key": dbxKey,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      warehouse_id: warehouseId,
+      statement,
+      wait_timeout: "30s",
+      format: "JSON_ARRAY",
+      disposition: "INLINE",
+    }),
+  });
+  const data = (await res.json()) as DbxResp;
+  if (!res.ok) throw new Error(`Databricks query failed (${res.status})`);
+  if (data.status?.state && data.status.state !== "SUCCEEDED") {
+    throw new Error(data.status.error?.message || `Databricks state: ${data.status.state}`);
+  }
+  return data;
+}
+
+async function resolveCenter(
+  state: string | undefined,
+  city: string | undefined,
+  pinCode: string | undefined,
+  apiKey: string,
+  dbxKey: string,
+  warehouseId: string,
+): Promise<{ lat: number; lng: number } | null> {
+  const filters: string[] = ["latitude IS NOT NULL", "longitude IS NOT NULL"];
+  if (pinCode?.trim()) {
+    filters.push(`address_zipOrPostcode = '${escapeSqlString(pinCode.trim())}'`);
+  } else if (city?.trim()) {
+    filters.push(`LOWER(address_city) LIKE LOWER('%${escapeSqlString(city.trim())}%')`);
+    if (state?.trim()) {
+      const variants = getStateVariants(state.trim()).map(escapeSqlString);
+      filters.push(`address_stateOrRegion IN ('${variants.join("', '")}')`);
+    }
+  } else if (state?.trim()) {
+    const variants = getStateVariants(state.trim()).map(escapeSqlString);
+    filters.push(`address_stateOrRegion IN ('${variants.join("', '")}')`);
+  } else {
+    return null;
+  }
+  const stmt = `SELECT AVG(latitude) AS lat, AVG(longitude) AS lng FROM ${TABLE} WHERE ${filters.join(" AND ")} LIMIT 1`;
+  try {
+    const data = await runDbxQuery(stmt, apiKey, dbxKey, warehouseId);
+    const row = data.result?.data_array?.[0];
+    if (!row) return null;
+    const lat = Number(row[0]);
+    const lng = Number(row[1]);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng) || (lat === 0 && lng === 0)) return null;
+    return { lat, lng };
+  } catch {
+    return null;
+  }
 }
 
 const SELECT_FIELDS = [
