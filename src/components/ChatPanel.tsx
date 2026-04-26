@@ -59,9 +59,9 @@ function MarkdownLite({ text }: { text: string }) {
 }
 
 const URGENCY_TONE: Record<ParsedIntent["urgency"], string> = {
-  emergency: "bg-destructive text-paper",
-  urgent: "bg-warning text-paper",
-  routine: "bg-ink text-paper",
+  emergency: "bg-destructive text-white rounded-md",
+  urgent: "bg-warning text-ink rounded-md",
+  routine: "bg-ink text-white rounded-md",
 };
 
 export interface ChatPanelProps {
