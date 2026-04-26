@@ -26,11 +26,13 @@ function makeNumberedIcon(index: number, active: boolean): L.DivIcon {
       width:30px;height:30px;
       background:${bg};
       color:${fg};
-      border:2px solid #000;
+      border:1px solid #000;
+      border-radius:50%;
       display:flex;align-items:center;justify-content:center;
-      font-family:'JetBrains Mono','SF Mono',Menlo,monospace;
+      font-family:'Space Mono',ui-monospace,Menlo,monospace;
       font-weight:700;font-size:12px;letter-spacing:0.04em;
       box-sizing:border-box;
+      box-shadow:0 1px 2px rgba(0,0,0,0.15);
     ">${num}</div>`,
     iconSize: [30, 30],
     iconAnchor: [15, 15],
