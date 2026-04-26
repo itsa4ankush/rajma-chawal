@@ -1,62 +1,92 @@
-# Wire Ask CareMap UI to the LLM intent route
+## Goal
+When a user asks Ask CareMap about facilities without including a location, the bot should ask for one before searching. Once a location is provided, results should be sorted by proximity to that location.
 
-## Current state
+## 1. Backend — extend LLM intent parser to extract & require location
 
-The previous turn was interrupted, but most of the work is already in place:
+**`src/routes/api/ask-caremap.ts`**
 
-- ✅ `src/routes/api/ask-caremap.ts` — fully implemented: LLM intent parser (Lovable AI Gateway, `google/gemini-3-flash-preview`, structured tool-calling), 9-need capability mapping, Databricks query, top-5 by trust score, returns `{ understoodNeed, urgency, userExplanation, safetyMessage, dataLimitation, dataSourceError, facilities }`.
-- ✅ `src/lib/facilities.ts` — `MedicalNeed` already extended to all 9 values, `facilityMatchesNeed` updated.
-- ✅ `src/components/FacilityCard.tsx` — `NEED_TO_FIELD` already covers all 9 needs.
-- ✅ Secrets `LOVABLE_API_KEY`, `DATABRICKS_API_KEY`, `DATABRICKS_WAREHOUSE_ID` are configured.
+- Extend the LLM tool schema (`parse_medical_intent`) with new fields:
+  - `locationMentioned: boolean` — true if the user named any place (city, state, area, PIN).
+  - `extractedState: string | null` — canonical Indian state if detectable (e.g. "Bihar").
+  - `extractedCity: string | null` — city/town if detectable (e.g. "Patna").
+  - `extractedPinCode: string | null` — 6-digit PIN if present.
+- Update `SYSTEM_PROMPT` so the LLM:
+  - Recognizes Indian states, major cities, and 6-digit PINs in the user message.
+  - Sets `locationMentioned=false` only when nothing place-like is mentioned.
+- After parsing, in the POST handler:
+  - Merge location: prefer values from `body.state/city/pinCode` (sent from prior turn or context); otherwise use the LLM-extracted ones.
+  - If the **final merged location is empty** (no state, city, or PIN from either source), short-circuit BEFORE querying Databricks and return:
+    ```json
+    {
+      "needsLocation": true,
+      "understoodNeed": "...",
+      "urgency": "...",
+      "userExplanation": "...",
+      "safetyMessage": "...",
+      "promptForLocation": "To find the nearest facilities, please share your location — a city, district, state, or 6-digit PIN code works.",
+      "facilities": []
+    }
+    ```
+  - Otherwise proceed with the Databricks query as today, passing the resolved state/city/pinCode.
 
-What's NOT done: the frontend (`ChatPanel.tsx`, `index.tsx`) still calls the old regex-parser path `/api/search-facilities` and never displays the LLM's safety message, urgency, or data limitation. That's the gap this plan closes.
+## 2. Backend — proximity sorting
 
-## Changes
+**`src/routes/api/ask-caremap.ts` (`searchFacilities`)**
 
-### 1. `src/components/ChatPanel.tsx` — call the LLM endpoint
-
-- Remove the regex `parseQuery` helper and the `knownStates` fetch — no longer needed.
-- Replace the `/api/search-facilities` call with `POST /api/ask-caremap` sending `{ message }` (state/city/pinCode left optional for now since the UI doesn't expose them in this tab).
-- Update `EXAMPLES` to natural-language prompts that match the new parser:
-  - "I was bitten by a dog, what hospitals are nearby?"
-  - "My father has chest pain"
-  - "Newborn baby is not breathing properly"
-  - "Need dialysis near Patna"
-- Extend `ChatPanelProps.onResults` callback signature to also pass the parsed intent fields:
-  ```ts
-  onResults?(facilities, selectedNeed, source, intent?: {
-    understoodNeed: string;
-    urgency: "emergency" | "urgent" | "routine";
-    userExplanation: string;
-    safetyMessage: string;
-    dataLimitation: string;
-  })
+- If a PIN code was provided, geocode it to a center point by querying Databricks first for `latitude, longitude` of any facility matching that PIN; fallback to the city/state centroid via averaging matching rows.
+- If only city/state is provided, compute the centroid by averaging `latitude/longitude` of facilities in that city (or state) in a small preliminary query (`LIMIT 50`).
+- Update the main query to compute Haversine distance directly in SQL and sort by it instead of (or in addition to) trust score:
+  ```sql
+  SELECT ..., 
+    (6371 * acos(
+      cos(radians(:lat)) * cos(radians(latitude)) *
+      cos(radians(longitude) - radians(:lng)) +
+      sin(radians(:lat)) * sin(radians(latitude))
+    )) AS distance_km
+  FROM ...
+  WHERE ... AND latitude IS NOT NULL AND longitude IS NOT NULL
+  ORDER BY distance_km ASC, trust_score DESC
+  LIMIT 5
   ```
-- Bot reply bubble shows a short confirmation: `**Understood:** {understoodNeed} · _{urgency}_` followed by the safety message and "Showing N facilities on the right →". The richer rendering lives in the right pane.
-- On HTTP error from `/api/ask-caremap` (LLM down, Databricks down, etc.), show an error bubble — do NOT fall back to demo data through the LLM path. (Demo fallback would require re-implementing intent parsing client-side, which defeats the purpose. A clear error is better.)
+- Widen the `WHERE` slightly when sorting by distance — keep the state filter but drop the strict city filter so genuinely closer facilities in neighboring cities can surface (configurable: keep city filter if PIN/city explicitly given AND ≥5 matches exist; otherwise broaden to state).
+- Include `distance_km` in the returned facility object so the UI can show "X km away".
+- If lat/lng resolution fails entirely, fall back to the current trust-score sort (no regression).
 
-### 2. `src/routes/index.tsx` — render intent on the right pane
+## 3. Frontend — conversational location follow-up
 
-- Add state for `intent` (the parsed LLM result) alongside existing `results` / `selectedNeed` / `dataSource`.
-- Above the facility grid, render an "Understood as" panel when `intent` is set:
-  - **Urgency badge** — color-coded: emergency = destructive, urgent = warning, routine = muted.
-  - **Understood need** chip (e.g. "Vaccination / Post-exposure Care").
-  - **Safety message** in a prominent alert (uses existing `Alert` component from shadcn).
-  - **User explanation** as supporting text.
-  - **Data limitation** alert when `intent.dataLimitation` is non-empty (shown for the Vaccination need where the dataset can't confirm vaccine stock).
-- Keep the existing skeleton loading state, "ask a question" empty state, and "no matches" empty state.
-- Keep the `FacilityCard` grid for results — `selectedNeed` will now be the LLM's `understoodNeed` so the card highlights the right capability.
+**`src/components/ChatPanel.tsx`**
 
-### 3. No changes required elsewhere
+- Extend `ParsedIntent` and the response handling to recognize the new `needsLocation: true` response and a new `pendingIntent` state on the component:
+  - When `needsLocation` is true:
+    - Render the bot reply containing `safetyMessage` (if any) and the `promptForLocation` text.
+    - Do NOT call `onResults` with empty results / do NOT clear the right pane — keep prior results/intent in place, and show a "Waiting for your location…" pill in the chat header area.
+    - Store the original `message` and parsed `intent` in `pendingIntent` state.
+  - On the next user message while `pendingIntent` is set:
+    - POST to `/api/ask-caremap` with `{ message: originalMessage, state/city/pinCode: parsedFromNewMessage }`.
+    - Use a tiny client-side parser (regex for 6-digit PIN; match against `OFFICIAL_STATE_NAMES` from `src/lib/location-normalization.ts`; treat the rest as `city`) to split the user's location reply into state/city/pinCode fields.
+    - Clear `pendingIntent` once a successful search returns.
+- Add 1–2 example "location" suggestion chips that appear only when awaiting location (e.g. "Patna, Bihar", "800001").
 
-- `src/routes/api/search-facilities.ts` stays as-is (still used by the Planner dashboard and remains a valid endpoint).
-- `src/lib/facilities.ts`, `FacilityCard.tsx`, `routeTree.gen.ts` already updated.
+## 4. Frontend — show distance on facility cards
 
-## Safety behavior preserved
+**`src/components/FacilityCard.tsx`**
 
-The LLM never invents hospital names — facility list only comes from Databricks. The system prompt in `ask-caremap.ts` already forbids diagnosis / medication / "wait" advice and forces emergency-style safety messaging for severe symptoms. The frontend just surfaces what the backend returns.
+- If `facility.distance_km` is present, render a small badge ("4.2 km away") next to the city/state line.
+- No layout change otherwise.
+
+**`src/lib/facilities.ts`**
+
+- Add optional `distance_km?: number` to the `Facility` type so TS stays happy across the API → card flow.
+
+## 5. Edge cases & safety
+
+- Emergencies: still surface the LLM's `safetyMessage` (call emergency services) BEFORE asking for location, in the same bot bubble — never delay safety guidance behind a location prompt.
+- If the user replies with something that doesn't look like a location, the chat asks once more (max 1 retry), then proceeds with state-only fallback if any state was detectable, otherwise tells the user we couldn't resolve a location and to try again with a city or PIN.
+- Validation: ignore non-Indian PINs / >1000 char replies (already enforced).
 
 ## Files touched
-
-- `src/components/ChatPanel.tsx` (refactor)
-- `src/routes/index.tsx` (render intent panel + safety alert)
+- `src/routes/api/ask-caremap.ts` — schema, location extraction, gating, Haversine sort.
+- `src/components/ChatPanel.tsx` — pending-location flow, client-side location parsing.
+- `src/components/FacilityCard.tsx` — distance badge.
+- `src/lib/facilities.ts` — `distance_km?` on `Facility`.
+- `src/routes/index.tsx` — minor: keep prior results visible while awaiting location (small tweak to `onResults` callback contract; no visual redesign).
