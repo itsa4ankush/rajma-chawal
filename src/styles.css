@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap");
 
 @import "tailwindcss" source(none);
 @source "../src";
@@ -7,22 +7,23 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Sentry-inspired design system.
+ * Clay-inspired design system.
  *
- * Deep purple-black backgrounds (#1f1633, #150f23) — never pure black.
- * Warm purple accent spectrum + lime-green pop. Rubik for UI everywhere,
- * uppercase + 0.2px tracking on labels/buttons. Inset shadows on primary
- * buttons (tactile pressed feel); ambient purple glow around hero.
+ * Warm cream canvas (#faf9f7) with oat-toned borders (#dad4c8). Named swatch
+ * palette: Matcha, Slushie, Lemon, Ube, Pomegranate, Blueberry, Dragonfruit.
+ * Roobert (with Inter fallback) loaded with 5 OpenType stylistic sets;
+ * Space Mono for code/labels. Multi-layer "pressed into clay" shadow + playful
+ * rotateZ(-8deg) + hard offset (-7px 7px) hover animation as the signature.
  */
 
 @theme inline {
-  --radius-sm: 6px;
+  --radius-sm: 4px;
   --radius-md: 8px;
-  --radius-lg: 10px;
+  --radius-lg: 12px;
   --radius-xl: 12px;
-  --radius-2xl: 13px;
-  --radius-3xl: 18px;
-  --radius-4xl: 24px;
+  --radius-2xl: 24px;
+  --radius-3xl: 24px;
+  --radius-4xl: 40px;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -54,9 +55,26 @@
   --color-hairline: var(--hairline);
   --color-link: var(--link);
   --color-brand: var(--brand);
-  --color-lime: var(--lime);
-  --color-coral: var(--coral);
-  --color-pink: var(--pink);
+  --color-oat: var(--oat);
+  --color-oat-light: var(--oat-light);
+  --color-matcha: var(--matcha-600);
+  --color-matcha-300: var(--matcha-300);
+  --color-matcha-600: var(--matcha-600);
+  --color-matcha-800: var(--matcha-800);
+  --color-slushie: var(--slushie-500);
+  --color-slushie-500: var(--slushie-500);
+  --color-slushie-800: var(--slushie-800);
+  --color-lemon: var(--lemon-500);
+  --color-lemon-400: var(--lemon-400);
+  --color-lemon-500: var(--lemon-500);
+  --color-lemon-700: var(--lemon-700);
+  --color-lemon-800: var(--lemon-800);
+  --color-ube: var(--ube-800);
+  --color-ube-300: var(--ube-300);
+  --color-ube-800: var(--ube-800);
+  --color-ube-900: var(--ube-900);
+  --color-pomegranate: var(--pomegranate-400);
+  --color-blueberry: var(--blueberry-800);
   --color-surface-100: var(--surface-100);
   --color-surface-200: var(--surface-200);
   --color-chart-1: var(--chart-1);
@@ -73,29 +91,45 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  --font-display: "Rubik", -apple-system, system-ui, "Segoe UI", Helvetica, Arial, sans-serif;
-  --font-serif: "Rubik", -apple-system, system-ui, "Segoe UI", Helvetica, Arial, sans-serif;
-  --font-sans: "Rubik", -apple-system, system-ui, "Segoe UI", Helvetica, Arial, sans-serif;
-  --font-mono: "JetBrains Mono", Monaco, Menlo, "Ubuntu Mono", monospace;
+  /* Roobert isn't on Google Fonts — fall back to Inter for similar geometric character */
+  --font-display: "Roobert", "Inter", -apple-system, system-ui, "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-serif: "Roobert", "Inter", -apple-system, system-ui, "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-sans: "Roobert", "Inter", -apple-system, system-ui, "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-mono: "Space Mono", ui-monospace, Menlo, Monaco, "Courier New", monospace;
 }
 
 :root {
-  /* Sentry palette — deep purple-blacks, warm purple spectrum, lime pop */
-  --paper: oklch(0.20 0.06 295);             /* #1f1633 deep purple background */
-  --ink: oklch(1 0 0);                       /* #ffffff primary text */
-  --page-ink: oklch(1 0 0);
-  --caption: oklch(0.88 0.01 280);           /* #e5e7eb secondary text */
-  --disabled: oklch(0.65 0.03 285);
-  --hairline: oklch(0.32 0.07 290);          /* #362d59 border purple */
-  --link: oklch(0.62 0.16 285);              /* #6a5fc1 Sentry purple */
-  --brand: oklch(0.55 0.13 290);             /* #79628c muted purple (button bg) */
-  --lime: oklch(0.91 0.20 125);              /* #c2ef4e high-visibility accent */
-  --coral: oklch(0.82 0.12 50);              /* #ffb287 focus warm */
-  --pink: oklch(0.75 0.16 0);                /* #fa7faa decorative */
-  --surface-100: oklch(0.16 0.05 295);       /* #150f23 deeper sections */
-  --surface-200: oklch(0.28 0.08 290);       /* #362d59 elevated cards */
-  --violet-deep: oklch(0.32 0.16 285);       /* #422082 active states */
-  --footer-ink: oklch(0.13 0.04 295);
+  /* Clay palette — warm cream canvas, oat borders, named swatches */
+  --paper: oklch(0.98 0.005 80);              /* #faf9f7 warm cream */
+  --ink: oklch(0 0 0);                        /* #000000 clay black */
+  --page-ink: oklch(0 0 0);
+  --caption: oklch(0.66 0.01 80);             /* #9f9b93 warm silver */
+  --disabled: oklch(0.66 0.01 80);
+  --hairline: oklch(0.86 0.01 80);            /* #dad4c8 oat border */
+  --link: oklch(0.32 0.18 280);               /* #43089f ube link */
+  --brand: oklch(0.55 0.18 145);              /* #078a52 matcha brand */
+
+  /* Swatch palette */
+  --oat: oklch(0.86 0.01 80);                 /* #dad4c8 */
+  --oat-light: oklch(0.93 0.01 80);           /* #eee9df */
+  --matcha-300: oklch(0.86 0.16 150);         /* #84e7a5 */
+  --matcha-600: oklch(0.55 0.18 145);         /* #078a52 */
+  --matcha-800: oklch(0.36 0.11 150);         /* #02492a */
+  --slushie-500: oklch(0.83 0.13 220);        /* #3bd3fd */
+  --slushie-800: oklch(0.55 0.13 225);        /* #0089ad */
+  --lemon-400: oklch(0.85 0.13 85);           /* #f8cc65 */
+  --lemon-500: oklch(0.81 0.16 80);           /* #fbbd41 */
+  --lemon-700: oklch(0.62 0.15 70);           /* #d08a11 */
+  --lemon-800: oklch(0.50 0.13 70);           /* #9d6a09 */
+  --ube-300: oklch(0.78 0.12 295);            /* #c1b0ff */
+  --ube-800: oklch(0.32 0.18 280);            /* #43089f */
+  --ube-900: oklch(0.27 0.19 280);            /* #32037d */
+  --pomegranate-400: oklch(0.70 0.17 20);     /* #fc7981 */
+  --blueberry-800: oklch(0.40 0.18 250);      /* #01418d */
+
+  --surface-100: oklch(1 0 0);                /* #ffffff cards */
+  --surface-200: oklch(0.93 0.01 80);         /* #eee9df elevated */
+  --footer-ink: oklch(0.20 0 0);
   --error-red: oklch(0.65 0.22 25);
 
   /* Mapped semantic tokens */
@@ -105,54 +139,53 @@
   --card-foreground: var(--ink);
   --popover: var(--surface-100);
   --popover-foreground: var(--ink);
-  --primary: var(--brand);
-  --primary-foreground: var(--ink);
+  --primary: var(--ink);
+  --primary-foreground: oklch(1 0 0);
   --secondary: var(--surface-200);
   --secondary-foreground: var(--ink);
-  --muted: var(--surface-100);
+  --muted: var(--oat-light);
   --muted-foreground: var(--caption);
-  --accent: var(--lime);
-  --accent-foreground: oklch(0.20 0.06 295);
-  --destructive: var(--error-red);
-  --destructive-foreground: var(--ink);
+  --accent: var(--matcha-300);
+  --accent-foreground: var(--ink);
+  --destructive: var(--pomegranate-400);
+  --destructive-foreground: oklch(1 0 0);
   --border: var(--hairline);
-  --input: oklch(1 0 0 / 0.10);
-  --ring: var(--link);
-  --success: var(--lime);
-  --success-foreground: oklch(0.20 0.06 295);
-  --warning: var(--coral);
-  --warning-foreground: oklch(0.20 0.06 295);
-  --chart-1: var(--link);
-  --chart-2: var(--lime);
-  --chart-3: var(--coral);
-  --chart-4: var(--pink);
-  --chart-5: var(--brand);
+  --input: oklch(0 0 0 / 0.10);
+  --ring: oklch(0.55 0.20 250);
+  --success: var(--matcha-600);
+  --success-foreground: oklch(1 0 0);
+  --warning: var(--lemon-500);
+  --warning-foreground: var(--ink);
+  --chart-1: var(--matcha-600);
+  --chart-2: var(--slushie-500);
+  --chart-3: var(--lemon-500);
+  --chart-4: var(--ube-800);
+  --chart-5: var(--pomegranate-400);
   --sidebar: var(--surface-100);
   --sidebar-foreground: var(--ink);
-  --sidebar-primary: var(--link);
-  --sidebar-primary-foreground: var(--ink);
-  --sidebar-accent: var(--surface-200);
+  --sidebar-primary: var(--ink);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: var(--oat-light);
   --sidebar-accent-foreground: var(--ink);
   --sidebar-border: var(--hairline);
-  --sidebar-ring: var(--link);
+  --sidebar-ring: oklch(0.55 0.20 250);
 
-  /* Sentry signature shadows */
-  --shadow-button-inset:
-    inset 0 1px 3px 0 rgb(0 0 0 / 0.10);
-  --shadow-button-hover:
-    0 0.5rem 1.5rem rgb(0 0 0 / 0.18);
-  --shadow-card:
-    0 10px 15px -3px rgb(0 0 0 / 0.10);
-  --shadow-glass:
-    0 2px 8px rgb(0 0 0 / 0.08);
-  --shadow-ambient:
-    0 4px 4px 9px rgb(22 15 36 / 0.90);
-  --glow-purple: 0 0 40px rgb(106 95 193 / 0.25);
-  --glow-lime: 0 0 24px rgb(194 239 78 / 0.30);
+  /* Clay signature shadows — multi-layer "pressed into clay" + playful hover */
+  --shadow-clay:
+    0px 1px 1px rgb(0 0 0 / 0.10),
+    inset 0px -1px 1px rgb(0 0 0 / 0.04),
+    0px -0.5px 1px rgb(0 0 0 / 0.05);
+  --shadow-hard-offset:
+    -7px 7px 0 0 rgb(0 0 0);
+  --shadow-card: var(--shadow-clay);
+  --shadow-button-inset: var(--shadow-clay);
+  --shadow-button-hover: var(--shadow-hard-offset);
+  --shadow-glass: var(--shadow-clay);
+  --shadow-ambient: var(--shadow-clay);
 }
 
 .dark {
-  /* Already dark by default — keep parity */
+  /* Clay is light-mode-first; dark variant kept minimal */
   --background: var(--paper);
   --foreground: var(--ink);
 }
@@ -168,35 +201,39 @@
     font-family: var(--font-sans);
     font-weight: 400;
     line-height: 1.5;
+    /* 4 stylistic sets on body — reserve ss01 for headings */
+    font-feature-settings: "ss03", "ss10", "ss11", "ss12";
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
 
-  /* Headings — Rubik, tight line-height */
+  /* Headings — Roobert with all 5 stylistic sets, tight tracking */
   h1, h2, h3, h4, h5, h6, .font-display {
     font-family: var(--font-sans);
     color: var(--color-foreground);
-    font-weight: 500;
-    letter-spacing: 0;
-    line-height: 1.20;
+    font-weight: 600;
+    line-height: 1.10;
+    font-feature-settings: "ss01", "ss03", "ss10", "ss11", "ss12";
   }
 
-  h1 { font-size: 3rem; font-weight: 700; line-height: 1.20; }
-  h2 { font-size: 1.875rem; font-weight: 400; line-height: 1.20; }
-  h3 { font-size: 1.5rem; font-weight: 500; line-height: 1.25; }
+  h1 { font-size: 5rem; line-height: 1.00; letter-spacing: -3.2px; }
+  h2 { font-size: 2.75rem; line-height: 1.10; letter-spacing: -1.32px; }
+  h3 { font-size: 2rem; line-height: 1.10; letter-spacing: -0.64px; }
+  h4 { font-size: 1.25rem; line-height: 1.40; letter-spacing: -0.4px; }
 
-  /* Uppercase mono labels — system pattern */
+  /* Uppercase labels — wayfinding, 1.08px positive tracking */
   .kicker, .ribbon, .meta {
     font-family: var(--font-sans);
     text-transform: uppercase;
-    letter-spacing: 0.2px;
+    letter-spacing: 1.08px;
     font-weight: 600;
-    color: var(--color-lime);
-    font-size: 0.875rem;
-    line-height: 1.25;
+    color: var(--color-foreground);
+    font-size: 0.75rem;
+    line-height: 1.20;
+    font-feature-settings: "ss03", "ss10", "ss11", "ss12";
   }
 
-  /* Editorial inline link — Sentry purple on hover */
+  /* Editorial inline link */
   a.editorial {
     color: var(--color-foreground);
     text-decoration: underline;
@@ -215,56 +252,76 @@
   }
 
   ::selection {
-    background: rgb(106 95 193 / 0.40);
+    background: rgb(132 231 165 / 0.50);
     color: var(--color-foreground);
+  }
+
+  code, pre, .font-mono {
+    font-family: var(--font-mono);
   }
 }
 
-/* Section ribbon — restyled as lime-accented label band */
+/* Section ribbon — warm oat band with uppercase wayfinding label */
 @utility ribbon-bar {
-  background-color: var(--color-surface-200);
-  color: var(--color-lime);
+  background-color: var(--color-oat-light);
+  color: var(--color-foreground);
   font-family: var(--font-sans);
   text-transform: uppercase;
-  letter-spacing: 0.2px;
+  letter-spacing: 1.08px;
   font-weight: 600;
-  font-size: 0.875rem;
-  line-height: 1.25;
+  font-size: 0.75rem;
+  line-height: 1.20;
   padding: 0.625rem 0.875rem;
   border: 1px solid var(--color-hairline);
-  border-radius: var(--radius-md);
+  border-radius: 12px;
+  font-feature-settings: "ss03", "ss10", "ss11", "ss12";
 }
 
-/* Frosted glass surface */
+/* Frosted glass surface — Clay uses solid white cards but keep utility */
 @utility glass-panel {
-  background: rgb(255 255 255 / 0.06);
+  background: rgb(255 255 255 / 0.85);
   backdrop-filter: blur(18px) saturate(180%);
   -webkit-backdrop-filter: blur(18px) saturate(180%);
-  border: 1px solid rgb(255 255 255 / 0.10);
-  border-radius: 12px;
-  box-shadow: var(--shadow-glass);
+  border: 1px solid var(--color-hairline);
+  border-radius: 24px;
+  box-shadow: var(--shadow-clay);
 }
 
-/* Leaflet — Sentry purple-dark overrides */
+/* Dashed Clay border utility — craft-like decoration */
+@utility border-dashed-oat {
+  border: 1px dashed var(--color-hairline);
+}
+
+/* Playful Clay hover — rotateZ(-8deg) + translateY(-80%) + hard shadow.
+   Apply with `clay-hover` on any clickable. */
+@utility clay-hover {
+  transition: transform 200ms ease, box-shadow 200ms ease, background-color 200ms ease, color 200ms ease;
+}
+.clay-hover:hover {
+  transform: rotateZ(-4deg) translateY(-4px);
+  box-shadow: var(--shadow-hard-offset);
+}
+
+/* Leaflet — Clay light overrides */
 .leaflet-container {
   font-family: var(--font-sans);
-  background: var(--color-surface-100);
+  background: var(--color-oat-light);
   z-index: 0;
   isolation: isolate;
 }
 .leaflet-popup-content-wrapper,
 .leaflet-popup-tip {
-  border-radius: 8px !important;
-  box-shadow: var(--shadow-card) !important;
+  border-radius: 12px !important;
+  box-shadow: var(--shadow-clay) !important;
 }
 .leaflet-popup-content-wrapper {
   border: 1px solid var(--color-hairline);
-  background: var(--color-surface-100);
+  background: #ffffff;
   color: var(--color-foreground);
   padding: 12px 14px;
 }
 .leaflet-popup-tip {
-  background: var(--color-surface-100);
+  background: #ffffff;
   border: none;
 }
 .leaflet-popup-content {
@@ -282,23 +339,23 @@
 }
 .leaflet-control-zoom a {
   border-radius: 8px !important;
-  border: 1px solid #584674 !important;
-  background: #79628c !important;
-  color: #ffffff !important;
+  border: 1px solid #dad4c8 !important;
+  background: #ffffff !important;
+  color: #000000 !important;
   font-family: var(--font-sans);
-  font-weight: 700;
-  box-shadow: var(--shadow-button-inset);
-  transition: box-shadow 150ms;
+  font-weight: 600;
+  box-shadow: var(--shadow-clay);
+  transition: transform 200ms ease, box-shadow 200ms ease;
 }
 .leaflet-control-zoom a:hover {
-  box-shadow: var(--shadow-button-hover);
+  transform: rotateZ(-4deg) translateY(-2px);
+  box-shadow: var(--shadow-hard-offset);
 }
 .leaflet-control-attribution {
-  font-family: var(--font-sans) !important;
+  font-family: var(--font-mono) !important;
   font-size: 10px !important;
   letter-spacing: 0.25px;
-  text-transform: uppercase;
-  background: var(--color-surface-100) !important;
+  background: #ffffff !important;
   color: var(--color-caption) !important;
   border: 1px solid var(--color-hairline);
   border-radius: 6px !important;

@@ -5,41 +5,44 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 /**
- * Sentry-style button system.
- * - Rubik UPPERCASE 14px / 500–700 / +0.2px tracking
- * - Primary: muted purple (#79628c) with inset tactile shadow → elevated on hover
- * - Glass: frosted white translucent
- * - White solid: high-visibility CTA, hovers to Sentry purple
+ * Clay-style button system.
+ * - Roobert 16px / 500 / -0.16px tracking (NOT uppercase by default)
+ * - Multi-layer "pressed into clay" shadow
+ * - Playful hover: rotateZ(-4deg) + translateY(-4px) + hard offset shadow (-7px 7px)
+ * - Generous radius: 12px standard, 9999px pill, 4px ghost-outlined
  */
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap font-sans uppercase tracking-[0.2px] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-40 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap font-sans font-medium tracking-[-0.16px] transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-40 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:[transform:rotateZ(-4deg)_translateY(-4px)] hover:shadow-[-7px_7px_0_0_rgb(0_0_0)]",
   {
     variants: {
       variant: {
-        // Primary — muted purple, tactile inset shadow, elevates on hover
+        // Primary — solid black on cream, Clay shadow → hard offset on hover
         default:
-          "bg-[#79628c] text-white border border-[#584674] font-bold rounded-[13px] shadow-[inset_0_1px_3px_0_rgb(0_0_0_/_0.10)] hover:shadow-[0_0.5rem_1.5rem_rgb(0_0_0_/_0.18)]",
-        // Inverted = high-visibility white solid CTA → hovers to Sentry purple
+          "bg-black text-white border border-black rounded-xl shadow-[0px_1px_1px_rgb(0_0_0/0.10),inset_0px_-1px_1px_rgb(0_0_0/0.04),0px_-0.5px_1px_rgb(0_0_0/0.05)]",
+        // Inverted = white solid CTA on colorful sections
         inverted:
-          "bg-white text-[#1f1633] font-bold rounded-lg hover:bg-[#6a5fc1] hover:text-white",
+          "bg-white text-black border border-[var(--color-hairline)] rounded-xl shadow-[0px_1px_1px_rgb(0_0_0/0.10),inset_0px_-1px_1px_rgb(0_0_0/0.04),0px_-0.5px_1px_rgb(0_0_0/0.05)] hover:bg-[var(--color-oat-light)]",
         destructive:
-          "bg-destructive text-destructive-foreground font-bold rounded-lg hover:opacity-90",
-        // Glass — frosted white, translucent
+          "bg-[var(--color-pomegranate)] text-white border border-[var(--color-pomegranate)] rounded-xl shadow-[var(--shadow-clay)]",
+        // Ghost outlined — Clay's subtle 4px-radius outlined variant
         outline:
-          "bg-white/[0.18] backdrop-blur-md text-white border border-white/10 font-medium rounded-xl shadow-[0_2px_8px_rgb(0_0_0_/_0.08)] hover:bg-[rgb(54_22_107_/_0.30)]",
+          "bg-transparent text-foreground border border-[#717989] rounded-[4px]",
         secondary:
-          "bg-[var(--color-surface-200)] text-foreground border border-[var(--color-hairline)] font-medium rounded-lg hover:bg-[var(--violet-deep)]",
-        // Ghost — no background, lights to Sentry purple
+          "bg-[var(--color-oat-light)] text-foreground border border-[var(--color-hairline)] rounded-xl shadow-[var(--shadow-clay)]",
+        // Ghost — transparent, no border
         ghost:
-          "bg-transparent text-foreground rounded-lg font-medium hover:text-link normal-case tracking-normal",
+          "bg-transparent text-foreground rounded-xl",
         link:
-          "bg-transparent text-foreground underline underline-offset-[3px] decoration-1 hover:text-link normal-case tracking-normal font-medium",
+          "bg-transparent text-foreground underline underline-offset-[3px] decoration-1 hover:text-link hover:!transform-none hover:!shadow-none",
+        // Pill — Clay's signature pill CTA
+        pill:
+          "bg-black text-white rounded-full px-6 shadow-[0px_1px_1px_rgb(0_0_0/0.10),inset_0px_-1px_1px_rgb(0_0_0/0.04),0px_-0.5px_1px_rgb(0_0_0/0.05)]",
       },
       size: {
-        default: "h-10 px-4 py-3 text-[14px] leading-tight",
-        sm: "h-8 px-3 text-[12px] leading-tight",
-        lg: "h-12 px-6 text-[14px] leading-tight",
-        icon: "h-9 w-9 rounded-full border border-[var(--color-hairline)] bg-[var(--color-surface-200)]",
+        default: "h-10 px-4 py-2 text-[16px] leading-[1.5]",
+        sm: "h-8 px-3 text-[12.8px] leading-[1.5] tracking-[-0.128px]",
+        lg: "h-12 px-6 text-[16px] leading-[1.5]",
+        icon: "h-10 w-10 rounded-xl border border-[var(--color-hairline)] bg-white",
       },
     },
     defaultVariants: {
