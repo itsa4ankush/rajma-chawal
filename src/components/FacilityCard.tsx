@@ -213,7 +213,7 @@ function FacilityDetailsDialog({
               <div className="mt-2 font-mono uppercase tracking-[0.08em] text-[11px] font-bold text-ink">
                 {capabilityLabel(capability)}
               </div>
-              <div className="mt-3 inline-flex items-center gap-1.5 border-2 border-ink px-2 py-1 text-[11px] font-mono uppercase tracking-[0.08em] font-bold">
+              <div className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-hairline bg-oat-light px-2 py-1 text-[11px] font-mono uppercase tracking-[0.08em] font-bold">
                 <Activity className="h-3 w-3" /> Verified Signal
               </div>
             </section>
