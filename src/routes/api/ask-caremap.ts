@@ -334,7 +334,7 @@ async function searchFacilities(
   apiKey: string,
   dbxKey: string,
   warehouseId: string,
-): Promise<Facility[]> {
+): Promise<{ facilities: Facility[]; center: { lat: number; lng: number } | null }> {
   // Try to resolve a center point for proximity sorting.
   const center = await resolveCenter(state, city, pinCode, apiKey, dbxKey, warehouseId);
 
@@ -387,7 +387,7 @@ async function searchFacilities(
     facilities = rowsToFacilities(data);
   }
 
-  return facilities;
+  return { facilities, center };
 }
 
 function capabilityForNeed(f: Facility, need: MedicalNeed): string {
@@ -469,9 +469,10 @@ export const Route = createFileRoute("/api/ask-caremap")({
 
         // 4. Query Databricks with proximity sort.
         let facilities: Facility[] = [];
+        let center: { lat: number; lng: number } | null = null;
         let dbxError: string | null = null;
         try {
-          facilities = await searchFacilities(
+          const result = await searchFacilities(
             intent.medicalNeed,
             canonicalState || undefined,
             resolvedCity || undefined,
@@ -480,6 +481,8 @@ export const Route = createFileRoute("/api/ask-caremap")({
             DATABRICKS_API_KEY,
             WAREHOUSE_ID,
           );
+          facilities = result.facilities;
+          center = result.center;
         } catch (err) {
           dbxError = err instanceof Error ? err.message : "Databricks unavailable";
         }
@@ -503,6 +506,7 @@ export const Route = createFileRoute("/api/ask-caremap")({
             city: resolvedCity || null,
             pinCode: resolvedPin || null,
           },
+          resolvedCenter: center,
           facilities: enriched,
         });
       },
