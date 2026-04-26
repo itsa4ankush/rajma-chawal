@@ -395,24 +395,50 @@ async function searchFacilities(
   };
 
   // First attempt: strict filters + distance sort.
-  let data = await runDbxQuery(buildStatement(baseWhere, true), apiKey, dbxKey, warehouseId);
+  let activeWhere = baseWhere;
+  let withDistance = Boolean(center);
+  let data = await runDbxQuery(buildStatement(activeWhere, withDistance), apiKey, dbxKey, warehouseId);
   let facilities = rowsToFacilities(data);
 
   // Fallback: if strict filters yielded too few results AND we had a city filter,
   // broaden to state-only with distance sort so genuinely closer facilities surface.
   if (facilities.length < 3 && cityFilter && !pinFilter && center) {
-    const broadened = baseWhere.filter((w) => w !== cityFilter);
-    data = await runDbxQuery(buildStatement(broadened, true), apiKey, dbxKey, warehouseId);
+    activeWhere = baseWhere.filter((w) => w !== cityFilter);
+    data = await runDbxQuery(buildStatement(activeWhere, true), apiKey, dbxKey, warehouseId);
     facilities = rowsToFacilities(data);
   }
 
   // Final fallback: no center resolved → trust-score sort, original behavior.
   if (facilities.length === 0 && !center) {
-    data = await runDbxQuery(buildStatement(baseWhere, false), apiKey, dbxKey, warehouseId);
+    withDistance = false;
+    data = await runDbxQuery(buildStatement(activeWhere, false), apiKey, dbxKey, warehouseId);
     facilities = rowsToFacilities(data);
   }
 
-  return { facilities, center };
+  // Count candidate rows (rows that match the final filter set, before LIMIT).
+  let candidateRows = facilities.length;
+  try {
+    const countWhere = withDistance && center
+      ? [...activeWhere, "latitude IS NOT NULL", "longitude IS NOT NULL"]
+      : activeWhere;
+    const countClause = countWhere.length ? `WHERE ${countWhere.join(" AND ")}` : "";
+    const countStmt = `SELECT COUNT(*) AS n FROM ${TABLE} ${countClause}`;
+    const countData = await runDbxQuery(countStmt, apiKey, dbxKey, warehouseId);
+    const n = Number(countData.result?.data_array?.[0]?.[0]);
+    if (Number.isFinite(n)) candidateRows = n;
+  } catch {
+    // best-effort; fall back to returned-row count
+  }
+
+  const trace: SearchTrace = {
+    filtersUsed: activeWhere,
+    ranking: withDistance && center
+      ? "distance_km ASC, trust_score DESC"
+      : "trust_score DESC",
+    candidateRows,
+  };
+
+  return { facilities, center, trace };
 }
 
 function capabilityForNeed(f: Facility, need: MedicalNeed): string {
