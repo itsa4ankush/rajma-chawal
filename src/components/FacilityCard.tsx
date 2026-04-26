@@ -162,17 +162,7 @@ function FacilityDetailsDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0 gap-0 rounded-3xl border border-hairline">
-        {/* Audit-style header */}
         <DialogHeader className="space-y-0 p-0 border-b border-hairline">
-          <div className="ribbon-bar flex items-center justify-between">
-            <span className="flex items-center gap-2">
-              <FileText className="h-3.5 w-3.5" />
-              CareMap Audit Report
-            </span>
-            <span className="font-mono text-paper/70 normal-case tracking-wider text-[10px]">
-              {reportId}
-            </span>
-          </div>
           <div className="p-6 sm:p-8 bg-paper">
             <span className="font-mono uppercase tracking-[0.1em] text-[11px] font-bold text-caption">
               Facility Profile
