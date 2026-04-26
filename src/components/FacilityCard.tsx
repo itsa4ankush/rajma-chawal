@@ -284,6 +284,53 @@ function FacilityDetailsDialog({
 // Local re-import to avoid pulling Alert at top (kept here for clarity)
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
+/**
+ * Compact chip with a mono kicker label + value, tone-tinted left border.
+ * Differentiates each metric without shouting.
+ */
+function MetaChip({
+  icon: Icon,
+  label,
+  value,
+  tone = "neutral",
+  title,
+  mono = false,
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: string;
+  tone?: "good" | "warn" | "bad" | "neutral";
+  title?: string;
+  mono?: boolean;
+}) {
+  const toneStyles: Record<string, { border: string; value: string; iconCls: string }> = {
+    good: { border: "border-l-emerald-600", value: "text-emerald-700", iconCls: "text-emerald-700" },
+    warn: { border: "border-l-amber-600", value: "text-amber-700", iconCls: "text-amber-700" },
+    bad: { border: "border-l-destructive", value: "text-destructive", iconCls: "text-destructive" },
+    neutral: { border: "border-l-caption", value: "text-ink", iconCls: "text-caption" },
+  };
+  const t = toneStyles[tone];
+  return (
+    <div
+      title={title}
+      className={`min-w-0 flex items-center gap-2 rounded-md border border-hairline border-l-[3px] ${t.border} bg-oat-light/50 px-2 py-1`}
+    >
+      <Icon className={`h-3.5 w-3.5 shrink-0 ${t.iconCls}`} />
+      <div className="min-w-0 flex flex-col leading-tight">
+        <span className="font-mono uppercase tracking-[0.08em] text-[9px] font-bold text-caption">
+          {label}
+        </span>
+        <span
+          className={`truncate text-[12px] font-semibold ${t.value} ${mono ? "font-mono tabular-nums" : "font-sans"}`}
+        >
+          {value}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+
 export function FacilityCard({
   facility,
   selectedNeed,
