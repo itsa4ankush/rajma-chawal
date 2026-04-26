@@ -293,7 +293,7 @@ function Index() {
         <div className="mx-auto max-w-[1400px] px-4 py-12 sm:px-6">
           <div className="text-center">
             <h2 className="font-display text-3xl sm:text-4xl font-semibold leading-tight text-white">
-              CareMap
+              Raahat
             </h2>
             <p className="mt-2 font-mono uppercase tracking-[0.12em] text-[11px] text-white/60">
               Healthcare Intelligence · India
