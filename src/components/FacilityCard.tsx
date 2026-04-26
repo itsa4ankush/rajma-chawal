@@ -570,46 +570,39 @@ function DecisionTraceSection({ facility }: { facility: Facility }) {
   }
   const loc = [t.location.city, t.location.state, t.location.pinCode].filter(Boolean).join(", ") || "—";
   return (
-    <Accordion type="single" collapsible className="border border-hairline rounded-md bg-paper">
-      <AccordionItem value="trace" className="border-b-0">
-        <AccordionTrigger className="px-4 py-3 font-mono uppercase tracking-[0.08em] text-[11px] font-bold text-ink hover:no-underline">
-          View full decision trace
-        </AccordionTrigger>
-        <AccordionContent className="px-4 pb-4">
-          <KV label="User Message" value={`"${t.user_message}"`} />
-          <KV label="Parsed Intent" value={t.parsed_intent} />
-          <KV label="Location" value={loc} />
-          <KV label="Source Table" value={<span className="font-mono text-[12px]">{t.source_table}</span>} />
-          <KV
-            label="Filters Applied"
-            value={
-              t.filters_applied.length === 0 ? (
-                <NotProvided />
-              ) : (
-                <ul className="space-y-0.5">
-                  {t.filters_applied.map((f, i) => (
-                    <li key={i} className="font-mono text-[11px] text-page-ink break-all">
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-              )
-            }
-          />
-          <KV label="Ranking" value={<span className="font-mono text-[12px]">{t.ranking}</span>} />
-          <KV label="Candidate Rows" value={t.candidate_rows} mono />
-          <KV label="Returned Rows" value={t.returned_rows} mono />
-          <KV
-            label="Row ID"
-            value={
-              <span className="font-mono text-[12px] break-all">
-                {facility.facility_row_id || facility.id}
-              </span>
-            }
-          />
-        </AccordionContent>
-      </AccordionItem>
-    </Accordion>
+    <div>
+      <KV label="User Message" value={`"${t.user_message}"`} />
+      <KV label="Parsed Intent" value={t.parsed_intent} />
+      <KV label="Location" value={loc} />
+      <KV label="Source Table" value={<span className="font-mono text-[12px]">{t.source_table}</span>} />
+      <KV
+        label="Filters Applied"
+        value={
+          t.filters_applied.length === 0 ? (
+            <NotProvided />
+          ) : (
+            <ul className="space-y-0.5">
+              {t.filters_applied.map((f, i) => (
+                <li key={i} className="font-mono text-[11px] text-page-ink break-all">
+                  {f}
+                </li>
+              ))}
+            </ul>
+          )
+        }
+      />
+      <KV label="Ranking" value={<span className="font-mono text-[12px]">{t.ranking}</span>} />
+      <KV label="Candidate Rows" value={t.candidate_rows} mono />
+      <KV label="Returned Rows" value={t.returned_rows} mono />
+      <KV
+        label="Row ID"
+        value={
+          <span className="font-mono text-[12px] break-all">
+            {facility.facility_row_id || facility.id}
+          </span>
+        }
+      />
+    </div>
   );
 }
 
