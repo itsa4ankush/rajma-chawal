@@ -392,6 +392,22 @@ export function FacilityCard({
                 {facility.address_city}, {facility.address_stateOrRegion}
               </span>
             </p>
+
+            {/* Need + Distance — quiet metadata directly under location */}
+            <div className="mt-1 flex items-center gap-x-3 gap-y-0.5 flex-wrap font-sans text-[12px] text-caption min-w-0">
+              <span className="inline-flex items-center gap-1 min-w-0" title={`Matched need: ${capabilityName}`}>
+                <Stethoscope className="h-3 w-3 shrink-0" />
+                <span className="truncate">{capabilityName}</span>
+              </span>
+              {typeof facility.distance_km === "number" && Number.isFinite(facility.distance_km) && (
+                <span className="inline-flex items-center gap-1 tabular-nums" title="Distance from search location">
+                  <MapPin className="h-3 w-3 shrink-0" />
+                  {facility.distance_km < 1
+                    ? `${Math.round(facility.distance_km * 1000)} m`
+                    : `${facility.distance_km.toFixed(1)} km`}
+                </span>
+              )}
+            </div>
           </div>
 
           <Button size="sm" variant="outline" onClick={() => setOpen(true)} className="shrink-0">
@@ -399,17 +415,8 @@ export function FacilityCard({
           </Button>
         </div>
 
-        {/* Bottom meta row — labeled chips, each field clearly differentiated */}
-        <div className="mt-3 pt-3 border-t border-hairline grid grid-cols-2 gap-1.5">
-          {/* Matched need */}
-          <MetaChip
-            icon={Stethoscope}
-            label="Need"
-            value={capabilityName}
-            tone="neutral"
-            title={`Matched need: ${capabilityName}`}
-          />
-          {/* Capability level */}
+        {/* Bottom meta — only the two highlighted labels */}
+        <div className="mt-3 pt-3 border-t border-hairline flex items-center gap-1.5 flex-wrap">
           <MetaChip
             icon={Activity}
             label="Capability"
@@ -417,7 +424,6 @@ export function FacilityCard({
             tone={capability === "High" ? "good" : capability === "Medium" ? "warn" : "bad"}
             title={`${capabilityName} capability: ${capability}`}
           />
-          {/* Trust score */}
           <MetaChip
             icon={ShieldCheck}
             label="Trust"
@@ -426,23 +432,6 @@ export function FacilityCard({
             title={`Trust score: ${facility.trust_score}/100 — ${trustText(facility.trust_score)}`}
             mono
           />
-          {/* Distance */}
-          {typeof facility.distance_km === "number" && Number.isFinite(facility.distance_km) ? (
-            <MetaChip
-              icon={MapPin}
-              label="Distance"
-              value={
-                facility.distance_km < 1
-                  ? `${Math.round(facility.distance_km * 1000)} m`
-                  : `${facility.distance_km.toFixed(1)} km`
-              }
-              tone="neutral"
-              title="Distance from search location"
-              mono
-            />
-          ) : (
-            <span />
-          )}
         </div>
       </article>
 
