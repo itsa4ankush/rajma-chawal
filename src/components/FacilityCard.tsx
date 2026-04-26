@@ -174,7 +174,7 @@ function FacilityDetailsDialog({
               <MapPin className="h-3.5 w-3.5" />
               {facility.address_city}, {facility.address_stateOrRegion} · PIN {facility.address_zipOrPostcode}
             </div>
-            <DialogClose className="absolute right-4 top-12 sm:right-6 sm:top-14 border border-caption hover:border-ink p-1.5 rounded-full transition-colors">
+            <DialogClose className="absolute right-4 top-4 sm:right-6 sm:top-6 border border-caption hover:border-ink p-1.5 rounded-full transition-colors">
               <X className="h-4 w-4" />
               <span className="sr-only">Close</span>
             </DialogClose>
