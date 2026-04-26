@@ -16,6 +16,7 @@ import { Route as ApiMedicalDesertsRouteImport } from './routes/api/medical-dese
 import { Route as ApiLocationOptionsRouteImport } from './routes/api/location-options'
 import { Route as ApiDatabricksHealthRouteImport } from './routes/api/databricks-health'
 import { Route as ApiAskCaremapRouteImport } from './routes/api/ask-caremap'
+import { Route as ApiPublicTelegramPollRouteImport } from './routes/api/public/telegram/poll'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -52,6 +53,11 @@ const ApiAskCaremapRoute = ApiAskCaremapRouteImport.update({
   path: '/api/ask-caremap',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicTelegramPollRoute = ApiPublicTelegramPollRouteImport.update({
+  id: '/api/public/telegram/poll',
+  path: '/api/public/telegram/poll',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -61,6 +67,7 @@ export interface FileRoutesByFullPath {
   '/api/medical-deserts': typeof ApiMedicalDesertsRoute
   '/api/search-facilities': typeof ApiSearchFacilitiesRoute
   '/api/truth-gap-audit': typeof ApiTruthGapAuditRoute
+  '/api/public/telegram/poll': typeof ApiPublicTelegramPollRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -70,6 +77,7 @@ export interface FileRoutesByTo {
   '/api/medical-deserts': typeof ApiMedicalDesertsRoute
   '/api/search-facilities': typeof ApiSearchFacilitiesRoute
   '/api/truth-gap-audit': typeof ApiTruthGapAuditRoute
+  '/api/public/telegram/poll': typeof ApiPublicTelegramPollRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -80,6 +88,7 @@ export interface FileRoutesById {
   '/api/medical-deserts': typeof ApiMedicalDesertsRoute
   '/api/search-facilities': typeof ApiSearchFacilitiesRoute
   '/api/truth-gap-audit': typeof ApiTruthGapAuditRoute
+  '/api/public/telegram/poll': typeof ApiPublicTelegramPollRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -91,6 +100,7 @@ export interface FileRouteTypes {
     | '/api/medical-deserts'
     | '/api/search-facilities'
     | '/api/truth-gap-audit'
+    | '/api/public/telegram/poll'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -100,6 +110,7 @@ export interface FileRouteTypes {
     | '/api/medical-deserts'
     | '/api/search-facilities'
     | '/api/truth-gap-audit'
+    | '/api/public/telegram/poll'
   id:
     | '__root__'
     | '/'
@@ -109,6 +120,7 @@ export interface FileRouteTypes {
     | '/api/medical-deserts'
     | '/api/search-facilities'
     | '/api/truth-gap-audit'
+    | '/api/public/telegram/poll'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -119,6 +131,7 @@ export interface RootRouteChildren {
   ApiMedicalDesertsRoute: typeof ApiMedicalDesertsRoute
   ApiSearchFacilitiesRoute: typeof ApiSearchFacilitiesRoute
   ApiTruthGapAuditRoute: typeof ApiTruthGapAuditRoute
+  ApiPublicTelegramPollRoute: typeof ApiPublicTelegramPollRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -172,6 +185,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAskCaremapRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/telegram/poll': {
+      id: '/api/public/telegram/poll'
+      path: '/api/public/telegram/poll'
+      fullPath: '/api/public/telegram/poll'
+      preLoaderRoute: typeof ApiPublicTelegramPollRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -183,16 +203,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiMedicalDesertsRoute: ApiMedicalDesertsRoute,
   ApiSearchFacilitiesRoute: ApiSearchFacilitiesRoute,
   ApiTruthGapAuditRoute: ApiTruthGapAuditRoute,
+  ApiPublicTelegramPollRoute: ApiPublicTelegramPollRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
