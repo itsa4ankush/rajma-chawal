@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import type { Facility, MedicalNeed } from "@/lib/facilities";
+import type { DecisionTrace, Facility, MedicalNeed } from "@/lib/facilities";
 import { getStateVariants, getCanonicalState } from "@/lib/location-normalization";
 
 const AI_GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
@@ -213,15 +213,31 @@ function rowsToFacilities(resp: DbxResp): Facility[] {
     };
     const bool = (v: unknown) => v === true || v === 1 || v === "1" || v === "true";
     const str = (v: unknown) => (v == null ? "" : String(v));
+    const optStr = (v: unknown) => (v == null || String(v).trim() === "" ? undefined : String(v));
+    const optNumOrStr = (v: unknown) => {
+      if (v == null || String(v).trim() === "") return undefined;
+      const n = Number(v);
+      return Number.isFinite(n) ? n : String(v);
+    };
     const trust = num(obj.trust_score);
+    const rowId = optStr(obj.facility_row_id) ?? optStr(obj.id);
     return {
-      id: str(obj.id) || `f-${idx}`,
+      id: rowId ?? `f-${idx}`,
+      facility_row_id: rowId,
+      source_table: optStr(obj.source_table) ?? TABLE,
       name: str(obj.name),
       address_stateOrRegion: str(obj.address_stateOrRegion),
       address_city: str(obj.address_city),
       address_zipOrPostcode: str(obj.address_zipOrPostcode),
       latitude: num(obj.latitude),
       longitude: num(obj.longitude),
+      description: optStr(obj.description),
+      specialties: optStr(obj.specialties),
+      procedure: optStr(obj.procedure),
+      equipment: optStr(obj.equipment),
+      capability: optStr(obj.capability),
+      numberDoctors: optNumOrStr(obj.numberDoctors),
+      capacity: optNumOrStr(obj.capacity),
       emergency_surgery_capability: (str(obj.emergency_surgery_capability) || "Low") as Facility["emergency_surgery_capability"],
       icu_capability: (str(obj.icu_capability) || "Low") as Facility["icu_capability"],
       dialysis_capability: (str(obj.dialysis_capability) || "Low") as Facility["dialysis_capability"],
@@ -317,14 +333,23 @@ async function resolveCenter(
 }
 
 const SELECT_FIELDS = [
+  "facility_row_id", "source_table",
   "name", "address_stateOrRegion", "address_city", "address_zipOrPostcode",
   "latitude", "longitude",
+  "description", "specialties", "procedure", "equipment",
+  "capability", "numberDoctors", "capacity",
   "emergency_surgery_capability", "icu_capability", "dialysis_capability",
   "trust_score",
   "has_icu", "has_oxygen", "has_operation_theatre", "has_surgeon",
   "has_anesthesiologist", "has_dialysis", "has_neonatal_care",
   "has_ambulance", "is_24_7",
 ].join(", ");
+
+interface SearchTrace {
+  filtersUsed: string[];
+  ranking: string;
+  candidateRows: number;
+}
 
 async function searchFacilities(
   need: MedicalNeed,
@@ -334,7 +359,7 @@ async function searchFacilities(
   apiKey: string,
   dbxKey: string,
   warehouseId: string,
-): Promise<{ facilities: Facility[]; center: { lat: number; lng: number } | null }> {
+): Promise<{ facilities: Facility[]; center: { lat: number; lng: number } | null; trace: SearchTrace }> {
   // Try to resolve a center point for proximity sorting.
   const center = await resolveCenter(state, city, pinCode, apiKey, dbxKey, warehouseId);
 
@@ -370,24 +395,74 @@ async function searchFacilities(
   };
 
   // First attempt: strict filters + distance sort.
-  let data = await runDbxQuery(buildStatement(baseWhere, true), apiKey, dbxKey, warehouseId);
+  let activeWhere = baseWhere;
+  let withDistance = Boolean(center);
+  let data = await runDbxQuery(buildStatement(activeWhere, withDistance), apiKey, dbxKey, warehouseId);
   let facilities = rowsToFacilities(data);
 
   // Fallback: if strict filters yielded too few results AND we had a city filter,
   // broaden to state-only with distance sort so genuinely closer facilities surface.
   if (facilities.length < 3 && cityFilter && !pinFilter && center) {
-    const broadened = baseWhere.filter((w) => w !== cityFilter);
-    data = await runDbxQuery(buildStatement(broadened, true), apiKey, dbxKey, warehouseId);
+    activeWhere = baseWhere.filter((w) => w !== cityFilter);
+    data = await runDbxQuery(buildStatement(activeWhere, true), apiKey, dbxKey, warehouseId);
     facilities = rowsToFacilities(data);
   }
 
   // Final fallback: no center resolved → trust-score sort, original behavior.
   if (facilities.length === 0 && !center) {
-    data = await runDbxQuery(buildStatement(baseWhere, false), apiKey, dbxKey, warehouseId);
+    withDistance = false;
+    data = await runDbxQuery(buildStatement(activeWhere, false), apiKey, dbxKey, warehouseId);
     facilities = rowsToFacilities(data);
   }
 
-  return { facilities, center };
+  // Count candidate rows (rows that match the final filter set, before LIMIT).
+  let candidateRows = facilities.length;
+  try {
+    const countWhere = withDistance && center
+      ? [...activeWhere, "latitude IS NOT NULL", "longitude IS NOT NULL"]
+      : activeWhere;
+    const countClause = countWhere.length ? `WHERE ${countWhere.join(" AND ")}` : "";
+    const countStmt = `SELECT COUNT(*) AS n FROM ${TABLE} ${countClause}`;
+    const countData = await runDbxQuery(countStmt, apiKey, dbxKey, warehouseId);
+    const n = Number(countData.result?.data_array?.[0]?.[0]);
+    if (Number.isFinite(n)) candidateRows = n;
+  } catch {
+    // best-effort; fall back to returned-row count
+  }
+
+  const trace: SearchTrace = {
+    filtersUsed: activeWhere,
+    ranking: withDistance && center
+      ? "distance_km ASC, trust_score DESC"
+      : "trust_score DESC",
+    candidateRows,
+  };
+
+  return { facilities, center, trace };
+}
+
+function fieldsUsedForNeed(need: MedicalNeed): string[] {
+  const base = ["address_stateOrRegion", "address_city", "address_zipOrPostcode", "trust_score"];
+  switch (need) {
+    case "Emergency Surgery":
+    case "Trauma Care":
+      return [...base, "emergency_surgery_capability", "has_surgeon", "has_anesthesiologist", "has_operation_theatre"];
+    case "ICU + Oxygen":
+      return [...base, "icu_capability", "has_icu", "has_oxygen"];
+    case "Dialysis":
+      return [...base, "dialysis_capability", "has_dialysis"];
+    case "Neonatal Care":
+      return [...base, "has_neonatal_care"];
+    case "Emergency Care":
+      return [...base, "is_24_7", "has_ambulance", "emergency_surgery_capability"];
+    case "Maternal Care":
+      return [...base, "has_neonatal_care", "is_24_7"];
+    case "General Medicine":
+    case "Vaccination / Post-exposure Care":
+      return [...base, "is_24_7"];
+    default:
+      return base;
+  }
 }
 
 function capabilityForNeed(f: Facility, need: MedicalNeed): string {
@@ -471,6 +546,11 @@ export const Route = createFileRoute("/api/ask-caremap")({
         let facilities: Facility[] = [];
         let center: { lat: number; lng: number } | null = null;
         let dbxError: string | null = null;
+        let searchTrace: { filtersUsed: string[]; ranking: string; candidateRows: number } = {
+          filtersUsed: [],
+          ranking: "trust_score DESC",
+          candidateRows: 0,
+        };
         try {
           const result = await searchFacilities(
             intent.medicalNeed,
@@ -483,14 +563,36 @@ export const Route = createFileRoute("/api/ask-caremap")({
           );
           facilities = result.facilities;
           center = result.center;
+          searchTrace = result.trace;
         } catch (err) {
           dbxError = err instanceof Error ? err.message : "Databricks unavailable";
         }
 
-        const enriched = facilities.map((f) => ({
-          ...f,
-          matchedCapability: capabilityForNeed(f, intent.medicalNeed),
-        }));
+        // Fields the ranking & need-filter actually consulted (for citation)
+        const fieldsUsed = fieldsUsedForNeed(intent.medicalNeed);
+
+        const enriched: Facility[] = facilities.map((f) => {
+          const trace: DecisionTrace = {
+            user_message: message,
+            parsed_intent: intent.medicalNeed,
+            location: {
+              state: canonicalState || null,
+              city: resolvedCity || null,
+              pinCode: resolvedPin || null,
+            },
+            source_table: f.source_table || TABLE,
+            filters_applied: searchTrace.filtersUsed,
+            ranking: searchTrace.ranking,
+            candidate_rows: searchTrace.candidateRows,
+            returned_rows: facilities.length,
+            fields_used_for_recommendation: fieldsUsed,
+          };
+          return {
+            ...f,
+            matchedCapability: capabilityForNeed(f, intent.medicalNeed),
+            decision_trace: trace,
+          };
+        });
 
         return jsonResponse({
           needsLocation: false,

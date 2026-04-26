@@ -71,14 +71,30 @@ function rowsToFacilities(resp: DatabricksStatementResponse): Facility[] {
     const bool = (v: unknown) =>
       v === true || v === 1 || v === "1" || v === "true";
     const str = (v: unknown) => (v == null ? "" : String(v));
+    const optStr = (v: unknown) => (v == null || String(v).trim() === "" ? undefined : String(v));
+    const optNumOrStr = (v: unknown) => {
+      if (v == null || String(v).trim() === "") return undefined;
+      const n = Number(v);
+      return Number.isFinite(n) ? n : String(v);
+    };
+    const rowId = optStr(obj.facility_row_id) ?? optStr(obj.id);
     return {
-      id: str(obj.id) || `f-${idx}`,
+      id: rowId ?? `f-${idx}`,
+      facility_row_id: rowId,
+      source_table: optStr(obj.source_table) ?? TABLE,
       name: str(obj.name),
       address_stateOrRegion: str(obj.address_stateOrRegion),
       address_city: str(obj.address_city),
       address_zipOrPostcode: str(obj.address_zipOrPostcode),
       latitude: num(obj.latitude),
       longitude: num(obj.longitude),
+      description: optStr(obj.description),
+      specialties: optStr(obj.specialties),
+      procedure: optStr(obj.procedure),
+      equipment: optStr(obj.equipment),
+      capability: optStr(obj.capability),
+      numberDoctors: optNumOrStr(obj.numberDoctors),
+      capacity: optNumOrStr(obj.capacity),
       emergency_surgery_capability: (str(obj.emergency_surgery_capability) ||
         "Low") as Facility["emergency_surgery_capability"],
       icu_capability: (str(obj.icu_capability) || "Low") as Facility["icu_capability"],
@@ -163,12 +179,21 @@ export const Route = createFileRoute("/api/search-facilities")({
 
         const whereClause = where.length ? `WHERE ${where.join(" AND ")}` : "";
         const SELECT_FIELDS = [
+          "facility_row_id",
+          "source_table",
           "name",
           "address_stateOrRegion",
           "address_city",
           "address_zipOrPostcode",
           "latitude",
           "longitude",
+          "description",
+          "specialties",
+          "procedure",
+          "equipment",
+          "capability",
+          "numberDoctors",
+          "capacity",
           "emergency_surgery_capability",
           "icu_capability",
           "dialysis_capability",

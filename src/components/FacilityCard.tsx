@@ -3,6 +3,7 @@ import {
   AlertTriangle,
   Ambulance,
   Check,
+  Database,
   Droplet,
   FileText,
   HeartPulse,
@@ -17,6 +18,12 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useRef, useState } from "react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -219,56 +226,41 @@ function FacilityDetailsDialog({
             </section>
           </div>
 
-          {/* Risk warning */}
-          <Alert variant="destructive">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>Risk Warning</AlertTitle>
-            <AlertDescription>{facility.risk_warning}</AlertDescription>
-          </Alert>
+          {/* Risk + Recommendation */}
+          {facility.risk_warning && (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Risk Warning</AlertTitle>
+              <AlertDescription>{facility.risk_warning}</AlertDescription>
+            </Alert>
+          )}
+          {facility.recommendation_reason && (
+            <Alert>
+              <Sparkles className="h-4 w-4" />
+              <AlertTitle>Why Recommended</AlertTitle>
+              <AlertDescription>{facility.recommendation_reason}</AlertDescription>
+            </Alert>
+          )}
 
-          {/* Recommendation */}
-          <Alert>
-            <Sparkles className="h-4 w-4" />
-            <AlertTitle>Why Recommended</AlertTitle>
-            <AlertDescription>{facility.recommendation_reason}</AlertDescription>
-          </Alert>
+          {/* ── 1. Source Citation ─────────────────────────────────── */}
+          <SectionHeader index={1} icon={Database} title="Source Citation" subtitle="Where this row came from" />
+          <SourceCitationSection facility={facility} />
 
-          {/* Capabilities */}
-          <section>
-            <span className="font-mono uppercase tracking-[0.1em] text-[10px] font-bold text-caption">
-              Verified Capabilities
-            </span>
-            <div className="mt-3">
-              <CapabilityChecklist facility={facility} />
-            </div>
-          </section>
+          {/* ── 2. Raw Dataset Evidence ────────────────────────────── */}
+          <SectionHeader index={2} icon={FileText} title="Raw Dataset Evidence" subtitle="Verbatim values from the source row" />
+          <RawEvidenceSection facility={facility} />
 
-          {/* Evidence — audit log */}
-          <section className="border-t border-ink pt-5">
-            <div className="mb-4 flex items-center justify-between">
-              <span className="font-mono uppercase tracking-[0.1em] text-[10px] font-bold text-caption">
-                Evidence Log
-              </span>
-              <span className="font-mono text-[10px] text-caption tabular-nums">
-                {String(evidence.length).padStart(2, "0")} FINDINGS
-              </span>
-            </div>
-            <ol className="space-y-3">
-              {evidence.map((e, i) => (
-                <li key={i} className="grid grid-cols-[auto_2.5rem_1fr] gap-3 items-start font-serif text-sm leading-relaxed text-page-ink">
-                  <span
-                    className={`mt-1.5 h-2 w-2 ${
-                      e.tone === "positive" ? "bg-ink" : e.tone === "negative" ? "bg-destructive" : "bg-caption"
-                    }`}
-                  />
-                  <span className="font-mono text-[11px] text-caption tabular-nums pt-0.5">
-                    #{String(i + 1).padStart(2, "0")}
-                  </span>
-                  <span>{e.text}</span>
-                </li>
-              ))}
-            </ol>
-          </section>
+          {/* ── 3. System Interpretation ───────────────────────────── */}
+          <SectionHeader index={3} icon={Activity} title="System Interpretation" subtitle="Derived signal checks" />
+          <InterpretationSection facility={facility} />
+
+          {/* ── 4. Trust Score Breakdown ───────────────────────────── */}
+          <SectionHeader index={4} icon={ShieldCheck} title="Trust Score Breakdown" subtitle="How the score was calculated" />
+          <TrustBreakdownSection facility={facility} />
+
+          {/* ── 5. Decision Trace (collapsed by default) ───────────── */}
+          <SectionHeader index={5} icon={Sparkles} title="Decision Trace" subtitle="Full audit log of this recommendation" />
+          <DecisionTraceSection facility={facility} />
 
           <p className="border-t border-hairline pt-4 font-mono uppercase tracking-[0.08em] text-[10px] text-caption">
             Generated from public health directories, facility self-reports, and
@@ -278,6 +270,277 @@ function FacilityDetailsDialog({
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/* ─────────── Audit-section helpers ─────────── */
+
+function SectionHeader({
+  index,
+  icon: Icon,
+  title,
+  subtitle,
+}: {
+  index: number;
+  icon: LucideIcon;
+  title: string;
+  subtitle?: string;
+}) {
+  return (
+    <div className="flex items-baseline gap-3 border-t border-ink pt-4">
+      <span className="font-mono text-[10px] font-bold text-caption tabular-nums">
+        {String(index).padStart(2, "0")}
+      </span>
+      <div className="flex-1">
+        <h4 className="flex items-center gap-2 font-mono uppercase tracking-[0.1em] text-[11px] font-bold text-ink">
+          <Icon className="h-3.5 w-3.5" />
+          {title}
+        </h4>
+        {subtitle && (
+          <p className="font-serif text-[12px] text-caption mt-0.5">{subtitle}</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function KV({ label, value, mono = false }: { label: string; value: React.ReactNode; mono?: boolean }) {
+  return (
+    <div className="grid grid-cols-[140px_1fr] gap-3 py-1.5 border-b border-hairline last:border-b-0 items-baseline">
+      <span className="font-mono uppercase tracking-[0.08em] text-[10px] font-bold text-caption">
+        {label}
+      </span>
+      <span className={`text-[13px] text-ink ${mono ? "font-mono tabular-nums" : "font-serif"} break-words`}>
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function NotProvided() {
+  return (
+    <span className="font-mono uppercase tracking-[0.08em] text-[10px] text-caption italic">
+      Not provided in source row
+    </span>
+  );
+}
+
+function fieldOrEmpty(v: string | number | undefined | null) {
+  if (v === undefined || v === null) return <NotProvided />;
+  const s = String(v).trim();
+  if (s === "") return <NotProvided />;
+  return s;
+}
+
+function SourceCitationSection({ facility }: { facility: Facility }) {
+  const fieldsUsed = facility.decision_trace?.fields_used_for_recommendation ?? [];
+  return (
+    <div className="rounded-md border border-hairline bg-oat-light/40 p-4">
+      <KV label="Source Table" value={<span className="font-mono text-[12px]">{facility.source_table || "—"}</span>} />
+      <KV label="Row ID" value={<span className="font-mono text-[12px]">{facility.facility_row_id || facility.id}</span>} />
+      <KV label="Facility" value={facility.name} />
+      <KV
+        label="Address"
+        value={`${facility.address_city}, ${facility.address_stateOrRegion} · PIN ${facility.address_zipOrPostcode}`}
+      />
+      <KV
+        label="Fields Used"
+        value={
+          fieldsUsed.length === 0 ? (
+            <NotProvided />
+          ) : (
+            <div className="flex flex-wrap gap-1">
+              {fieldsUsed.map((f) => (
+                <span
+                  key={f}
+                  className="font-mono text-[10px] uppercase tracking-[0.06em] border border-hairline bg-paper px-1.5 py-0.5"
+                >
+                  {f}
+                </span>
+              ))}
+            </div>
+          )
+        }
+      />
+    </div>
+  );
+}
+
+function RawEvidenceSection({ facility }: { facility: Facility }) {
+  return (
+    <div className="rounded-md border border-hairline bg-paper p-4">
+      <KV label="Description" value={fieldOrEmpty(facility.description)} />
+      <KV label="Specialties" value={fieldOrEmpty(facility.specialties)} />
+      <KV label="Procedure" value={fieldOrEmpty(facility.procedure)} />
+      <KV label="Equipment" value={fieldOrEmpty(facility.equipment)} />
+      <KV label="Capability" value={fieldOrEmpty(facility.capability)} />
+      <KV label="Doctors" value={fieldOrEmpty(facility.numberDoctors as string | number | undefined)} mono />
+      <KV label="Capacity" value={fieldOrEmpty(facility.capacity as string | number | undefined)} mono />
+    </div>
+  );
+}
+
+function SignalRow({ label, present }: { label: string; present: boolean }) {
+  return (
+    <li className="flex items-center justify-between gap-3 py-1.5 border-b border-hairline last:border-b-0">
+      <span className="font-serif text-[13px] text-ink">{label}</span>
+      <span
+        className={`font-mono uppercase tracking-[0.08em] text-[10px] font-bold inline-flex items-center gap-1 ${
+          present ? "text-emerald-700" : "text-caption"
+        }`}
+      >
+        {present ? <Check className="h-3 w-3" /> : <Minus className="h-3 w-3" />}
+        {present ? "Found" : "Not confirmed"}
+      </span>
+    </li>
+  );
+}
+
+function InterpretationSection({ facility }: { facility: Facility }) {
+  return (
+    <ul className="rounded-md border border-hairline bg-paper p-4">
+      <SignalRow label="Oxygen supply" present={facility.has_oxygen} />
+      <SignalRow label="ICU" present={facility.has_icu} />
+      <SignalRow label="Operation theatre" present={facility.has_operation_theatre} />
+      <SignalRow label="Surgeon" present={facility.has_surgeon} />
+      <SignalRow label="Anesthesiologist" present={facility.has_anesthesiologist} />
+      <SignalRow label="Dialysis" present={facility.has_dialysis} />
+      <SignalRow label="Ambulance" present={facility.has_ambulance} />
+      <SignalRow label="24/7 availability" present={facility.is_24_7} />
+    </ul>
+  );
+}
+
+interface ScorePart { label: string; points: number; awarded: boolean }
+
+function buildTrustParts(f: Facility): { base: number; parts: ScorePart[]; computed: number } {
+  const base = 40;
+  const parts: ScorePart[] = [
+    { label: "Oxygen confirmed", points: 10, awarded: f.has_oxygen },
+    { label: "Operation theatre confirmed", points: 10, awarded: f.has_operation_theatre },
+    { label: "Surgeon on staff", points: 10, awarded: f.has_surgeon },
+    { label: "Anesthesiologist on staff", points: 15, awarded: f.has_anesthesiologist },
+    { label: "Ambulance available", points: 5, awarded: f.has_ambulance },
+    { label: "24/7 availability", points: 10, awarded: f.is_24_7 },
+  ];
+  const computed = base + parts.filter((p) => p.awarded).reduce((s, p) => s + p.points, 0);
+  return { base, parts, computed };
+}
+
+function TrustBreakdownSection({ facility }: { facility: Facility }) {
+  const { base, parts, computed } = buildTrustParts(facility);
+  const missingCritical = parts
+    .filter((p) => !p.awarded && p.points >= 10)
+    .map((p) => p.label);
+  const finalScore = facility.trust_score; // source of truth from Databricks
+  const drift = finalScore !== computed;
+
+  return (
+    <div className="rounded-md border border-hairline bg-paper p-4">
+      <div className="flex items-baseline justify-between border-b border-hairline pb-2">
+        <span className="font-mono uppercase tracking-[0.08em] text-[10px] font-bold text-caption">
+          Base Score
+        </span>
+        <span className="font-mono tabular-nums text-[14px] font-bold text-ink">{base}</span>
+      </div>
+      <ul className="py-2">
+        {parts.map((p) => (
+          <li
+            key={p.label}
+            className="flex items-center justify-between py-1 font-serif text-[13px]"
+          >
+            <span className={p.awarded ? "text-ink" : "text-caption line-through"}>
+              {p.label}
+            </span>
+            <span
+              className={`font-mono tabular-nums text-[12px] font-bold ${
+                p.awarded ? "text-emerald-700" : "text-caption"
+              }`}
+            >
+              {p.awarded ? `+${p.points}` : `+0 / ${p.points}`}
+            </span>
+          </li>
+        ))}
+      </ul>
+      {missingCritical.length > 0 && (
+        <div className="border-t border-hairline pt-2 mb-2">
+          <span className="font-mono uppercase tracking-[0.08em] text-[10px] font-bold text-destructive">
+            Missing critical signals
+          </span>
+          <p className="mt-1 font-serif text-[12px] text-page-ink">
+            {missingCritical.join(" · ")}
+          </p>
+        </div>
+      )}
+      <div className="flex items-baseline justify-between border-t-2 border-ink pt-2">
+        <span className="font-mono uppercase tracking-[0.08em] text-[11px] font-bold text-ink">
+          Final Trust Score
+        </span>
+        <span className="font-display text-2xl font-black tabular-nums text-ink">
+          {finalScore}
+          <span className="font-serif text-sm font-normal text-caption">/100</span>
+        </span>
+      </div>
+      {drift && (
+        <p className="mt-2 font-mono uppercase tracking-[0.06em] text-[9px] text-caption">
+          Computed from signals: {computed}. Source-of-truth score (from Databricks): {finalScore}.
+        </p>
+      )}
+    </div>
+  );
+}
+
+function DecisionTraceSection({ facility }: { facility: Facility }) {
+  const t = facility.decision_trace;
+  if (!t) {
+    return (
+      <p className="font-serif text-[13px] text-caption italic">
+        No trace was attached to this row.
+      </p>
+    );
+  }
+  const loc = [t.location.city, t.location.state, t.location.pinCode].filter(Boolean).join(", ") || "—";
+  return (
+    <Accordion type="single" collapsible className="border border-hairline rounded-md bg-paper">
+      <AccordionItem value="trace" className="border-b-0">
+        <AccordionTrigger className="px-4 py-3 font-mono uppercase tracking-[0.08em] text-[11px] font-bold text-ink hover:no-underline">
+          View full decision trace
+        </AccordionTrigger>
+        <AccordionContent className="px-4 pb-4">
+          <KV label="User Message" value={`"${t.user_message}"`} />
+          <KV label="Parsed Intent" value={t.parsed_intent} />
+          <KV label="Location" value={loc} />
+          <KV label="Source Table" value={<span className="font-mono text-[12px]">{t.source_table}</span>} />
+          <KV
+            label="Filters Applied"
+            value={
+              t.filters_applied.length === 0 ? (
+                <NotProvided />
+              ) : (
+                <ul className="space-y-0.5">
+                  {t.filters_applied.map((f, i) => (
+                    <li key={i} className="font-mono text-[11px] text-page-ink break-all">
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+              )
+            }
+          />
+          <KV label="Ranking" value={<span className="font-mono text-[12px]">{t.ranking}</span>} />
+          <KV label="Candidate Rows" value={t.candidate_rows} mono />
+          <KV label="Returned Rows" value={t.returned_rows} mono />
+          <KV
+            label="This Row"
+            value={
+              <span className="font-mono text-[12px]">
+                {facility.facility_row_id || facility.id}
+              </span>
+            }
+          />
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
   );
 }
 
