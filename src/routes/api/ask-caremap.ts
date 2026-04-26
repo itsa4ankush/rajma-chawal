@@ -329,44 +329,59 @@ async function searchFacilities(
   dbxKey: string,
   warehouseId: string,
 ): Promise<Facility[]> {
-  const where: string[] = [];
+  // Try to resolve a center point for proximity sorting.
+  const center = await resolveCenter(state, city, pinCode, apiKey, dbxKey, warehouseId);
+
+  const baseWhere: string[] = [];
   if (state?.trim()) {
     const variants = getStateVariants(state.trim()).map(escapeSqlString);
-    where.push(`address_stateOrRegion IN ('${variants.join("', '")}')`);
+    baseWhere.push(`address_stateOrRegion IN ('${variants.join("', '")}')`);
   }
-  if (city?.trim()) {
-    where.push(`LOWER(address_city) LIKE LOWER('%${escapeSqlString(city.trim())}%')`);
-  }
-  if (pinCode?.trim()) {
-    where.push(`address_zipOrPostcode = '${escapeSqlString(pinCode.trim())}'`);
-  }
+  const cityFilter = city?.trim()
+    ? `LOWER(address_city) LIKE LOWER('%${escapeSqlString(city.trim())}%')`
+    : null;
+  const pinFilter = pinCode?.trim()
+    ? `address_zipOrPostcode = '${escapeSqlString(pinCode.trim())}'`
+    : null;
+  if (pinFilter) baseWhere.push(pinFilter);
+  else if (cityFilter) baseWhere.push(cityFilter);
+
   const needFilter = buildNeedFilter(need);
-  if (needFilter) where.push(needFilter);
+  if (needFilter) baseWhere.push(needFilter);
 
-  const whereClause = where.length ? `WHERE ${where.join(" AND ")}` : "";
-  const statement = `SELECT ${SELECT_FIELDS} FROM ${TABLE} ${whereClause} ORDER BY trust_score DESC LIMIT 5`;
+  const buildStatement = (where: string[], withDistance: boolean) => {
+    const distExpr = withDistance && center
+      ? `, (6371 * acos(LEAST(1.0, GREATEST(-1.0, cos(radians(${center.lat})) * cos(radians(latitude)) * cos(radians(longitude) - radians(${center.lng})) + sin(radians(${center.lat})) * sin(radians(latitude)))))) AS distance_km`
+      : "";
+    const allWhere = withDistance && center
+      ? [...where, "latitude IS NOT NULL", "longitude IS NOT NULL"]
+      : where;
+    const whereClause = allWhere.length ? `WHERE ${allWhere.join(" AND ")}` : "";
+    const orderBy = withDistance && center
+      ? "ORDER BY distance_km ASC, trust_score DESC"
+      : "ORDER BY trust_score DESC";
+    return `SELECT ${SELECT_FIELDS}${distExpr} FROM ${TABLE} ${whereClause} ${orderBy} LIMIT 5`;
+  };
 
-  const res = await fetch(`${DBX_GATEWAY}/2.0/sql/statements`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "X-Connection-Api-Key": dbxKey,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      warehouse_id: warehouseId,
-      statement,
-      wait_timeout: "30s",
-      format: "JSON_ARRAY",
-      disposition: "INLINE",
-    }),
-  });
-  const data = (await res.json()) as DbxResp;
-  if (!res.ok) throw new Error(`Databricks query failed (${res.status})`);
-  if (data.status?.state && data.status.state !== "SUCCEEDED") {
-    throw new Error(data.status.error?.message || `Databricks state: ${data.status.state}`);
+  // First attempt: strict filters + distance sort.
+  let data = await runDbxQuery(buildStatement(baseWhere, true), apiKey, dbxKey, warehouseId);
+  let facilities = rowsToFacilities(data);
+
+  // Fallback: if strict filters yielded too few results AND we had a city filter,
+  // broaden to state-only with distance sort so genuinely closer facilities surface.
+  if (facilities.length < 3 && cityFilter && !pinFilter && center) {
+    const broadened = baseWhere.filter((w) => w !== cityFilter);
+    data = await runDbxQuery(buildStatement(broadened, true), apiKey, dbxKey, warehouseId);
+    facilities = rowsToFacilities(data);
   }
-  return rowsToFacilities(data);
+
+  // Final fallback: no center resolved → trust-score sort, original behavior.
+  if (facilities.length === 0 && !center) {
+    data = await runDbxQuery(buildStatement(baseWhere, false), apiKey, dbxKey, warehouseId);
+    facilities = rowsToFacilities(data);
+  }
+
+  return facilities;
 }
 
 function capabilityForNeed(f: Facility, need: MedicalNeed): string {
