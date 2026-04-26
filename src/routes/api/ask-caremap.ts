@@ -488,7 +488,7 @@ export const Route = createFileRoute("/api/ask-caremap")({
       OPTIONS: async () => new Response(null, { status: 204, headers: corsHeaders }),
       POST: async ({ request }: { request: Request }) => {
         const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
-        const DATABRICKS_API_KEY = process.env.DATABRICKS_API_KEY;
+        const DATABRICKS_API_KEY = (process.env.DATABRICKS_API_KEY_1 || process.env.DATABRICKS_API_KEY);
         const WAREHOUSE_ID = process.env.DATABRICKS_WAREHOUSE_ID;
 
         if (!LOVABLE_API_KEY) return jsonResponse({ error: "LOVABLE_API_KEY is not configured" }, 500);
