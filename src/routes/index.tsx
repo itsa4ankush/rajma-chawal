@@ -14,7 +14,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { FacilityCard } from "@/components/FacilityCard";
-import { FacilitiesMap } from "@/components/FacilitiesMap";
+import { FacilitiesMapClient as FacilitiesMap } from "@/components/FacilitiesMapClient";
 import { PlannerDashboard } from "@/components/PlannerDashboard";
 import { ChatPanel, type ParsedIntent } from "@/components/ChatPanel";
 import { DatabricksStatusCard } from "@/components/DatabricksStatusCard";
