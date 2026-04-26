@@ -93,7 +93,7 @@ const TOOL = {
   type: "function" as const,
   function: {
     name: "parse_medical_intent",
-    description: "Return structured CareMap search intent.",
+    description: "Return structured Raahat search intent.",
     parameters: {
       type: "object",
       properties: {
