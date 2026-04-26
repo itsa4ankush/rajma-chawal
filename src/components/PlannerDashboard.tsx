@@ -215,15 +215,15 @@ export function PlannerDashboard() {
         <StatCard label="With Warnings" value={totals.warnings} icon={AlertTriangle} />
       </section>
 
-      {/* Medical Desert View — black ribbon header + flat table */}
+      {/* Medical Desert View — Clay card with table */}
       <section aria-label="Medical Desert View">
-        <div className="ribbon-bar">Medical Desert View</div>
-        <div className="border border-t-0 border-hairline">
+        <div className="ribbon-bar mb-3">Medical Desert View</div>
+        <div className="rounded-2xl border border-hairline bg-card shadow-[var(--shadow-clay)] overflow-hidden">
           <div className="border-b border-hairline p-4 sm:p-5">
-            <h2 className="font-display text-2xl sm:text-3xl font-black leading-tight text-ink">
+            <h2 className="text-2xl sm:text-3xl font-semibold leading-tight text-ink tracking-[-0.64px]">
               Cities ranked by capability gap
             </h2>
-            <p className="mt-1 font-serif text-sm text-page-ink">
+            <p className="mt-1 text-sm text-page-ink">
               Sorted by emergency surgery, ICU and dialysis coverage, then
               average trust score.
             </p>
@@ -231,7 +231,7 @@ export function PlannerDashboard() {
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="border-b-2 border-ink">
+                <TableRow className="border-b border-hairline">
                   <TableHead className="font-mono uppercase tracking-[0.1em] text-[10px] font-bold text-ink">City</TableHead>
                   <TableHead className="font-mono uppercase tracking-[0.1em] text-[10px] font-bold text-ink">State</TableHead>
                   <TableHead className="font-mono uppercase tracking-[0.1em] text-[10px] font-bold text-ink text-right">Total</TableHead>
