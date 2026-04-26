@@ -383,13 +383,13 @@ export function ChatPanel({ onSearchStart, onResults }: ChatPanelProps = {}) {
         </div>
       ) : null}
 
-      {/* Input — printerly 2px border */}
+      {/* Input */}
       <form
         onSubmit={(e) => {
           e.preventDefault();
           void send(input);
         }}
-        className="border-t-2 border-ink p-3 flex gap-2"
+        className="border-t border-hairline p-3 flex gap-2"
       >
         <Input
           value={input}
