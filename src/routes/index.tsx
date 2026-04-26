@@ -81,20 +81,20 @@ function Index() {
 
   return (
     <div className="min-h-dvh bg-paper text-ink">
-      {/* Top utility ink strip */}
-      <div className="bg-ink text-paper">
+      {/* Top utility strip */}
+      <div className="bg-ink text-white">
         <div className="mx-auto flex max-w-[1400px] items-center justify-between px-4 py-2 text-[11px] sm:px-6">
           <span className="font-mono uppercase tracking-[0.12em]">
             CareMap · Field Edition
           </span>
-          <span className="hidden sm:inline font-mono uppercase tracking-[0.12em] text-paper/70">
+          <span className="hidden sm:inline font-mono uppercase tracking-[0.12em] text-white/70">
             Verified facility intelligence · India
           </span>
         </div>
       </div>
 
       {/* Masthead */}
-      <header className="border-b-2 border-ink bg-paper">
+      <header className="border-b border-hairline bg-paper">
         <div className="mx-auto max-w-[1400px] px-4 py-8 sm:px-6 sm:py-12">
           <div className="text-center">
             <Kicker className="text-caption">Issue 01 · Healthcare Intelligence</Kicker>
