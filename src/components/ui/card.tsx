@@ -3,17 +3,17 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 /**
- * Sentry-style card.
- * - Surface 100 (#150f23) with subtle purple border
- * - Standard elevated shadow
- * - Rubik 24px/500 title, body in 16px caption gray
+ * Clay-style card.
+ * - White surface on warm cream canvas, oat border (#dad4c8)
+ * - Generous 24px radius, multi-layer "pressed into clay" shadow
+ * - Roobert 32px/600 title with -0.64px tracking
  */
 const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
       className={cn(
-        "bg-card text-card-foreground rounded-xl border border-[var(--color-hairline)] shadow-[var(--shadow-card)]",
+        "bg-card text-card-foreground rounded-2xl border border-[var(--color-hairline)] shadow-[0px_1px_1px_rgb(0_0_0/0.10),inset_0px_-1px_1px_rgb(0_0_0/0.04),0px_-0.5px_1px_rgb(0_0_0/0.05)]",
         className,
       )}
       {...props}
@@ -33,7 +33,7 @@ const CardTitle = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivE
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn("font-sans text-2xl font-medium leading-[1.25] tracking-normal", className)}
+      className={cn("font-sans text-[2rem] font-semibold leading-[1.10] tracking-[-0.64px]", className)}
       {...props}
     />
   ),
@@ -44,7 +44,7 @@ const CardDescription = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HT
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn("font-sans text-base font-normal leading-[1.5] text-muted-foreground", className)}
+      className={cn("font-sans text-[1.125rem] font-normal leading-[1.60] tracking-[-0.36px] text-muted-foreground", className)}
       {...props}
     />
   ),

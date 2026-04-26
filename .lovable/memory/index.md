@@ -1,13 +1,12 @@
-# Memory: index.md
-Updated: now
-
 # Project Memory
 
 ## Core
-Sentry-inspired dark purple design system. Background deep purple #1f1633 (paper) and deeper #150f23 (surface-100) — NEVER pure black. Border purple #362d59. Primary text white #ffffff, secondary #e5e7eb.
-Accents: Sentry Purple #6a5fc1 (links/hover), muted purple #79628c (button bg), deep violet #422082 (active), lime green #c2ef4e (high-visibility pop, max once per section), coral #ffb287 + pink #fa7faa (focus/decorative).
-Rubik for everything (400 body, 500 nav/emphasis, 600 titles, 700 CTAs). JetBrains Mono substitutes Monaco for code. NO Dammit Sans available — use Rubik 700 for hero.
-Buttons UPPERCASE, +0.2px letter-spacing, 13px radius for primary muted-purple with INSET shadow (tactile pressed feel) → elevates to drop-shadow on hover. White solid CTA hovers to Sentry purple bg.
-Frosted glass: rgba(255,255,255,0.18) bg + backdrop-filter blur(18px) saturate(180%).
-Shadows are purple-tinted; signature ambient = rgba(22,15,36,0.9) 0px 4px 4px 9px around hero.
-Min 6px radius on all interactive elements — NEVER sharp 0px corners.
+Clay-inspired design. Warm cream bg #faf9f7 (NEVER pure white or cool gray), clay-black ink #000, warm silver muted #9f9b93, oat borders #dad4c8 (NEVER neutral gray).
+Named swatch palette for sections: Matcha (#078a52/#02492a), Slushie (#3bd3fd), Lemon (#fbbd41), Ube (#43089f), Pomegranate (#fc7981), Blueberry (#01418d). Max 2 swatches per section.
+Roobert (Inter fallback) everywhere with OpenType ss01,ss03,ss10,ss11,ss12 on headings; ss03,ss10,ss11,ss12 on body. Space Mono for code/labels.
+Three weights only: 600 headings, 500 UI, 400 body. Hero 80px/-3.2px tracking; section 44px/-1.32px; card 32px/-0.64px.
+Uppercase labels: 12px/600 with 1.08px positive tracking — wayfinding system.
+Multi-layer "pressed into clay" shadow on cards/buttons: 0px 1px 1px + inset -1px + -0.5px. NEVER blur-based shadows.
+Hover signature: rotateZ(-4deg) + translateY(-4px) + hard offset shadow (-7px 7px solid black). Applied to buttons via .clay-hover or built into Button variants.
+Generous radius: 12px buttons, 24px cards, 40px sections, full pill for CTAs. NEVER <12px on feature cards.
+Mix solid + dashed oat borders for craft-like variety (.border-dashed-oat utility).
