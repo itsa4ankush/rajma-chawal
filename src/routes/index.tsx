@@ -197,50 +197,7 @@ function Index() {
                   </span>
                 </RibbonHeader>
 
-                {/* Intent panel — Clay card */}
-                {intent && !loading && (
-                  <div className="mt-4 rounded-2xl border border-hairline bg-card p-5 sm:p-6 shadow-[var(--shadow-clay)]">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Kicker className="text-caption">Understood as</Kicker>
-                      <span className="font-mono uppercase tracking-[0.08em] text-[11px] font-bold rounded-md border border-hairline bg-oat-light px-2 py-1 text-ink">
-                        {intent.understoodNeed}
-                      </span>
-                      <span
-                        className={`font-mono uppercase tracking-[0.1em] text-[10px] font-bold px-2 py-1 rounded-md ${URGENCY_BADGE[intent.urgency]}`}
-                      >
-                        {intent.urgency}
-                      </span>
-                    </div>
-
-                    {intent.userExplanation && (
-                      <p className="mt-4 font-serif text-base leading-[1.5] text-page-ink">
-                        {intent.userExplanation}
-                      </p>
-                    )}
-
-                    {intent.safetyMessage && (
-                      <Alert
-                        variant={intent.urgency === "emergency" ? "destructive" : "default"}
-                        className="mt-4"
-                      >
-                        <AlertTriangle className="h-4 w-4" />
-                        <AlertTitle>Safety guidance</AlertTitle>
-                        <AlertDescription>{intent.safetyMessage}</AlertDescription>
-                      </Alert>
-                    )}
-                    {intent.dataLimitation && (
-                      <Alert className="mt-3">
-                        <Info className="h-4 w-4" />
-                        <AlertTitle>Data limitation</AlertTitle>
-                        <AlertDescription>{intent.dataLimitation}</AlertDescription>
-                      </Alert>
-                    )}
-
-                    <p className="mt-4 border-t border-hairline pt-3 font-mono uppercase tracking-[0.08em] text-[10px] text-caption">
-                      Verify by calling the facility before traveling
-                    </p>
-                  </div>
-                )}
+                {/* Intent panel removed */}
 
                 {dataSource === "demo" && !loading && results && results.length > 0 && (
                   <Alert variant="destructive" className="mt-4">
