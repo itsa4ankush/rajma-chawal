@@ -287,10 +287,10 @@ export function ChatPanel({ onSearchStart, onResults }: ChatPanelProps = {}) {
           m.role === "user" ? (
             <div key={i} className="flex justify-end">
               <div className="flex items-start gap-2 max-w-[88%]">
-                <div className="bg-ink text-paper px-3 py-2 font-serif text-[14px] leading-snug">
+                <div className="bg-ink text-white px-3 py-2 rounded-2xl text-[14px] leading-snug">
                   {m.text}
                 </div>
-                <div className="flex h-7 w-7 shrink-0 items-center justify-center border border-ink bg-paper">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-hairline bg-white">
                   <User className="h-3.5 w-3.5" />
                 </div>
               </div>
