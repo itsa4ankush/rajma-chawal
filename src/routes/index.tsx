@@ -100,7 +100,7 @@ function Index() {
           <div className="text-center">
             <Kicker className="text-caption">Issue 01 · Healthcare Intelligence</Kicker>
             <h1 className="mt-3 font-display text-5xl sm:text-7xl lg:text-[88px] font-black leading-[0.93] tracking-[-0.02em] text-ink">
-              CareMap
+              Raahat
             </h1>
             <p className="mx-auto mt-4 max-w-2xl font-serif text-base sm:text-lg leading-relaxed text-page-ink">
               Find trusted care from messy healthcare data — hospital capability,
