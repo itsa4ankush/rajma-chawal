@@ -3,7 +3,7 @@ import {
   AlertTriangle,
   Ambulance,
   Check,
-  Database,
+  
   Droplet,
   FileText,
   HeartPulse,
@@ -242,24 +242,20 @@ function FacilityDetailsDialog({
             </Alert>
           )}
 
-          {/* ── 1. Source Citation ─────────────────────────────────── */}
-          <SectionHeader index={1} icon={Database} title="Source Citation" subtitle="Where this row came from" />
-          <SourceCitationSection facility={facility} />
-
-          {/* ── 2. Raw Dataset Evidence ────────────────────────────── */}
-          <SectionHeader index={2} icon={FileText} title="Raw Dataset Evidence" subtitle="Verbatim values from the source row" />
+          {/* ── 1. Raw Dataset Evidence ────────────────────────────── */}
+          <SectionHeader index={1} icon={FileText} title="Raw Dataset Evidence" subtitle="Verbatim values from the source row" />
           <RawEvidenceSection facility={facility} />
 
-          {/* ── 3. System Interpretation ───────────────────────────── */}
-          <SectionHeader index={3} icon={Activity} title="System Interpretation" subtitle="Derived signal checks" />
+          {/* ── 2. System Interpretation ───────────────────────────── */}
+          <SectionHeader index={2} icon={Activity} title="System Interpretation" subtitle="Derived signal checks" />
           <InterpretationSection facility={facility} />
 
-          {/* ── 4. Trust Score Breakdown ───────────────────────────── */}
-          <SectionHeader index={4} icon={ShieldCheck} title="Trust Score Breakdown" subtitle="How the score was calculated" />
+          {/* ── 3. Trust Score Breakdown ───────────────────────────── */}
+          <SectionHeader index={3} icon={ShieldCheck} title="Trust Score Breakdown" subtitle="How the score was calculated" />
           <TrustBreakdownSection facility={facility} />
 
-          {/* ── 5. Decision Trace (collapsed by default) ───────────── */}
-          <SectionHeader index={5} icon={Sparkles} title="Decision Trace" subtitle="Full audit log of this recommendation" />
+          {/* ── 4. Decision Trace (collapsed by default) ───────────── */}
+          <SectionHeader index={4} icon={Sparkles} title="Decision Trace" subtitle="Full audit log of this recommendation" />
           <DecisionTraceSection facility={facility} />
 
           <p className="border-t border-hairline pt-4 font-mono uppercase tracking-[0.08em] text-[10px] text-caption">
@@ -330,40 +326,6 @@ function fieldOrEmpty(v: string | number | undefined | null) {
   const s = String(v).trim();
   if (s === "") return <NotProvided />;
   return s;
-}
-
-function SourceCitationSection({ facility }: { facility: Facility }) {
-  const fieldsUsed = facility.decision_trace?.fields_used_for_recommendation ?? [];
-  return (
-    <div className="rounded-md border border-hairline bg-oat-light/40 p-4">
-      <KV label="Source Table" value={<span className="font-mono text-[12px]">{facility.source_table || "—"}</span>} />
-      <KV label="Row ID" value={<span className="font-mono text-[12px]">{facility.facility_row_id || facility.id}</span>} />
-      <KV label="Facility" value={facility.name} />
-      <KV
-        label="Address"
-        value={`${facility.address_city}, ${facility.address_stateOrRegion} · PIN ${facility.address_zipOrPostcode}`}
-      />
-      <KV
-        label="Fields Used"
-        value={
-          fieldsUsed.length === 0 ? (
-            <NotProvided />
-          ) : (
-            <div className="flex flex-wrap gap-1">
-              {fieldsUsed.map((f) => (
-                <span
-                  key={f}
-                  className="font-mono text-[10px] uppercase tracking-[0.06em] border border-hairline bg-paper px-1.5 py-0.5"
-                >
-                  {f}
-                </span>
-              ))}
-            </div>
-          )
-        }
-      />
-    </div>
-  );
 }
 
 function RawEvidenceSection({ facility }: { facility: Facility }) {
@@ -531,9 +493,9 @@ function DecisionTraceSection({ facility }: { facility: Facility }) {
           <KV label="Candidate Rows" value={t.candidate_rows} mono />
           <KV label="Returned Rows" value={t.returned_rows} mono />
           <KV
-            label="This Row"
+            label="Row ID"
             value={
-              <span className="font-mono text-[12px]">
+              <span className="font-mono text-[12px] break-all">
                 {facility.facility_row_id || facility.id}
               </span>
             }
