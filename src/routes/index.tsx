@@ -255,7 +255,24 @@ function Index() {
                   </Alert>
                 )}
 
-                {/* Results grid */}
+                {/* Map (above cards) */}
+                {showMap && (
+                  <div className="mt-6">
+                    <FacilitiesMap
+                      facilities={results!}
+                      selectedNeed={selectedNeed}
+                      centerHint={center}
+                      activeId={activeId}
+                      onMarkerHover={setActiveId}
+                      onMarkerClick={(id) =>
+                        setOpenSignal({ id, n: (openSignal?.n ?? 0) + 1 })
+                      }
+                      height={view === "map" ? 620 : 400}
+                    />
+                  </div>
+                )}
+
+                {/* Results list */}
                 <div className="mt-6">
                   {loading ? (
                     <div className="grid grid-cols-1 gap-0 divide-y divide-ink border-t border-b border-ink">
@@ -282,7 +299,7 @@ function Index() {
                         broadening your search.
                       </p>
                     </div>
-                  ) : (
+                  ) : showList ? (
                     <div className="border-t border-ink">
                       {results.map((f, idx) => (
                         <FacilityCard
@@ -290,10 +307,15 @@ function Index() {
                           facility={f}
                           selectedNeed={selectedNeed}
                           index={idx + 1}
+                          isActive={activeId === f.id}
+                          onHover={setActiveId}
+                          openSignal={
+                            openSignal?.id === f.id ? openSignal.n : undefined
+                          }
                         />
                       ))}
                     </div>
-                  )}
+                  ) : null}
                 </div>
               </section>
             </div>
