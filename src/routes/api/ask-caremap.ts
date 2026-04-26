@@ -333,14 +333,23 @@ async function resolveCenter(
 }
 
 const SELECT_FIELDS = [
+  "facility_row_id", "source_table",
   "name", "address_stateOrRegion", "address_city", "address_zipOrPostcode",
   "latitude", "longitude",
+  "description", "specialties", "procedure", "equipment",
+  "capability", "numberDoctors", "capacity",
   "emergency_surgery_capability", "icu_capability", "dialysis_capability",
   "trust_score",
   "has_icu", "has_oxygen", "has_operation_theatre", "has_surgeon",
   "has_anesthesiologist", "has_dialysis", "has_neonatal_care",
   "has_ambulance", "is_24_7",
 ].join(", ");
+
+interface SearchTrace {
+  filtersUsed: string[];
+  ranking: string;
+  candidateRows: number;
+}
 
 async function searchFacilities(
   need: MedicalNeed,
@@ -350,7 +359,7 @@ async function searchFacilities(
   apiKey: string,
   dbxKey: string,
   warehouseId: string,
-): Promise<{ facilities: Facility[]; center: { lat: number; lng: number } | null }> {
+): Promise<{ facilities: Facility[]; center: { lat: number; lng: number } | null; trace: SearchTrace }> {
   // Try to resolve a center point for proximity sorting.
   const center = await resolveCenter(state, city, pinCode, apiKey, dbxKey, warehouseId);
 
