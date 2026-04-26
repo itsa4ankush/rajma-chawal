@@ -36,9 +36,9 @@ interface DesertCity {
 }
 
 const riskStyles: Record<RiskLevel, string> = {
-  High: "bg-destructive text-paper",
-  Medium: "bg-warning text-paper",
-  Low: "bg-ink text-paper",
+  High: "bg-destructive text-white rounded-md",
+  Medium: "bg-warning text-ink rounded-md",
+  Low: "bg-ink text-white rounded-md",
 };
 
 function StatCard({
@@ -51,7 +51,7 @@ function StatCard({
   icon: typeof Building2;
 }) {
   return (
-    <div className="border border-hairline bg-paper p-5">
+    <div className="rounded-2xl border border-hairline bg-card p-5 shadow-[var(--shadow-clay)]">
       <div className="flex items-start justify-between gap-2">
         <span className="font-mono uppercase tracking-[0.1em] text-[10px] font-bold text-caption">
           {label}
