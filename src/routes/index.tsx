@@ -40,9 +40,9 @@ export const Route = createFileRoute("/")({
 });
 
 const URGENCY_BADGE: Record<ParsedIntent["urgency"], string> = {
-  emergency: "bg-destructive text-paper",
-  urgent: "bg-warning text-paper",
-  routine: "bg-ink text-paper",
+  emergency: "bg-destructive text-white",
+  urgent: "bg-warning text-ink",
+  routine: "bg-ink text-white",
 };
 
 function Kicker({ children, className = "" }: { children: React.ReactNode; className?: string }) {
