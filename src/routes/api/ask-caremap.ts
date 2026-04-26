@@ -43,6 +43,10 @@ interface ParsedIntent {
   preferredFacilityTypes: string[];
   explanationForUser: string;
   safetyMessage: string;
+  locationMentioned: boolean;
+  extractedState: string | null;
+  extractedCity: string | null;
+  extractedPinCode: string | null;
 }
 
 const SYSTEM_PROMPT = `You are CareMap's medical intent parser for India.
