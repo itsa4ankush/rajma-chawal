@@ -298,7 +298,7 @@ export function ChatPanel({ onSearchStart, onResults }: ChatPanelProps = {}) {
           ) : m.role === "loading" ? (
             <div key={i} className="flex justify-start">
               <div className="flex items-start gap-2">
-                <div className="flex h-7 w-7 shrink-0 items-center justify-center border border-ink bg-paper">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-hairline bg-white">
                   <Bot className="h-3.5 w-3.5" />
                 </div>
                 <div className="border-l-[3px] border-caption pl-3 py-1 font-mono uppercase tracking-[0.1em] text-[11px] font-bold text-caption inline-flex items-center gap-2">
