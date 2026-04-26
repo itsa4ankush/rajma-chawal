@@ -273,32 +273,32 @@ function Index() {
                 {/* Results list */}
                 <div className="mt-6">
                   {loading ? (
-                    <div className="grid grid-cols-1 gap-0 divide-y divide-ink border-t border-b border-ink">
+                    <div className="grid grid-cols-1 gap-4">
                       {[0, 1, 2].map((i) => (
                         <div
                           key={i}
-                          className="h-44 animate-pulse bg-muted"
+                          className="h-44 animate-pulse rounded-2xl bg-muted border border-hairline"
                         />
                       ))}
                     </div>
                   ) : results === null ? (
-                    <div className="border border-hairline bg-paper p-12 text-center">
+                    <div className="rounded-2xl border border-hairline bg-card p-12 text-center shadow-[var(--shadow-clay)]">
                       <MessageSquare className="mx-auto mb-4 h-6 w-6 text-caption" />
                       <Kicker className="text-caption">Awaiting Query</Kicker>
-                      <p className="mt-3 font-serif text-base text-page-ink">
+                      <p className="mt-3 text-base text-page-ink">
                         Ask a question on the left to see matching facilities here.
                       </p>
                     </div>
                   ) : results.length === 0 ? (
-                    <div className="border border-hairline bg-paper p-12 text-center">
+                    <div className="rounded-2xl border border-hairline bg-card p-12 text-center shadow-[var(--shadow-clay)]">
                       <Kicker className="text-caption">No Match</Kicker>
-                      <p className="mt-3 font-serif text-base text-page-ink">
+                      <p className="mt-3 text-base text-page-ink">
                         No matching facilities for that question. Try rephrasing or
                         broadening your search.
                       </p>
                     </div>
                   ) : showList ? (
-                    <div className="border-t border-ink">
+                    <div className="flex flex-col gap-4">
                       {results.map((f, idx) => (
                         <FacilityCard
                           key={f.id}
