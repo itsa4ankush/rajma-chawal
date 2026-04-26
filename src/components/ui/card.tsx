@@ -3,17 +3,17 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 /**
- * Raycast-style card.
- * - Elevated surface (#101111), 16px radius
- * - Double-ring shadow for macOS-native containment
- * - Inter 22px/400 heading, +0.2px tracking on body
+ * Sentry-style card.
+ * - Surface 100 (#150f23) with subtle purple border
+ * - Standard elevated shadow
+ * - Rubik 24px/500 title, body in 16px caption gray
  */
 const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
       className={cn(
-        "bg-card text-card-foreground rounded-2xl border border-[rgb(255_255_255_/_0.06)] shadow-[var(--shadow-ring)]",
+        "bg-card text-card-foreground rounded-xl border border-[var(--color-hairline)] shadow-[var(--shadow-card)]",
         className,
       )}
       {...props}
@@ -33,7 +33,7 @@ const CardTitle = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivE
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn("font-sans text-[22px] font-medium leading-[1.15] tracking-normal", className)}
+      className={cn("font-sans text-2xl font-medium leading-[1.25] tracking-normal", className)}
       {...props}
     />
   ),
@@ -44,7 +44,7 @@ const CardDescription = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HT
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn("font-sans text-sm text-muted-foreground tracking-[0.01em]", className)}
+      className={cn("font-sans text-base font-normal leading-[1.5] text-muted-foreground", className)}
       {...props}
     />
   ),
