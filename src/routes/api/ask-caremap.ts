@@ -522,6 +522,11 @@ export const Route = createFileRoute("/api/ask-caremap")({
         let facilities: Facility[] = [];
         let center: { lat: number; lng: number } | null = null;
         let dbxError: string | null = null;
+        let searchTrace: { filtersUsed: string[]; ranking: string; candidateRows: number } = {
+          filtersUsed: [],
+          ranking: "trust_score DESC",
+          candidateRows: 0,
+        };
         try {
           const result = await searchFacilities(
             intent.medicalNeed,
@@ -534,14 +539,36 @@ export const Route = createFileRoute("/api/ask-caremap")({
           );
           facilities = result.facilities;
           center = result.center;
+          searchTrace = result.trace;
         } catch (err) {
           dbxError = err instanceof Error ? err.message : "Databricks unavailable";
         }
 
-        const enriched = facilities.map((f) => ({
-          ...f,
-          matchedCapability: capabilityForNeed(f, intent.medicalNeed),
-        }));
+        // Fields the ranking & need-filter actually consulted (for citation)
+        const fieldsUsed = fieldsUsedForNeed(intent.medicalNeed);
+
+        const enriched: Facility[] = facilities.map((f) => {
+          const trace: DecisionTrace = {
+            user_message: message,
+            parsed_intent: intent.medicalNeed,
+            location: {
+              state: canonicalState || null,
+              city: resolvedCity || null,
+              pinCode: resolvedPin || null,
+            },
+            source_table: f.source_table || TABLE,
+            filters_applied: searchTrace.filtersUsed,
+            ranking: searchTrace.ranking,
+            candidate_rows: searchTrace.candidateRows,
+            returned_rows: facilities.length,
+            fields_used_for_recommendation: fieldsUsed,
+          };
+          return {
+            ...f,
+            matchedCapability: capabilityForNeed(f, intent.medicalNeed),
+            decision_trace: trace,
+          };
+        });
 
         return jsonResponse({
           needsLocation: false,
