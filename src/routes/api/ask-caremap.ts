@@ -441,6 +441,30 @@ async function searchFacilities(
   return { facilities, center, trace };
 }
 
+function fieldsUsedForNeed(need: MedicalNeed): string[] {
+  const base = ["address_stateOrRegion", "address_city", "address_zipOrPostcode", "trust_score"];
+  switch (need) {
+    case "Emergency Surgery":
+    case "Trauma Care":
+      return [...base, "emergency_surgery_capability", "has_surgeon", "has_anesthesiologist", "has_operation_theatre"];
+    case "ICU + Oxygen":
+      return [...base, "icu_capability", "has_icu", "has_oxygen"];
+    case "Dialysis":
+      return [...base, "dialysis_capability", "has_dialysis"];
+    case "Neonatal Care":
+      return [...base, "has_neonatal_care"];
+    case "Emergency Care":
+      return [...base, "is_24_7", "has_ambulance", "emergency_surgery_capability"];
+    case "Maternal Care":
+      return [...base, "has_neonatal_care", "is_24_7"];
+    case "General Medicine":
+    case "Vaccination / Post-exposure Care":
+      return [...base, "is_24_7"];
+    default:
+      return base;
+  }
+}
+
 function capabilityForNeed(f: Facility, need: MedicalNeed): string {
   switch (need) {
     case "Emergency Surgery": return `Emergency Surgery: ${f.emergency_surgery_capability}`;
