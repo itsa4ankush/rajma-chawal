@@ -31,27 +31,27 @@ export function DatabricksStatusCard() {
   }, []);
 
   return (
-    <div className="mx-auto mt-4 inline-flex items-center gap-2 rounded-lg border border-border/60 bg-card px-3 py-1.5 text-xs text-muted-foreground">
+    <div className="inline-flex items-center gap-2 border border-paper/30 px-3 py-1.5 font-mono uppercase tracking-[0.08em] text-[10px] font-bold text-paper/80">
       {health.status === "loading" ? (
         <>
-          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          <Loader2 className="h-3 w-3 animate-spin" />
           <span>Checking Databricks…</span>
         </>
       ) : health.status === "ok" ? (
         <>
-          <CheckCircle2 className="h-3.5 w-3.5 text-accent" />
+          <CheckCircle2 className="h-3 w-3 text-paper" />
           <span>
-            Databricks connected ·{" "}
-            <span className="font-medium text-foreground">
+            Databricks Connected ·{" "}
+            <span className="text-paper">
               {health.totalFacilities.toLocaleString()}
             </span>{" "}
-            facilities
+            Facilities
           </span>
         </>
       ) : (
         <>
-          <XCircle className="h-3.5 w-3.5 text-destructive" />
-          <span title={health.message}>Databricks unavailable</span>
+          <XCircle className="h-3 w-3 text-destructive" />
+          <span title={health.message}>Databricks Unavailable</span>
         </>
       )}
     </div>

@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { AlertTriangle, Bot, Loader2, MapPin, Send, Sparkles, User } from "lucide-react";
+import { AlertTriangle, Bot, Loader2, MapPin, Send, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import type { Facility, MedicalNeed } from "@/lib/facilities";
 import { OFFICIAL_STATE_NAMES, getCanonicalState } from "@/lib/location-normalization";
@@ -43,13 +42,13 @@ interface PendingLocation {
 function MarkdownLite({ text }: { text: string }) {
   const parts = text.split(/(\*\*[^*]+\*\*|_[^_]+_)/g);
   return (
-    <p className="text-sm leading-relaxed whitespace-pre-wrap">
+    <p className="font-serif text-[15px] leading-[1.5] whitespace-pre-wrap">
       {parts.map((p, i) => {
         if (p.startsWith("**") && p.endsWith("**"))
-          return <strong key={i}>{p.slice(2, -2)}</strong>;
+          return <strong key={i} className="font-bold">{p.slice(2, -2)}</strong>;
         if (p.startsWith("_") && p.endsWith("_"))
           return (
-            <em key={i} className="text-muted-foreground">
+            <em key={i} className="text-caption not-italic font-mono uppercase tracking-[0.08em] text-[11px]">
               {p.slice(1, -1)}
             </em>
           );
@@ -60,9 +59,9 @@ function MarkdownLite({ text }: { text: string }) {
 }
 
 const URGENCY_TONE: Record<ParsedIntent["urgency"], string> = {
-  emergency: "border-destructive/40 bg-destructive/10 text-destructive",
-  urgent: "border-warning/40 bg-warning/15 text-warning-foreground",
-  routine: "border-border bg-muted text-foreground",
+  emergency: "bg-destructive text-paper",
+  urgent: "bg-warning text-paper",
+  routine: "bg-ink text-paper",
 };
 
 export interface ChatPanelProps {
@@ -91,7 +90,6 @@ function asMedicalNeed(v: string): MedicalNeed | "" {
   return (SUPPORTED_NEEDS as string[]).includes(v) ? (v as MedicalNeed) : "";
 }
 
-/** Best-effort client-side parse of a free-form location reply. */
 function parseLocationReply(text: string): {
   state?: string;
   city?: string;
@@ -101,7 +99,6 @@ function parseLocationReply(text: string): {
   const pinMatch = text.match(/\b(\d{6})\b/);
   if (pinMatch) out.pinCode = pinMatch[1];
 
-  // Try to find a known Indian state in the text.
   const lower = text.toLowerCase();
   for (const state of OFFICIAL_STATE_NAMES) {
     if (lower.includes(state.toLowerCase())) {
@@ -110,7 +107,6 @@ function parseLocationReply(text: string): {
     }
   }
   if (!out.state) {
-    // Try canonical match on each comma-separated chunk
     for (const chunk of text.split(/[,;]/).map((c) => c.trim())) {
       const canon = getCanonicalState(chunk);
       if (canon) {
@@ -120,7 +116,6 @@ function parseLocationReply(text: string): {
     }
   }
 
-  // Remaining tokens after stripping pin and state become the city candidate.
   let remaining = text;
   if (out.pinCode) remaining = remaining.replace(out.pinCode, "");
   if (out.state) {
@@ -140,7 +135,7 @@ export function ChatPanel({ onSearchStart, onResults }: ChatPanelProps = {}) {
       role: "bot",
       content: {
         text:
-          "Hi! I'm **CareMap**. Describe the health problem in plain language — for example *\"my father has chest pain in Mumbai\"* or *\"I was bitten by a dog in Patna\"* — and I'll find matching facilities nearby.\n\n_I don't give medical diagnosis or treatment. For emergencies, please call local emergency services._",
+          "Describe the health problem in plain language — for example *my father has chest pain in Mumbai* or *I was bitten by a dog in Patna* — and I'll find matching facilities nearby.\n\n_I don't give diagnosis or treatment. For emergencies call local services._",
       },
     },
   ]);
@@ -192,11 +187,10 @@ export function ChatPanel({ onSearchStart, onResults }: ChatPanelProps = {}) {
     try {
       let data;
       if (pending) {
-        // User is replying with a location to a prior question.
         const loc = parseLocationReply(trimmed);
         if (!loc.state && !loc.city && !loc.pinCode) {
           throw new Error(
-            "I couldn't recognize a location in that reply. Try a city like \"Patna\", a state like \"Bihar\", or a 6-digit PIN code.",
+            "I couldn't recognize a location. Try a city like \"Patna\", a state like \"Bihar\", or a 6-digit PIN code.",
           );
         }
         onSearchStart?.();
@@ -220,7 +214,6 @@ export function ChatPanel({ onSearchStart, onResults }: ChatPanelProps = {}) {
       };
 
       if (data.needsLocation) {
-        // Don't change right-pane results; just ask for location.
         onResults?.([], "", "live", undefined);
         setPending({
           originalMessage: pending?.originalMessage ?? trimmed,
@@ -245,7 +238,7 @@ export function ChatPanel({ onSearchStart, onResults }: ChatPanelProps = {}) {
         const safety = intent.safetyMessage ? `${intent.safetyMessage}\n\n` : "";
         const matchLine =
           count === 0
-            ? "No matching facilities found nearby. Try a different city or PIN."
+            ? "No matching facilities nearby. Try a different city or PIN."
             : `${count} ${count === 1 ? "facility" : "facilities"} nearby →`;
 
         reply = {
@@ -256,7 +249,7 @@ export function ChatPanel({ onSearchStart, onResults }: ChatPanelProps = {}) {
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Unknown error";
       reply = {
-        text: `**I couldn't process that question right now.**\n\n${msg}\n\nPlease try again. If this is a medical emergency, call local emergency services immediately.`,
+        text: `**Couldn't process that.**\n\n${msg}\n\nIf this is a medical emergency, call local services immediately.`,
         isError: true,
       };
     }
@@ -269,149 +262,148 @@ export function ChatPanel({ onSearchStart, onResults }: ChatPanelProps = {}) {
   }
 
   return (
-    <Card className="border-border/70">
-      <CardContent className="p-0 flex flex-col h-[640px]">
-        <div className="border-b border-border/60 p-4 flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <Sparkles className="h-4 w-4" />
-          </div>
-          <div className="min-w-0">
-            <div className="text-sm font-semibold text-foreground">Ask CareMap</div>
-            <div className="text-[11px] text-muted-foreground">
-              AI intent parser + Databricks facility intelligence
+    <div className="bg-paper flex flex-col h-[640px]">
+      {/* Header */}
+      <div className="border-b border-hairline p-4 flex items-center gap-2">
+        <span className="font-mono uppercase tracking-[0.1em] text-[11px] font-bold text-ink">
+          AI Intent Parser
+        </span>
+        <span className="h-2 w-2 bg-ink" />
+        <span className="font-mono uppercase tracking-[0.1em] text-[11px] font-bold text-caption">
+          Databricks Intelligence
+        </span>
+        {pending && (
+          <span className="ml-auto inline-flex items-center gap-1 bg-warning text-paper px-2 py-1 font-mono uppercase tracking-[0.08em] text-[10px] font-bold">
+            <MapPin className="h-3 w-3" /> Location Needed
+          </span>
+        )}
+      </div>
+
+      {/* Messages */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4">
+        {messages.map((m, i) =>
+          m.role === "user" ? (
+            <div key={i} className="flex justify-end">
+              <div className="flex items-start gap-2 max-w-[88%]">
+                <div className="bg-ink text-paper px-3 py-2 font-serif text-[14px] leading-snug">
+                  {m.text}
+                </div>
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center border border-ink bg-paper">
+                  <User className="h-3.5 w-3.5" />
+                </div>
+              </div>
             </div>
-          </div>
-          {pending && (
-            <span className="ml-auto inline-flex items-center gap-1 rounded-full border border-warning/40 bg-warning/10 px-2 py-0.5 text-[10px] font-medium text-warning-foreground">
-              <MapPin className="h-3 w-3" /> Waiting for location
-            </span>
-          )}
-        </div>
-
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3">
-          {messages.map((m, i) =>
-            m.role === "user" ? (
-              <div key={i} className="flex justify-end">
-                <div className="flex items-start gap-2 max-w-[85%]">
-                  <div className="rounded-2xl rounded-tr-sm bg-primary text-primary-foreground px-3 py-2 text-sm">
-                    {m.text}
-                  </div>
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
-                    <User className="h-3.5 w-3.5" />
-                  </div>
+          ) : m.role === "loading" ? (
+            <div key={i} className="flex justify-start">
+              <div className="flex items-start gap-2">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center border border-ink bg-paper">
+                  <Bot className="h-3.5 w-3.5" />
+                </div>
+                <div className="border-l-[3px] border-caption pl-3 py-1 font-mono uppercase tracking-[0.1em] text-[11px] font-bold text-caption inline-flex items-center gap-2">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> Parsing intent…
                 </div>
               </div>
-            ) : m.role === "loading" ? (
-              <div key={i} className="flex justify-start">
-                <div className="flex items-start gap-2">
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent">
-                    <Bot className="h-3.5 w-3.5" />
-                  </div>
-                  <div className="rounded-2xl rounded-tl-sm bg-muted px-3 py-2 text-sm text-muted-foreground inline-flex items-center gap-2">
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" /> Understanding your question…
-                  </div>
+            </div>
+          ) : (
+            <div key={i} className="flex justify-start">
+              <div className="flex items-start gap-2 max-w-[92%]">
+                <div
+                  className={`flex h-7 w-7 shrink-0 items-center justify-center border ${
+                    m.content.isError ? "border-destructive bg-paper text-destructive" : "border-ink bg-paper text-ink"
+                  }`}
+                >
+                  {m.content.isError ? <AlertTriangle className="h-3.5 w-3.5" /> : <Bot className="h-3.5 w-3.5" />}
                 </div>
-              </div>
-            ) : (
-              <div key={i} className="flex justify-start">
-                <div className="flex items-start gap-2 max-w-[90%]">
-                  <div
-                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${
-                      m.content.isError
-                        ? "bg-destructive/15 text-destructive"
-                        : "bg-accent/15 text-accent"
-                    }`}
-                  >
-                    {m.content.isError ? (
-                      <AlertTriangle className="h-3.5 w-3.5" />
-                    ) : (
-                      <Bot className="h-3.5 w-3.5" />
-                    )}
-                  </div>
-                  <div
-                    className={`rounded-2xl rounded-tl-sm px-3 py-2 ${
-                      m.content.isError
-                        ? "border border-destructive/30 bg-destructive/5"
-                        : "bg-muted"
-                    }`}
-                  >
-                    {m.content.intent && (
-                      <div className="mb-2 flex flex-wrap gap-1.5">
-                        <span
-                          className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide ${URGENCY_TONE[m.content.intent.urgency]}`}
-                        >
-                          {m.content.intent.urgency}
+                <div
+                  className={`px-3 py-2 ${
+                    m.content.isError
+                      ? "border-l-[3px] border-destructive"
+                      : "border-l-[3px] border-ink"
+                  }`}
+                >
+                  {m.content.intent && (
+                    <div className="mb-2 flex flex-wrap gap-1.5">
+                      <span
+                        className={`font-mono uppercase tracking-[0.08em] text-[10px] font-bold px-2 py-1 ${URGENCY_TONE[m.content.intent.urgency]}`}
+                      >
+                        {m.content.intent.urgency}
+                      </span>
+                      <span className="font-mono uppercase tracking-[0.08em] text-[10px] font-bold px-2 py-1 border border-ink text-ink">
+                        {m.content.intent.understoodNeed}
+                      </span>
+                      {m.content.awaitingLocation && (
+                        <span className="font-mono uppercase tracking-[0.08em] text-[10px] font-bold px-2 py-1 bg-warning text-paper inline-flex items-center gap-1">
+                          <MapPin className="h-3 w-3" /> Location
                         </span>
-                        <span className="inline-flex items-center rounded-full border border-border bg-card px-2 py-0.5 text-[10px] font-medium text-foreground/80">
-                          {m.content.intent.understoodNeed}
-                        </span>
-                        {m.content.awaitingLocation && (
-                          <span className="inline-flex items-center gap-1 rounded-full border border-warning/40 bg-warning/10 px-2 py-0.5 text-[10px] font-medium text-warning-foreground">
-                            <MapPin className="h-3 w-3" /> Location needed
-                          </span>
-                        )}
-                      </div>
-                    )}
-                    <MarkdownLite text={m.content.text} />
-                  </div>
+                      )}
+                    </div>
+                  )}
+                  <MarkdownLite text={m.content.text} />
                 </div>
               </div>
-            ),
-          )}
+            </div>
+          ),
+        )}
+      </div>
+
+      {/* Quick suggestions */}
+      {pending ? (
+        <div className="border-t border-hairline p-3 flex flex-wrap gap-2">
+          <span className="font-mono uppercase tracking-[0.1em] text-[10px] font-bold text-caption self-center mr-1">
+            Try
+          </span>
+          {LOCATION_EXAMPLES.map((ex) => (
+            <button
+              key={ex}
+              onClick={() => void send(ex)}
+              className="font-mono uppercase tracking-[0.08em] text-[10px] font-bold border border-ink bg-paper px-3 py-1.5 hover:bg-ink hover:text-paper transition-colors disabled:opacity-40"
+              disabled={busy}
+            >
+              {ex}
+            </button>
+          ))}
         </div>
+      ) : messages.length <= 1 ? (
+        <div className="border-t border-hairline p-3 flex flex-wrap gap-2">
+          <span className="font-mono uppercase tracking-[0.1em] text-[10px] font-bold text-caption self-center mr-1 w-full sm:w-auto">
+            Try Asking
+          </span>
+          {EXAMPLES.map((ex) => (
+            <button
+              key={ex}
+              onClick={() => void send(ex)}
+              className="font-serif text-[12px] border border-hairline bg-paper px-3 py-1.5 hover:border-ink hover:text-link transition-colors disabled:opacity-40"
+              disabled={busy}
+            >
+              {ex}
+            </button>
+          ))}
+        </div>
+      ) : null}
 
-        {pending ? (
-          <div className="border-t border-border/60 p-3 flex flex-wrap gap-1.5">
-            <span className="text-[11px] text-muted-foreground self-center mr-1">Try:</span>
-            {LOCATION_EXAMPLES.map((ex) => (
-              <button
-                key={ex}
-                onClick={() => void send(ex)}
-                className="text-xs rounded-full border border-border bg-card px-3 py-1 hover:bg-accent/10 hover:border-accent/30 text-foreground/80 transition-colors"
-                disabled={busy}
-              >
-                {ex}
-              </button>
-            ))}
-          </div>
-        ) : messages.length <= 1 ? (
-          <div className="border-t border-border/60 p-3 flex flex-wrap gap-1.5">
-            {EXAMPLES.map((ex) => (
-              <button
-                key={ex}
-                onClick={() => void send(ex)}
-                className="text-xs rounded-full border border-border bg-card px-3 py-1 hover:bg-accent/10 hover:border-accent/30 text-foreground/80 transition-colors"
-                disabled={busy}
-              >
-                {ex}
-              </button>
-            ))}
-          </div>
-        ) : null}
-
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            void send(input);
-          }}
-          className="border-t border-border/60 p-3 flex gap-2"
-        >
-          <Input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder={
-              pending
-                ? "Type a city, state, or 6-digit PIN code…"
-                : "Describe the health problem in your own words…"
-            }
-            className="flex-1"
-            disabled={busy}
-          />
-          <Button type="submit" size="icon" aria-label="Send" disabled={busy}>
-            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+      {/* Input — printerly 2px border */}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          void send(input);
+        }}
+        className="border-t-2 border-ink p-3 flex gap-2"
+      >
+        <Input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder={
+            pending
+              ? "City, state, or 6-digit PIN…"
+              : "Describe the health problem…"
+          }
+          className="flex-1"
+          disabled={busy}
+        />
+        <Button type="submit" size="icon" aria-label="Send" disabled={busy} variant="inverted">
+          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+        </Button>
+      </form>
+    </div>
   );
 }
