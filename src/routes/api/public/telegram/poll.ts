@@ -281,7 +281,7 @@ async function runPoll(origin: string): Promise<PollResult> {
         update_id: u.update_id,
         chat_id: u.message!.chat.id,
         text: u.message!.text ?? null,
-        raw_update: u as unknown as Record<string, unknown>,
+        raw_update: u as never,
       }));
 
     if (rows.length > 0) {
