@@ -320,8 +320,8 @@ export function FacilityCard({
         id={`facility-${facility.id}`}
         onMouseEnter={() => onHover?.(facility.id)}
         onMouseLeave={() => onHover?.(null)}
-        className={`group border-b border-ink bg-paper py-6 sm:py-8 first:pt-6 transition-[border-color,background-color] ${
-          isActive ? "bg-muted border-l-[3px] border-l-link pl-3 sm:pl-4 -ml-3 sm:-ml-4" : ""
+        className={`group rounded-2xl border bg-card p-5 sm:p-6 shadow-[var(--shadow-clay)] transition-all ${
+          isActive ? "border-link ring-2 ring-link/20" : "border-hairline"
         }`}
       >
         <div className="flex items-start gap-4 sm:gap-6">
