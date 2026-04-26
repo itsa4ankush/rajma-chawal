@@ -155,8 +155,8 @@ function Index() {
                           : "Facilities"}
                     </span>
                     {dataSource && !loading && (
-                      <span className="flex items-center gap-1 text-paper/70">
-                        <span className="h-3 w-px bg-paper/40" />
+                      <span className="flex items-center gap-1 text-ink/70">
+                        <span className="h-3 w-px bg-ink/30" />
                         {dataSource === "live" ? (
                           <>
                             <Database className="h-3 w-3" /> Live
@@ -169,7 +169,7 @@ function Index() {
                       </span>
                     )}
                     {results && results.length > 0 && !loading && (
-                      <span className="ml-auto flex items-center border border-paper/40">
+                      <span className="ml-auto flex items-center rounded-lg border border-hairline bg-white overflow-hidden">
                         {(
                           [
                             { v: "both", label: "Both", Icon: Rows },
@@ -184,8 +184,8 @@ function Index() {
                             aria-pressed={view === v}
                             className={`flex items-center gap-1 px-2 py-1 font-mono uppercase tracking-[0.08em] text-[10px] font-bold transition-colors ${
                               view === v
-                                ? "bg-paper text-ink"
-                                : "bg-transparent text-paper/80 hover:bg-paper/10"
+                                ? "bg-ink text-white"
+                                : "bg-transparent text-ink/60 hover:bg-oat-light hover:text-ink"
                             }`}
                           >
                             <Icon className="h-3 w-3" />
