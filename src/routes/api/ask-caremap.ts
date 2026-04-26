@@ -430,15 +430,46 @@ export const Route = createFileRoute("/api/ask-caremap")({
           return jsonResponse({ error: `Intent parsing failed: ${msg}` }, 502);
         }
 
-        // 2. Query Databricks
+        // 2. Resolve final location: prefer explicit body params, fall back to LLM-extracted.
+        const canonicalState =
+          (body.state?.trim() && getCanonicalState(body.state.trim())) ||
+          (intent.extractedState && getCanonicalState(intent.extractedState)) ||
+          body.state?.trim() ||
+          intent.extractedState ||
+          "";
+        const resolvedCity = (body.city?.trim() || intent.extractedCity || "").trim();
+        const rawPin = (body.pinCode?.trim() || intent.extractedPinCode || "").trim();
+        const resolvedPin = /^\d{6}$/.test(rawPin) ? rawPin : "";
+
+        const hasLocation = Boolean(canonicalState || resolvedCity || resolvedPin);
+
+        const dataLimitation =
+          intent.medicalNeed === "Vaccination / Post-exposure Care" ? VACCINE_LIMITATION : "";
+
+        // 3. If no location, ask for it (still surface safety guidance).
+        if (!hasLocation) {
+          return jsonResponse({
+            needsLocation: true,
+            understoodNeed: intent.medicalNeed,
+            urgency: intent.urgency,
+            userExplanation: intent.explanationForUser,
+            safetyMessage: intent.safetyMessage,
+            dataLimitation,
+            promptForLocation:
+              "To find the nearest facilities, please share your location — a city, district, state, or 6-digit PIN code works.",
+            facilities: [],
+          });
+        }
+
+        // 4. Query Databricks with proximity sort.
         let facilities: Facility[] = [];
         let dbxError: string | null = null;
         try {
           facilities = await searchFacilities(
             intent.medicalNeed,
-            body.state,
-            body.city,
-            body.pinCode,
+            canonicalState || undefined,
+            resolvedCity || undefined,
+            resolvedPin || undefined,
             LOVABLE_API_KEY,
             DATABRICKS_API_KEY,
             WAREHOUSE_ID,
@@ -447,16 +478,13 @@ export const Route = createFileRoute("/api/ask-caremap")({
           dbxError = err instanceof Error ? err.message : "Databricks unavailable";
         }
 
-        // 3. Build per-facility match info (kept on Facility shape so existing FacilityCard works)
         const enriched = facilities.map((f) => ({
           ...f,
           matchedCapability: capabilityForNeed(f, intent.medicalNeed),
         }));
 
-        const dataLimitation =
-          intent.medicalNeed === "Vaccination / Post-exposure Care" ? VACCINE_LIMITATION : "";
-
         return jsonResponse({
+          needsLocation: false,
           understoodNeed: intent.medicalNeed,
           specialtyNeed: intent.specialtyNeed,
           urgency: intent.urgency,
@@ -464,6 +492,11 @@ export const Route = createFileRoute("/api/ask-caremap")({
           safetyMessage: intent.safetyMessage,
           dataLimitation,
           dataSourceError: dbxError,
+          resolvedLocation: {
+            state: canonicalState || null,
+            city: resolvedCity || null,
+            pinCode: resolvedPin || null,
+          },
           facilities: enriched,
         });
       },
