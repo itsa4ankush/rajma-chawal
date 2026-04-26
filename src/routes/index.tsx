@@ -117,6 +117,7 @@ function Index() {
             <TabsList>
               <TabsTrigger value="search">Patient · Health Worker</TabsTrigger>
               <TabsTrigger value="dashboard">NGO · Planner</TabsTrigger>
+              <TabsTrigger value="audit">Truth Gap Audit</TabsTrigger>
             </TabsList>
           </div>
 
