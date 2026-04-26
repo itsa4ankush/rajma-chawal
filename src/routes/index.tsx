@@ -86,7 +86,7 @@ function Index() {
       <div className="bg-ink text-white">
         <div className="mx-auto flex max-w-[1400px] items-center justify-between px-4 py-2 text-[11px] sm:px-6">
           <span className="font-mono uppercase tracking-[0.12em]">
-            CareMap · Field Edition
+            Raahat · Field Edition
           </span>
           <span className="hidden sm:inline font-mono uppercase tracking-[0.12em] text-white/70">
             Verified facility intelligence · India
