@@ -45,6 +45,10 @@ Raahat India converts fragmented healthcare facility records into a structured i
   “Truth Gap Audit” exposes missing or inconsistent data
 <img width="1876" height="1061" alt="image" src="https://github.com/user-attachments/assets/7e0a30c1-c235-458f-9958-f237339c1e15" />
 
+
+https://github.com/user-attachments/assets/585402ce-1629-4191-bfda-e9a11b92fbbe
+
+
 ---
 
 ## Key Features
