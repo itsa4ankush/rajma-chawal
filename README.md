@@ -5,6 +5,8 @@ Raahat India is a healthcare discovery and intelligence platform designed to hel
 
 Built during a 24-hour global AI hackathon, the platform focuses on enabling fast, informed decision-making in high-stakes scenarios such as medical emergencies and resource planning.
 
+Note: This was our project submission for the 5th Hack-Nation AI Hackathon in collaboration with MIT Sloan AI CLub on 25th & 27th APril, 2026
+
 
 **URL**: [Project Link](https://guardian-wings-watch.lovable.app)
 ---
