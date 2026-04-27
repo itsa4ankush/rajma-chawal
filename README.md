@@ -3,7 +3,9 @@
 ## Overview
 Raahat India is a healthcare discovery and intelligence platform designed to help patients, families, NGOs, and policymakers identify reliable medical facilities across India. It transforms messy, unstructured healthcare data into a structured, trustworthy, and queryable system.
 
-Built during a 24-hour global AI hackathon, the platform focuses on enabling fast, informed decision-making in high-stakes scenarios such as medical emergencies and resource planning.
+Built during a 24-hour global AI hackathon, the platform focuses on enabling fast, informed decision-making in high-stakes scenarios such as medical emergencies and resource planning. The prototype a functional web application and mobile bot for enhanced user accebility and service availability. For the use case weused a Tellegram bot.
+
+Important Note: Some of the features may not work due to the exhaustion of our tokens, and credits of AI or premium applications. 
 
 Note: This was our project submission for the 5th Hack-Nation AI Hackathon in collaboration with MIT Sloan AI CLub on 25th & 27th APril, 2026
 
