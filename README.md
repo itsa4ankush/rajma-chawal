@@ -43,6 +43,7 @@ Raahat India converts fragmented healthcare facility records into a structured i
 
 - **Transparent Data Quality Layer**  
   “Truth Gap Audit” exposes missing or inconsistent data
+<img width="1876" height="1061" alt="image" src="https://github.com/user-attachments/assets/7e0a30c1-c235-458f-9958-f237339c1e15" />
 
 ---
 
